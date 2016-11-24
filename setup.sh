@@ -31,6 +31,22 @@ fi
 # switch to deps directory
 cd $PWD/deps
 
+# install benchmark
+if [ ! -d "./benchmark" ]; then
+  git clone https://github.com/google/benchmark.git
+  cd benchmark
+  mkdir build
+  cd build
+  cmake ..
+  make -j`nproc`
+  sudo make install
+else
+  echo "benchmark has already been installed."
+fi
+
+#switch to deps directory
+cd $PWD/deps
+
 # install several packages that are required to build bess
 sudo apt-get install libssl-dev libunwind8-dev liblzma-dev
 
