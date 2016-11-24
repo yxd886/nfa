@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # record current working directory
-PWD=`pwd`
+NFA_DIR=`pwd`
 
 # the current working branch of bess
 BESS_BRANCH="c++"
@@ -29,7 +29,7 @@ else
 fi
 
 # switch to deps directory
-cd $PWD/deps
+cd $NFA_DIR/deps
 
 # install benchmark
 if [ ! -d "./benchmark" ]; then
@@ -45,7 +45,7 @@ else
 fi
 
 #switch to deps directory
-cd $PWD/deps
+cd $NFA_DIR/deps
 
 # install several packages that are required to build bess
 sudo apt-get install libssl-dev libunwind8-dev liblzma-dev
