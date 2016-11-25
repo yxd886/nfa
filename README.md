@@ -9,3 +9,7 @@ To build C++ branch of BESS, the following things must be installed.
 2. After installing grpc, should install protocol buffer from the third_party directory of grpc.
 
 3. Need to install libssl-dev libunwind8-dev liblzma-dev.
+
+# Some notes for using DPDK mem_buf.
+
+1. Use clone to create a copy of a rte_mbuf. It is super fast, no data copy.

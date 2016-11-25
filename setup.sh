@@ -48,7 +48,7 @@ fi
 cd $NFA_DIR/deps
 
 # install several packages that are required to build bess
-sudo apt-get install libssl-dev libunwind8-dev liblzma-dev
+sudo apt-get install libssl-dev libunwind8-dev liblzma-dev libgoogle-glog-dev libgflags-dev libgtest-dev
 
 # download and build bess
 if [ ! -d "./bess" ]; then
@@ -58,3 +58,7 @@ if [ ! -d "./bess" ]; then
 else
   echo "bess has already been built."
 fi
+
+# build google test, no need, bess installs it.
+# build google flag, no need, bess installs it.
+# build google log, no need, bess installs it.
