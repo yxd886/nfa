@@ -17,7 +17,7 @@
 GTEST_DIR = /usr/src/gtest
 
 # Where to find user code.
-USER_DIR = ./
+USER_DIR = .
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread
