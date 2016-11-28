@@ -1,7 +1,29 @@
-// Implement all the messages that I defined in the new design document.
-
-
+// Define all the RPC calls that I defined in the new design document
 syntax = "proto3";
+import "nfa_msg.proto";
+
+// The greeting service definition.
+service Runtime_RPC {
+  // Sends a greeting
+  rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
+  
+  rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult) {}
+  
+  rpc MigrationNegotiate (MigrationNegotiation) returns (MigrationNegotiationResult) {}
+  
+  
+  
+  
+  
+  
+  
+}
+
+
+
+
+
+
 // The request message containing the user's name.
 message LivenessRequest {
   string name = 1;
