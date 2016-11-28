@@ -43,14 +43,14 @@ PROTOS_PATH = ../protobuf
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check  greeter_async_client  greeter_async_server
+all: system-check  main  nfa_rpc_server
 
 
-greeter_async_client: helloworld.pb.o helloworld.grpc.pb.o greeter_async_client.o
+main: helloworld.pb.o helloworld.grpc.pb.o main.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 
-greeter_async_server: helloworld.pb.o helloworld.grpc.pb.o greeter_async_server.o
+nfa_rpc_server: helloworld.pb.o helloworld.grpc.pb.o nfa_rpc_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 .PRECIOUS: %.grpc.pb.cc
@@ -62,7 +62,7 @@ greeter_async_server: helloworld.pb.o helloworld.grpc.pb.o greeter_async_server.
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h  greeter_async_client  greeter_async_server
+	rm -f *.o *.pb.cc *.pb.h  main  nfa_rpc_server
 
 
 # The following is to test your system and ensure a smoother experience.
