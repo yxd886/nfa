@@ -1,1 +1,19 @@
 // Define all the RPC calls that I defined in the new design document
+import nfa_msg.proto
+
+/ The greeting service definition.
+service Runtime_RPC {
+  // Sends a greeting
+  rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
+  
+  rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult) {}
+  
+  rpc MigrationNegotiate (MigrationNegotiation) returns (MigrationNegotiationResult) {}
+  
+  
+  
+  
+  
+  
+  
+}

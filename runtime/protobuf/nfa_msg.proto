@@ -1,1 +1,60 @@
 // Implement all the messages that I defined in the new design document.
+
+
+syntax = "proto3";
+// The request message containing the user's name.
+message LivenessRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message LivenessReply {
+  string reply = 1;
+}
+
+//message for view
+message View{
+  uint64 worker_id=1;
+  string input_port_mac=2;
+  string output_port_mac=3;
+  string control_port_mac=4;
+  string rpc_ip=5;
+  uint64 rpc_port=6;
+}
+
+message ViewList{
+  repeated View view=1;
+}
+
+message CurrentView{
+  repeated View input_views = 2;
+  repeated View output_views=3;
+  
+}
+
+//message for migration
+message MigrationTarget{
+  View Migration_target_info=1;
+  uint64 quota = 2;
+}
+
+message MigrationNegotiation{
+  View migration_source_info=1;
+  repeated View input_views=2;
+  repeated View output_views=3;
+  uint64 qouta=5;
+}
+
+message MigrationNegotiationResult{
+  bool succeed=1;
+  uint64 quota=2;
+}
+
+//message for replication
+message ReplicaList{
+  repeated View replicas=1;
+}
+
+message CurrentReplicas{
+  repeated View replicas=1;
+}
