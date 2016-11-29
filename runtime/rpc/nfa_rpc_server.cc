@@ -71,6 +71,7 @@ class ServerImpl final {
     // Get hold of the completion queue used for the asynchronous communication
     // with the gRPC runtime.
     cq_ = builder.AddCompletionQueue();
+    cq1 = builder.AddCompletionQueue();
     // Finally assemble the server.
     server_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
@@ -155,7 +156,7 @@ class ServerImpl final {
 
 
 
- /* class CallData1 {
+  class CallData1 {
      public:
       // Take in the "service" instance (in this case representing an asynchronous
       // server) and the completion queue "cq" used for asynchronous communication
@@ -225,30 +226,33 @@ class ServerImpl final {
       enum CallStatus { CREATE, PROCESS, FINISH };
       CallStatus status_;  // The current serving state.
     };
-*/
+
   // This can be run in multiple threads if needed.
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
     new CallData(&service_, cq_.get());
-   // new CallData1(&service_, cq_.get());
+    new CallData1(&service_, cq1.get());
     void* tag;  // uniquely identifies a request.
+    void* tag1;  // uniquely identifies a request.
     bool ok;
+    bool ok1;
     while (true) {
       // Block waiting to read the next event from the completion queue. The
       // event is uniquely identified by its tag, which in this case is the
       // memory address of a CallData instance.
       // The return value of Next should always be checked. This return value
       // tells us whether there is any kind of event or cq_ is shutting down.
-      GPR_ASSERT(cq_->Next(&tag, &ok));
-      GPR_ASSERT(ok);
+      GPR_ASSERT(cq_->Next(&tag, &ok)||cq1->Next(&tag1, &ok1));
+      GPR_ASSERT(ok||ok1);
       std::cout<<"before static cast"<<std::endl;
       static_cast<CallData*>(tag)->Proceed();
-    //  static_cast<CallData1*>(tag)->Proceed();
+     static_cast<CallData1*>(tag1)->Proceed();
       std::cout<<"after static cast"<<std::endl;
     }
   }
 
   std::unique_ptr<ServerCompletionQueue> cq_;
+  std::unique_ptr<ServerCompletionQueue> cq1;
   Greeter::AsyncService service_;
   std::unique_ptr<Server> server_;
 };
