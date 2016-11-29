@@ -86,15 +86,15 @@ class GreeterClient {
     }
   }
   std::string SayHelloagain(const std::string& user) {
-    HelloRequest request;
+    HelloagainRequest request;
     request.set_name(user);
-    HelloReply reply;
+    HelloagainReply reply;
     ClientContext context;
     CompletionQueue cq;
 
     Status status;
 
-    std::unique_ptr<ClientAsyncResponseReader<HelloReply> > rpc(
+    std::unique_ptr<ClientAsyncResponseReader<HelloagainReply> > rpc(
         stub_->AsyncSayHelloagain(&context, request, &cq));
 
     rpc->Finish(&reply, &status, (void*)1);
