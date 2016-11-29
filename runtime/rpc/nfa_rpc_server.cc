@@ -109,9 +109,8 @@ class ServerImpl final {
           service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
                                     (void*)&tags);
         } else if (status_ == PROCESS) {
-          new CallData(service_, cq_);
-          std::string prefix("Hello ");
-          reply_.set_message(prefix + request_.name());
+          new LivenessCheck(service_, cq_);
+          reply_.set_reply(true);
 
           status_ = FINISH;
           responder_.Finish(reply_, Status::OK, (void*)&tags);
@@ -123,14 +122,14 @@ class ServerImpl final {
 
      private:
 
-      Greeter::AsyncService* service_;
+      Runtime_RPC::AsyncService* service_;
       ServerCompletionQueue* cq_;
       ServerContext ctx_;
-      HelloRequest request_;
-      HelloReply reply_;
+      LivenessRequest request_;
+      LivenessReply reply_;
 
       // The means to get back to the client.
-      ServerAsyncResponseWriter<HelloReply> responder_;
+      ServerAsyncResponseWriter<LivenessReply> responder_;
 
       // Let's implement a tiny state machine with the following states.
       enum CallStatus { CREATE, PROCESS, FINISH };
@@ -143,8 +142,9 @@ class ServerImpl final {
   // This can be run in multiple threads if needed.
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
-    new CallData(&service_, cq_.get());
-    new SayhelloAgain(&service_, cq_.get());
+   // new CallData(&service_, cq_.get());
+   // new SayhelloAgain(&service_, cq_.get());
+	  new LivenessCheck(&service_, cq_.get());
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
@@ -170,7 +170,7 @@ class ServerImpl final {
   }
 
   std::unique_ptr<ServerCompletionQueue> cq_;
-  Greeter::AsyncService service_;
+  Runtime_RPC::AsyncService service_;
   std::unique_ptr<Server> server_;
 };
 
