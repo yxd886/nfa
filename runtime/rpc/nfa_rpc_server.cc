@@ -49,7 +49,7 @@ using grpc::Status;
 using helloworld::HelloRequest;
 using helloworld::HelloReply;
 using helloworld::Greeter;
-enum rpccall_index { SAYHELLO, SAYHELLOAGAIN }
+enum rpccall_index { NUL, SAYHELLO, SAYHELLOAGAIN }
 struct tag{
 	rpccall_index index;
 	void* tags;
@@ -97,7 +97,7 @@ class ServerImpl final {
     CallData(Greeter::AsyncService* service, ServerCompletionQueue* cq)
         : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
       // Invoke the serving logic right away.
-      Proceed(0);
+      Proceed(NUL);
     }
 
     void Proceed( rpccall_index index) {
