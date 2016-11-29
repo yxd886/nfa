@@ -179,7 +179,7 @@ class ServerImpl final {
           // the memory address of this CallData instance.
           service_->RequestSayHelloagain(&ctx_, &request_, &responder_, cq_, cq_,
                                     this);
-          std::cout<<"RequestSayHello"<<std::endl;
+          std::cout<<"RequestSayHelloagain"<<std::endl;
         } else if (status_ == PROCESS) {
           // Spawn a new CallData instance to serve new clients while we process
           // the one for this CallData. The instance will deallocate itself as
@@ -234,6 +234,9 @@ class ServerImpl final {
     new CallData1(&service_, cq1.get());
     void* tag;  // uniquely identifies a request.
     void* tag1;  // uniquely identifies a request.
+    bool sayhello;
+    bool sayhelloagain;
+
     bool ok;
     bool ok1;
     while (true) {
@@ -242,7 +245,10 @@ class ServerImpl final {
       // memory address of a CallData instance.
       // The return value of Next should always be checked. This return value
       // tells us whether there is any kind of event or cq_ is shutting down.
-      GPR_ASSERT(cq_->Next(&tag, &ok)||cq1->Next(&tag1, &ok1));
+      sayhello=cq_->Next(&tag, &ok);
+      sayhelloagain=cq1->Next(&tag1, &ok1);
+
+      GPR_ASSERT(sayhello||sayhelloagain);
       GPR_ASSERT(ok||ok1);
       std::cout<<"before static cast"<<std::endl;
       static_cast<CallData*>(tag)->Proceed();
