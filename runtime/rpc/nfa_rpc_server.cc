@@ -96,7 +96,7 @@ class ServerImpl final {
     // server) and the completion queue "cq" used for asynchronous communication
     // with the gRPC runtime.
     CallData(Greeter::AsyncService* service, ServerCompletionQueue* cq)
-        : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+        : service_(service), cq_(cq), responder_(&ctx_),responder1(&ctx_), status_(CREATE) {
       // Invoke the serving logic right away.
       Proceed(NUL);
     }
@@ -173,12 +173,13 @@ class ServerImpl final {
     HelloRequest request_;
     // What we send back to the client.
     HelloReply reply_;
-    HelloRequest request1;
+    HelloagainRequest request1;
     // What we send back to the client.
-    HelloReply reply1;
+    HelloagainReply reply1;
 
     // The means to get back to the client.
     ServerAsyncResponseWriter<HelloReply> responder_;
+    ServerAsyncResponseWriter<HelloagainReply> responder1;
 
     // Let's implement a tiny state machine with the following states.
     enum CallStatus { CREATE, PROCESS, FINISH };
