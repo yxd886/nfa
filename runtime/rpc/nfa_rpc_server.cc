@@ -156,11 +156,11 @@ class ServerImpl final {
       GPR_ASSERT(cq_->Next(&tag, &ok));
       GPR_ASSERT(ok);
       switch (static_cast<struct tag*>(tag)->index){
-        case SAYHELLO:
-        	static_cast<CallData *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+        case LIVENESSCHECK:
+        	static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed();
         	break;
         case SAYHELLOAGAIN:
-        	static_cast<SayhelloAgain *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+        //	static_cast<SayhelloAgain *>(static_cast<struct tag*>(tag)->tags)->Proceed();
         	break;
         default:
         	break;
