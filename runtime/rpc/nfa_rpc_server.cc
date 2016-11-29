@@ -246,6 +246,7 @@ class ServerImpl final {
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
     new CallData(&service_, cq_.get());
+    new SayhelloAgain(&service_, cq_.get());
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
