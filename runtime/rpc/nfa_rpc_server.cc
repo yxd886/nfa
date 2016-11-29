@@ -118,7 +118,7 @@ class ServerImpl final {
                                   (void*)(&tags));
         std::cout<<"RequestSayHello"<<std::endl;
         tags.index=SAYHELLOAGAIN;
-        service_->RequestSayHelloagain(&ctx_, &request1, &responder1, cq_, cq_,
+        service_->RequestSayHelloagain(&ctx1, &request1, &responder1, cq_, cq_,
                                           (void*)(&tags));
       } else if (status_ == PROCESS) {
         // Spawn a new CallData instance to serve new clients while we process
