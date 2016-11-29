@@ -251,7 +251,7 @@ class ServerImpl final {
       GPR_ASSERT(cq_->Next(&tag, &ok));
       GPR_ASSERT(ok);
       std::cout<<"before static cast"<<std::endl;
-      if(tag==== (void*)1){
+      if(tag== (void*)1){
     	  std::cout<<"tag==== (void*)1"<<std::endl;
       }
       static_cast<CallData*>(tag)->Proceed();
