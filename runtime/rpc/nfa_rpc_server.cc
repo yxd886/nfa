@@ -55,7 +55,6 @@ struct tag{
 	void* tags;
 
 };
-struct tag a;
 class ServerImpl final {
  public:
   ~ServerImpl() {
@@ -96,10 +95,10 @@ class ServerImpl final {
     CallData(Greeter::AsyncService* service, ServerCompletionQueue* cq)
         : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
       // Invoke the serving logic right away.
-      Proceed();
+      Proceed(0);
     }
 
-    void Proceed() {
+    void Proceed( int index) {
       if (status_ == CREATE) {
         // Make this instance progress to the PROCESS state.
         status_ = PROCESS;
@@ -110,8 +109,8 @@ class ServerImpl final {
         // instances can serve different requests concurrently), in this case
         // the memory address of this CallData instance.
 
-        a.index=1;
-        a.tags=this;
+        tags.index=1;
+        tags.tags=this;
         service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
                                   (void*)(&a));
         std::cout<<"RequestSayHello"<<std::endl;
@@ -130,8 +129,8 @@ class ServerImpl final {
         // memory address of this instance as the uniquely identifying tag for
         // the event.
         status_ = FINISH;
-        a.index=1;
-        a.tags=this;
+        tags.index=1;
+        tags.tags=this;
         responder_.Finish(reply_, Status::OK, (void*)(&a));
       } else {
         GPR_ASSERT(status_ == FINISH);
@@ -162,6 +161,7 @@ class ServerImpl final {
     // Let's implement a tiny state machine with the following states.
     enum CallStatus { CREATE, PROCESS, FINISH };
     CallStatus status_;  // The current serving state.
+    struct tag tags;
   };
 
 
@@ -265,7 +265,7 @@ class ServerImpl final {
       if(tag== (void*)1){
     	  std::cout<<"tag==== (void*)1"<<std::endl;
       }
-      static_cast<CallData*>(static_cast<struct tag*>(tag)->tags)->Proceed();
+      static_cast<CallData*>(static_cast<struct tag*>(tag)->tags)->Proceed(static_cast<struct tag*>(tag)->index);
     // static_cast<CallData1*>(tag1)->Proceed();
       std::cout<<"after static cast"<<std::endl;
     }
