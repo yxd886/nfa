@@ -89,7 +89,7 @@ class RuntimeClient {
  private:
   // Out of the passed in Channel comes the stub, stored here, our view of the
   // server's exposed services.
-  std::unique_ptr<Greeter::Stub> stub_;
+  std::unique_ptr<Runtime_RPC::Stub> stub_;
 };
 
 int main(int argc, char** argv) {
