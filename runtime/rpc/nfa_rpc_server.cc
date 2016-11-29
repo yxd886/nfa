@@ -199,7 +199,7 @@ class ServerImpl final {
           new SayhelloAgain(service_, cq_);
 
           // The actual processing.
-          std::string prefix("Hello ");
+          std::string prefix("Hello again ");
           reply_.set_message(prefix + request_.name());
 
           // And we are done! Let the gRPC runtime know we've finished, using the

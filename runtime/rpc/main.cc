@@ -131,6 +131,10 @@ int main(int argc, char** argv) {
   std::string reply = greeter.SayHello(user);  // The actual RPC call!
   std::cout << "Greeter received: " << reply << std::endl;
 
+  reply = greeter.SayHelloagain(user);  // The actual RPC call!
+  std::cout << "Greeter received: " << reply << std::endl;
+
+
   //reply = greeter.SayHelloagain(user);  // The actual RPC call!
   //std::cout << "Greeter received: " << reply << std::endl;
 
