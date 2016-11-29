@@ -1,6 +1,5 @@
 // Define all the RPC calls that I defined in the new design document
 syntax = "proto3";
-import "nfa_msg.proto";
 
 // The greeting service definition.
 service Runtime_RPC {

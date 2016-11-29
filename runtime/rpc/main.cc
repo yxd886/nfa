@@ -48,24 +48,23 @@ using nfa_msg::LivenessRequest;
 using nfa_msg::LivenessReply;
 using nfa_msg::Runtime_RPC;
 
-class GreeterClient {
+class RuntimeClient {
  public:
-  explicit GreeterClient(std::shared_ptr<Channel> channel)
-      : stub_(Greeter::NewStub(channel)) {}
+  explicit RuntimeClient(std::shared_ptr<Channel> channel)
+      : stub_(Runtime_RPC::NewStub(channel)) {}
 
   // Assembles the client's payload, sends it and presents the response back
   // from the server.
-  std::string SayHello(const std::string& user) {
-    HelloRequest request;
-    request.set_name(user);
-    HelloReply reply;
+ bool LivenessCheck() {
+	LivenessRequest request;
+    LivenessReply reply;
     ClientContext context;
     CompletionQueue cq;
 
     Status status;
 
-    std::unique_ptr<ClientAsyncResponseReader<HelloReply> > rpc(
-        stub_->AsyncSayHello(&context, request, &cq));
+    std::unique_ptr<ClientAsyncResponseReader<LivenessReply> > rpc(
+        stub_->AsyncLivenessCheck(&context, request, &cq));
 
     rpc->Finish(&reply, &status, (void*)1);
     void* got_tag;
@@ -78,39 +77,14 @@ class GreeterClient {
     GPR_ASSERT(ok);
 
     if (status.ok()) {
-      return reply.message();
+      return reply.reply();
+
     } else {
-      return "RPC failed";
+      std::cout<<"RPC failed"<<std::endl;
+      return false;
     }
   }
-  std::string SayHelloagain(const std::string& user) {
-    HelloagainRequest request;
-    request.set_name(user);
-    HelloagainReply reply;
-    ClientContext context;
-    CompletionQueue cq;
 
-    Status status;
-
-    std::unique_ptr<ClientAsyncResponseReader<HelloagainReply> > rpc(
-        stub_->AsyncSayHelloagain(&context, request, &cq));
-
-    rpc->Finish(&reply, &status, (void*)1);
-    void* got_tag;
-    bool ok = false;
-
-    GPR_ASSERT(cq.Next(&got_tag, &ok));
-
-    GPR_ASSERT(got_tag == (void*)1);
-
-    GPR_ASSERT(ok);
-
-    if (status.ok()) {
-      return reply.message();
-    } else {
-      return "RPC failed";
-    }
-  }
 
  private:
   // Out of the passed in Channel comes the stub, stored here, our view of the
@@ -123,18 +97,17 @@ int main(int argc, char** argv) {
   // are created. This channel models a connection to an endpoint (in this case,
   // localhost at port 50051). We indicate that the channel isn't authenticated
   // (use of InsecureChannelCredentials()).
-  GreeterClient greeter(grpc::CreateChannel(
+	RuntimeClient nfa_rpc(grpc::CreateChannel(
       "localhost:50051", grpc::InsecureChannelCredentials()));
   std::string user("world");
-  std::string reply = greeter.SayHello(user);  // The actual RPC call!
-  std::cout << "Greeter received: " << reply << std::endl;
+  bool reply = nfa_rpc.LivenessCheck();  // The actual RPC call!
+  if(reply){
+	  std::cout << "Liveness Check: OK "<< std::endl;
+  }else{
+	  std::cout << "Liveness Check: Fail "<< std::endl;
+  }
 
-  reply = greeter.SayHelloagain(user);  // The actual RPC call!
-  std::cout << "Greeter received: " << reply << std::endl;
 
-
-  //reply = greeter.SayHelloagain(user);  // The actual RPC call!
-  //std::cout << "Greeter received: " << reply << std::endl;
 
   return 0;
 }

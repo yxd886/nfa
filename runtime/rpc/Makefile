@@ -46,11 +46,11 @@ vpath %.proto $(PROTOS_PATH)
 all: system-check  main  nfa_rpc_server
 
 
-main: helloworld.pb.o helloworld.grpc.pb.o main.o
+main: nfa_msg.pb.o nfa_msg.grpc.pb.o main.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 
-nfa_rpc_server: helloworld.pb.o helloworld.grpc.pb.o nfa_rpc_server.o
+nfa_rpc_server: nfa_msg.pb.o nfa_msg.grpc.pb.o nfa_rpc_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 .PRECIOUS: %.grpc.pb.cc

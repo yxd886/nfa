@@ -32,7 +32,7 @@ message LivenessRequest {
 
 // The response message containing the greetings
 message LivenessReply {
-  string reply = 1;
+  bool reply = 1;
 }
 
 //message for view
