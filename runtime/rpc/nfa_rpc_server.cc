@@ -55,6 +55,7 @@ struct tag{
 	void* tags;
 
 };
+struct tag a;
 class ServerImpl final {
  public:
   ~ServerImpl() {
@@ -108,7 +109,7 @@ class ServerImpl final {
         // the tag uniquely identifying the request (so that different CallData
         // instances can serve different requests concurrently), in this case
         // the memory address of this CallData instance.
-        struct tag a;
+
         a.index=1;
         a.tags=this;
         service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
@@ -129,7 +130,9 @@ class ServerImpl final {
         // memory address of this instance as the uniquely identifying tag for
         // the event.
         status_ = FINISH;
-        responder_.Finish(reply_, Status::OK, this);
+        a.index=1;
+        a.tags=this;
+        responder_.Finish(reply_, Status::OK, (void*)(&a));
       } else {
         GPR_ASSERT(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
