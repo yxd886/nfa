@@ -46,6 +46,8 @@ using grpc::CompletionQueue;
 using grpc::Status;
 using helloworld::HelloRequest;
 using helloworld::HelloReply;
+using helloworld::HelloagainRequest;
+using helloworld::HelloagainReply;
 using helloworld::Greeter;
 
 class GreeterClient {
