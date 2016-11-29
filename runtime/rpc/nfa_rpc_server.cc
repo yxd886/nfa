@@ -102,7 +102,7 @@ class ServerImpl final {
         // the tag uniquely identifying the request (so that different CallData
         // instances can serve different requests concurrently), in this case
         // the memory address of this CallData instance.
-        service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
+        service_->RequestSayHelloagain(&ctx_, &request_, &responder_, cq_, cq_,
                                   this);
         std::cout<<"RequestSayHello"<<std::endl;
       } else if (status_ == PROCESS) {
