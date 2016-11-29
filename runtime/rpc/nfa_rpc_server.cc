@@ -166,7 +166,9 @@ class ServerImpl final {
       // tells us whether there is any kind of event or cq_ is shutting down.
       GPR_ASSERT(cq_->Next(&tag, &ok));
       GPR_ASSERT(ok);
+      std::cout<<"before static cast"<<std::endl;
       static_cast<CallData*>(tag)->Proceed();
+      std::cout<<"after static cast"<<std::endl;
     }
   }
 
