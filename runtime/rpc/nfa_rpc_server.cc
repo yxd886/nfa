@@ -81,7 +81,6 @@ class ServerImpl final {
     // Get hold of the completion queue used for the asynchronous communication
     // with the gRPC runtime.
     cq_ = builder.AddCompletionQueue();
-  //  cq1 = builder.AddCompletionQueue();
     // Finally assemble the server.
     server_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
@@ -98,12 +97,14 @@ class ServerImpl final {
     // server) and the completion queue "cq" used for asynchronous communication
     // with the gRPC runtime.
     CallData(Greeter::AsyncService* service, ServerCompletionQueue* cq)
-        : service_(service), cq_(cq), responder_(&ctx_),responder1(&ctx1), status_(CREATE) {
+        : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
       // Invoke the serving logic right away.
-      Proceed(NUL);
+        tags.index=SAYHELLO;
+        tags.tags=this;
+    	Proceed();
     }
 
-    void Proceed( int index) {
+    void Proceed() {
       if (status_ == CREATE) {
         // Make this instance progress to the PROCESS state.
         status_ = PROCESS;
@@ -114,14 +115,8 @@ class ServerImpl final {
         // instances can serve different requests concurrently), in this case
         // the memory address of this CallData instance.
 
-        tags.index=SAYHELLO;
-        tags.tags=this;
         service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
-                                  (void*)(&tags));
-        std::cout<<"RequestSayHello"<<std::endl;
-        tags.index=SAYHELLOAGAIN;
-        service_->RequestSayHelloagain(&ctx1, &request1, &responder1, cq_, cq_,
-                                          (void*)(&tags));
+                                  (void*)&tags);
       } else if (status_ == PROCESS) {
         // Spawn a new CallData instance to serve new clients while we process
         // the one for this CallData. The instance will deallocate itself as
@@ -129,30 +124,14 @@ class ServerImpl final {
         new CallData(service_, cq_);
 
         // The actual processing.
-        if(index==SAYHELLO){
-            std::string prefix("Hello ");
-            reply_.set_message(prefix + request_.name());
-            std::cout<<"Say hello Real process"<<std::endl;
-            status_ = FINISH;
-            tags.index=index;
-            tags.tags=this;
-            responder_.Finish(reply_, Status::OK, (void*)(&tags));
-        }
-        if(index==SAYHELLOAGAIN){
-            std::string prefix("Hello again ");
-            reply1.set_message(prefix + request1.name());
-            std::cout<<"Say hello AGAIN Real process"<<std::endl;
-            status_ = FINISH;
-            tags.index=index;
-            tags.tags=this;
-            responder1.Finish(reply1, Status::OK, (void*)(&tags));
-
-        }
-
+        std::string prefix("Hello ");
+        reply_.set_message(prefix + request_.name());
 
         // And we are done! Let the gRPC runtime know we've finished, using the
         // memory address of this instance as the uniquely identifying tag for
         // the event.
+        status_ = FINISH;
+        responder_.Finish(reply_, Status::OK, (void*)&tags);
       } else {
         GPR_ASSERT(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
@@ -163,26 +142,21 @@ class ServerImpl final {
    private:
     // The means of communication with the gRPC runtime for an asynchronous
     // server.
-    Greeter::AsyncService* service_;
+    Greeter::Async Service* service_;
     // The producer-consumer queue where for asynchronous server notifications.
     ServerCompletionQueue* cq_;
     // Context for the rpc, allowing to tweak aspects of it such as the use
     // of compression, authentication, as well as to send metadata back to the
     // client.
     ServerContext ctx_;
-    ServerContext ctx1;
 
     // What we get from the client.
     HelloRequest request_;
     // What we send back to the client.
     HelloReply reply_;
-    HelloagainRequest request1;
-    // What we send back to the client.
-    HelloagainReply reply1;
 
     // The means to get back to the client.
     ServerAsyncResponseWriter<HelloReply> responder_;
-    ServerAsyncResponseWriter<HelloagainReply> responder1;
 
     // Let's implement a tiny state machine with the following states.
     enum CallStatus { CREATE, PROCESS, FINISH };
@@ -192,24 +166,107 @@ class ServerImpl final {
 
 
 
+  class SayhelloAgain {
+     public:
+      // Take in the "service" instance (in this case representing an asynchronous
+      // server) and the completion queue "cq" used for asynchronous communication
+      // with the gRPC runtime.
+	  SayhelloAgain(Greeter::AsyncService* service, ServerCompletionQueue* cq)
+          : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+        // Invoke the serving logic right away.
+          tags.index=SAYHELLOAGAIN;
+          tags.tags=this;
+      	Proceed();
+      }
+
+      void Proceed() {
+        if (status_ == CREATE) {
+          // Make this instance progress to the PROCESS state.
+          status_ = PROCESS;
+
+          // As part of the initial CREATE state, we *request* that the system
+          // start processing SayHello requests. In this request, "this" acts are
+          // the tag uniquely identifying the request (so that different CallData
+          // instances can serve different requests concurrently), in this case
+          // the memory address of this CallData instance.
+
+          service_->RequestSayHelloagain(&ctx_, &request_, &responder_, cq_, cq_,
+                                    (void*)&tags);
+        } else if (status_ == PROCESS) {
+          // Spawn a new CallData instance to serve new clients while we process
+          // the one for this CallData. The instance will deallocate itself as
+          // part of its FINISH state.
+          new SayhelloAgain(service_, cq_);
+
+          // The actual processing.
+          std::string prefix("Hello ");
+          reply_.set_message(prefix + request_.name());
+
+          // And we are done! Let the gRPC runtime know we've finished, using the
+          // memory address of this instance as the uniquely identifying tag for
+          // the event.
+          status_ = FINISH;
+          responder_.Finish(reply_, Status::OK, (void*)&tags);
+        } else {
+          GPR_ASSERT(status_ == FINISH);
+          // Once in the FINISH state, deallocate ourselves (CallData).
+          delete this;
+        }
+      }
+
+     private:
+      // The means of communication with the gRPC runtime for an asynchronous
+      // server.
+      Greeter::Async Service* service_;
+      // The producer-consumer queue where for asynchronous server notifications.
+      ServerCompletionQueue* cq_;
+      // Context for the rpc, allowing to tweak aspects of it such as the use
+      // of compression, authentication, as well as to send metadata back to the
+      // client.
+      ServerContext ctx_;
+
+      // What we get from the client.
+      HelloagainRequest request_;
+      // What we send back to the client.
+      HelloagainReply reply_;
+
+      // The means to get back to the client.
+      ServerAsyncResponseWriter<HelloagainReply> responder_;
+
+      // Let's implement a tiny state machine with the following states.
+      enum CallStatus { CREATE, PROCESS, FINISH };
+      CallStatus status_;  // The current serving state.
+      struct tag tags;
+    };
+
+
+
 
   // This can be run in multiple threads if needed.
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
-   new CallData (&service_, cq_.get());
+    new CallData(&service_, cq_.get());
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
-
+      // Block waiting to read the next event from the completion queue. The
+      // event is uniquely identified by its tag, which in this case is the
+      // memory address of a CallData instance.
+      // The return value of Next should always be checked. This return value
+      // tells us whether there is any kind of event or cq_ is shutting down.
       GPR_ASSERT(cq_->Next(&tag, &ok));
       GPR_ASSERT(ok);
-      std::cout<<"before static cast"<<std::endl;
-      if(tag== (void*)1){
-    	  std::cout<<"tag==== (void*)1"<<std::endl;
+      switch (static_cast<struct tag*>(tag)->index){
+        case SAYHELLO:
+        	static_cast<CallData *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+        	break;
+        case SAYHELLOAGAIN:
+        	static_cast<SayhelloAgain *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+        	break;
+        default:
+        	break;
+
       }
-      static_cast<CallData*>(static_cast<struct tag*>(tag)->tags)->Proceed(static_cast<struct tag*>(tag)->index);
-    // static_cast<CallData1*>(tag1)->Proceed();
-      std::cout<<"after static cast"<<std::endl;
     }
   }
 
