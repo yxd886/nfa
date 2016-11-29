@@ -95,7 +95,7 @@ class ServerImpl final {
       // Take in the "service" instance (in this case representing an asynchronous
       // server) and the completion queue "cq" used for asynchronous communication
       // with the gRPC runtime.
-	  LivenessCheck(Greeter::AsyncService* service, ServerCompletionQueue* cq)
+	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq)
           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
         // Invoke the serving logic right away.
           tags.index=LIVENESSCHECK;
