@@ -68,6 +68,7 @@ class ServerImpl final {
     // Register "service_" as the instance through which we'll communicate with
     // clients. In this case it corresponds to an *asynchronous* service.
     builder.RegisterService(&service_);
+    builder.RegisterService(&service1);
     // Get hold of the completion queue used for the asynchronous communication
     // with the gRPC runtime.
     cq_ = builder.AddCompletionQueue();
