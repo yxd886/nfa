@@ -118,7 +118,7 @@ class ServerImpl final {
                                   (void*)(&tags));
         std::cout<<"RequestSayHello"<<std::endl;
         tags.index=SAYHELLOAGAIN;
-        service_->RequestSayHelloagain(&ctx_, &request_, &responder_, cq_, cq_,
+        service_->RequestSayHelloagain(&ctx_, &request1, &responder1, cq_, cq_,
                                           (void*)(&tags));
       } else if (status_ == PROCESS) {
         // Spawn a new CallData instance to serve new clients while we process
@@ -131,11 +131,19 @@ class ServerImpl final {
             std::string prefix("Hello ");
             reply_.set_message(prefix + request_.name());
             std::cout<<"Say hello Real process"<<std::endl;
+            status_ = FINISH;
+            tags.index=index;
+            tags.tags=this;
+            responder_.Finish(reply_, Status::OK, (void*)(&tags));
         }
         if(index==SAYHELLOAGAIN){
             std::string prefix("Hello again ");
-            reply_.set_message(prefix + request_.name());
+            reply1.set_message(prefix + request1.name());
             std::cout<<"Say hello AGAIN Real process"<<std::endl;
+            status_ = FINISH;
+            tags.index=index;
+            tags.tags=this;
+            responder1.Finish(reply1, Status::OK, (void*)(&tags));
 
         }
 
@@ -143,10 +151,6 @@ class ServerImpl final {
         // And we are done! Let the gRPC runtime know we've finished, using the
         // memory address of this instance as the uniquely identifying tag for
         // the event.
-        status_ = FINISH;
-        tags.index=index;
-        tags.tags=this;
-        responder_.Finish(reply_, Status::OK, (void*)(&tags));
       } else {
         GPR_ASSERT(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
@@ -169,9 +173,13 @@ class ServerImpl final {
     HelloRequest request_;
     // What we send back to the client.
     HelloReply reply_;
+    HelloRequest request1;
+    // What we send back to the client.
+    HelloReply reply1;
 
     // The means to get back to the client.
     ServerAsyncResponseWriter<HelloReply> responder_;
+    ServerAsyncResponseWriter<HelloReply> responder1;
 
     // Let's implement a tiny state machine with the following states.
     enum CallStatus { CREATE, PROCESS, FINISH };
