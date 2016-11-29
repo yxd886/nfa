@@ -14,6 +14,7 @@
 #define  NUL 0
 #define  SAYHELLO 1
 #define SAYHELLOAGAIN 2
+#define LIVENESSCHECK 3
 
 
 #endif

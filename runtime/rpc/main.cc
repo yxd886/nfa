@@ -37,18 +37,16 @@
 
 #include <grpc++/grpc++.h>
 
-#include "helloworld.grpc.pb.h"
+#include "nfa_msg.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientAsyncResponseReader;
 using grpc::ClientContext;
 using grpc::CompletionQueue;
 using grpc::Status;
-using helloworld::HelloRequest;
-using helloworld::HelloReply;
-using helloworld::HelloagainRequest;
-using helloworld::HelloagainReply;
-using helloworld::Greeter;
+using nfa_msg::LivenessRequest;
+using nfa_msg::LivenessReply;
+using nfa_msg::Runtime_RPC;
 
 class GreeterClient {
  public:
