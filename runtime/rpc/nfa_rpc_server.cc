@@ -39,7 +39,6 @@
 #include <grpc++/grpc++.h>
 
 #include "helloworld.grpc.pb.h"
-#include "nfa_rpc_server.h"
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
@@ -50,7 +49,7 @@ using grpc::Status;
 using helloworld::HelloRequest;
 using helloworld::HelloReply;
 using helloworld::Greeter;
-
+enum rpccall_index { SAYHELLO, SAYHELLOAGAIN }
 struct tag{
 	rpccall_index index;
 	void* tags;
