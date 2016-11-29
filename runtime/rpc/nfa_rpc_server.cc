@@ -68,7 +68,6 @@ class ServerImpl final {
     // Register "service_" as the instance through which we'll communicate with
     // clients. In this case it corresponds to an *asynchronous* service.
     builder.RegisterService(&service_);
-    builder.RegisterService(&service1);
     // Get hold of the completion queue used for the asynchronous communication
     // with the gRPC runtime.
     cq_ = builder.AddCompletionQueue();
@@ -156,7 +155,7 @@ class ServerImpl final {
 
 
 
-  class CallData1 {
+ /* class CallData1 {
      public:
       // Take in the "service" instance (in this case representing an asynchronous
       // server) and the completion queue "cq" used for asynchronous communication
@@ -226,12 +225,12 @@ class ServerImpl final {
       enum CallStatus { CREATE, PROCESS, FINISH };
       CallStatus status_;  // The current serving state.
     };
-
+*/
   // This can be run in multiple threads if needed.
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
     new CallData(&service_, cq_.get());
-    new CallData1(&service1, cq_.get());
+   // new CallData1(&service_, cq_.get());
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
@@ -244,14 +243,13 @@ class ServerImpl final {
       GPR_ASSERT(ok);
       std::cout<<"before static cast"<<std::endl;
       static_cast<CallData*>(tag)->Proceed();
-      static_cast<CallData1*>(tag)->Proceed();
+    //  static_cast<CallData1*>(tag)->Proceed();
       std::cout<<"after static cast"<<std::endl;
     }
   }
 
   std::unique_ptr<ServerCompletionQueue> cq_;
   Greeter::AsyncService service_;
-  Greeter::AsyncService service1;
   std::unique_ptr<Server> server_;
 };
 
