@@ -106,7 +106,7 @@ class ServerImpl final {
       void Proceed() {
         if (status_ == CREATE) {
           status_ = PROCESS;
-          service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
+          service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
                                     (void*)&tags);
         } else if (status_ == PROCESS) {
           new LivenessCheck(service_, cq_);
