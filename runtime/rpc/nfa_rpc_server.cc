@@ -50,6 +50,11 @@ using helloworld::HelloRequest;
 using helloworld::HelloReply;
 using helloworld::Greeter;
 
+struct tag{
+	int index;
+	void* tags;
+
+};
 class ServerImpl final {
  public:
   ~ServerImpl() {
@@ -103,8 +108,11 @@ class ServerImpl final {
         // the tag uniquely identifying the request (so that different CallData
         // instances can serve different requests concurrently), in this case
         // the memory address of this CallData instance.
+        struct tag a;
+        a.index=1;
+        a.tags=this;
         service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
-                                  this);
+                                  (void*)(&a));
         std::cout<<"RequestSayHello"<<std::endl;
       } else if (status_ == PROCESS) {
         // Spawn a new CallData instance to serve new clients while we process
@@ -230,7 +238,7 @@ class ServerImpl final {
   // This can be run in multiple threads if needed.
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
-    new CallData(&service_, cq_.get());
+   new CallData (&service_, cq_.get());
   //  new CallData1(&service_, cq1.get());
     void* tag;  // uniquely identifies a request.
   //  void* tag1;  // uniquely identifies a request.
@@ -254,7 +262,7 @@ class ServerImpl final {
       if(tag== (void*)1){
     	  std::cout<<"tag==== (void*)1"<<std::endl;
       }
-      static_cast<CallData*>(tag)->Proceed();
+      static_cast<struct tag*>(tag)->tags->Proceed();
     // static_cast<CallData1*>(tag1)->Proceed();
       std::cout<<"after static cast"<<std::endl;
     }
