@@ -230,7 +230,7 @@ class ServerImpl final {
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
     new CallData(&service_, cq_.get());
-    new CallData1(&service_, cq_.get());
+    new CallData1(&service1, cq_.get());
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
@@ -250,6 +250,7 @@ class ServerImpl final {
 
   std::unique_ptr<ServerCompletionQueue> cq_;
   Greeter::AsyncService service_;
+  Greeter::AsyncService service1;
   std::unique_ptr<Server> server_;
 };
 
