@@ -39,6 +39,7 @@
 #include <grpc++/grpc++.h>
 
 #include "helloworld.grpc.pb.h"
+#include "nfa_rpc_server.h"
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
@@ -49,9 +50,9 @@ using grpc::Status;
 using helloworld::HelloRequest;
 using helloworld::HelloReply;
 using helloworld::Greeter;
-enum rpccall_index { NUL, SAYHELLO, SAYHELLOAGAIN }
+
 struct tag{
-	rpccall_index index;
+	int index;
 	void* tags;
 
 };
@@ -100,7 +101,7 @@ class ServerImpl final {
       Proceed(NUL);
     }
 
-    void Proceed( rpccall_index index) {
+    void Proceed( int index) {
       if (status_ == CREATE) {
         // Make this instance progress to the PROCESS state.
         status_ = PROCESS;
