@@ -96,7 +96,7 @@ class ServerImpl final {
     // server) and the completion queue "cq" used for asynchronous communication
     // with the gRPC runtime.
     CallData(Greeter::AsyncService* service, ServerCompletionQueue* cq)
-        : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+        : service_(service), cq_(cq), responder_(&ctx_),responder1(&ctx1), status_(CREATE) {
       // Invoke the serving logic right away.
       Proceed(NUL);
     }
@@ -168,6 +168,7 @@ class ServerImpl final {
     // of compression, authentication, as well as to send metadata back to the
     // client.
     ServerContext ctx_;
+    ServerContext ctx1;
 
     // What we get from the client.
     HelloRequest request_;
