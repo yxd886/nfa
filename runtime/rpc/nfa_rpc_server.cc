@@ -112,7 +112,7 @@ class ServerImpl final {
         tags.index=1;
         tags.tags=this;
         service_->RequestSayHello(&ctx_, &request_, &responder_, cq_, cq_,
-                                  (void*)(&a));
+                                  (void*)(&tags));
         std::cout<<"RequestSayHello"<<std::endl;
       } else if (status_ == PROCESS) {
         // Spawn a new CallData instance to serve new clients while we process
@@ -131,7 +131,7 @@ class ServerImpl final {
         status_ = FINISH;
         tags.index=1;
         tags.tags=this;
-        responder_.Finish(reply_, Status::OK, (void*)(&a));
+        responder_.Finish(reply_, Status::OK, (void*)(&tags));
       } else {
         GPR_ASSERT(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
