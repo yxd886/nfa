@@ -96,7 +96,7 @@ class ServerImpl final {
     // server) and the completion queue "cq" used for asynchronous communication
     // with the gRPC runtime.
     CallData(Greeter::AsyncService* service, ServerCompletionQueue* cq)
-        : service_(service), cq_(cq), responder_(&ctx_),responder1(&ctx1), status_(CREATE) {
+        : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
       // Invoke the serving logic right away.
       Proceed(NUL);
     }
@@ -118,7 +118,7 @@ class ServerImpl final {
                                   (void*)(&tags));
         std::cout<<"RequestSayHello"<<std::endl;
         tags.index=SAYHELLOAGAIN;
-        service_->RequestSayHelloagain(&ctx1, &request1, &responder1, cq_, cq_,
+        service_->RequestSayHelloagain(&ctx_, &request1, &responder_, cq_, cq_,
                                           (void*)(&tags));
       } else if (status_ == PROCESS) {
         // Spawn a new CallData instance to serve new clients while we process
@@ -143,7 +143,7 @@ class ServerImpl final {
             status_ = FINISH;
             tags.index=index;
             tags.tags=this;
-            responder1.Finish(reply1, Status::OK, (void*)(&tags));
+            responder_.Finish(reply1, Status::OK, (void*)(&tags));
 
         }
 
@@ -168,7 +168,6 @@ class ServerImpl final {
     // of compression, authentication, as well as to send metadata back to the
     // client.
     ServerContext ctx_;
-    ServerContext ctx1;
 
     // What we get from the client.
     HelloRequest request_;
@@ -180,7 +179,6 @@ class ServerImpl final {
 
     // The means to get back to the client.
     ServerAsyncResponseWriter<HelloReply> responder_;
-    ServerAsyncResponseWriter<HelloReply> responder1;
 
     // Let's implement a tiny state machine with the following states.
     enum CallStatus { CREATE, PROCESS, FINISH };
