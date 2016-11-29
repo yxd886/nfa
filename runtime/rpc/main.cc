@@ -78,7 +78,7 @@ class GreeterClient {
     // store in "rpc". Because we are using the asynchronous API, we need to
     // hold on to the "rpc" instance in order to get updates on the ongoing RPC.
     std::unique_ptr<ClientAsyncResponseReader<HelloReply> > rpc(
-        stub_->AsyncSayHelloagain(&context, request, &cq));
+        stub_->AsyncSayHello(&context, request, &cq));
 
     // Request that, upon completion of the RPC, "reply" be updated with the
     // server's response; "status" with the indication of whether the operation
