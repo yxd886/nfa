@@ -262,7 +262,7 @@ class ServerImpl final {
       if(tag== (void*)1){
     	  std::cout<<"tag==== (void*)1"<<std::endl;
       }
-      static_cast<struct tag*>(tag)->tags->Proceed();
+      static_cast<CallData1*>(static_cast<struct tag*>(tag)->tags)->Proceed();
     // static_cast<CallData1*>(tag1)->Proceed();
       std::cout<<"after static cast"<<std::endl;
     }
