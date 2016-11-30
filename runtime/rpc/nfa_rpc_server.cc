@@ -188,7 +188,6 @@ class ServerImpl final {
 
 
                rte_ring_request.enqueue(msg);
-               std::cout<<"Outputview: elments in ring is "<<rte_ring.size()<<std::endl;
                std::cout<<"throw completed, waiting to read"<<std::endl;
                while(1){
             	   sleep(2);
