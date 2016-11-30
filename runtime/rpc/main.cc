@@ -137,12 +137,6 @@ int main(int argc, char** argv) {
   }
 
   View request;
-  uint64 worker_id=1;
-  string input_port_mac=2;
-  string output_port_mac=3;
-  string control_port_mac=4;
-  string rpc_ip=5;
-  uint64 rpc_port=6;
   request.set_worker_id(1);
   request.set_input_port_mac("11:22:33:44:55:66");
   request.set_output_port_mac("22:33:44:55:66:77");
@@ -151,7 +145,7 @@ int main(int argc, char** argv) {
   request.set_rpc_port(80);
 
 
-  bool reply = nfa_rpc.AddOutputView(request);
+  reply = nfa_rpc.AddOutputView(request);
   if(reply){
 	  std::cout << "AddOutputView: OK "<< std::endl;
   }else{
