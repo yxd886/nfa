@@ -173,7 +173,7 @@ class ServerImpl final {
           int i;
 
           for(i=0;i<request_.view_size();i++){
-          	View& outview=request_.view(i);
+          	const View& outview=request_.view(i);
           		if(viewlist_output.find(outview.worker_id())!=viewlist_output.end()){
           			continue;
           		}else{
@@ -216,7 +216,7 @@ class ServerImpl final {
 			   	std::map<int , struct Local_view>::iterator view_it;
 
 			   	char str_tmp[20];
-			   	const View * view_tmp=NULL;
+			   	View * view_tmp=NULL;
 				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
 
 				  	  view_tmp=reply_.add_output_views();
