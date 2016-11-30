@@ -180,8 +180,6 @@ class ServerImpl final {
                struct vswitch_msg msg;
                struct reply_msg rep_msg;
                msg.tag=NFACTOR_CLUSTER_VIEW;
-               msg.msg_type=REQUEST;
-               msg.reply_result=false;
                msg.change_view_msg_.worker_id=request_.worker_id();
                msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
                strcpy(msg.change_view_msg_.iport_mac,request_.input_port_mac().c_str());
