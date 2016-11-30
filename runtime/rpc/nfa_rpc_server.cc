@@ -86,6 +86,7 @@ class ServerImpl final {
     // Finally assemble the server.
     server_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
+    std::
 
     // Proceed to the server's main loop.
     HandleRpcs();
@@ -99,8 +100,8 @@ class ServerImpl final {
       // Take in the "service" instance (in this case representing an asynchronous
       // server) and the completion queue "cq" used for asynchronous communication
       // with the gRPC runtime.
-	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq)
-          : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::vector< struct Local_view> viewlist)
+          : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),viewlist(viewlist){
         // Invoke the serving logic right away.
           tags.index=LIVENESSCHECK;
           tags.tags=this;
@@ -113,7 +114,7 @@ class ServerImpl final {
           service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
                                     (void*)&tags);
         } else if (status_ == PROCESS) {
-          new LivenessCheck(service_, cq_);
+          new LivenessCheck(service_, cq_,viewlist);
           reply_.set_reply(true);
 
           status_ = FINISH;
@@ -139,6 +140,7 @@ class ServerImpl final {
       enum CallStatus { CREATE, PROCESS, FINISH };
       CallStatus status_;  // The current serving state.
       struct tag tags;
+      std::vector< struct Local_view> viewlist;
     };
 
 
@@ -148,8 +150,8 @@ class ServerImpl final {
        // Take in the "service" instance (in this case representing an asynchronous
        // server) and the completion queue "cq" used for asynchronous communication
        // with the gRPC runtime.
-	  AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq)
-           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+	  AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::vector< struct Local_view> viewlist)
+           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),viewlist(viewlist) {
          // Invoke the serving logic right away.
            tags.index=ADDOUTPUTVIEW;
            tags.tags=this;
@@ -162,7 +164,7 @@ class ServerImpl final {
            service_->RequestAddOutputView(&ctx_, &request_, &responder_, cq_, cq_,
                                      (void*)&tags);
          } else if (status_ == PROCESS) {
-           new AddOutputView(service_, cq_);
+           new AddOutputView(service_, cq_,viewlist);
            std::vector<Local_view>::iterator it;
            for(it=viewlist.begin();it!=viewlist.end();it++){
         	   if(request_.worker_id()==it->worker_id){
@@ -247,6 +249,7 @@ class ServerImpl final {
        enum CallStatus { CREATE, PROCESS, FINISH };
        CallStatus status_;  // The current serving state.
        struct tag tags;
+       std::vector< struct Local_view> viewlist;
      };
 
 
@@ -257,7 +260,8 @@ class ServerImpl final {
     // Spawn a new CallData instance to serve new clients.
    // new CallData(&service_, cq_.get());
    // new SayhelloAgain(&service_, cq_.get());
-	  new LivenessCheck(&service_, cq_.get());
+	  new LivenessCheck(&service_, cq_.get(),viewlist);
+	  new AddOutputView(&service_, cq_.get(),viewlist);
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
