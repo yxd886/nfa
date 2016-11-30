@@ -141,8 +141,8 @@ int main(int argc, char** argv) {
   }
 */
   ViewList request;
-  View& req;
-  req=request.add_view();
+  ;
+  View& req=request.add_view();
   req.set_worker_id(1);
   req.set_input_port_mac("11:22:33:44:55:66");
   req.set_output_port_mac("22:33:44:55:66:77");

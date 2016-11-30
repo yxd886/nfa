@@ -215,11 +215,11 @@ class ServerImpl final {
 
           }
 			   	std::map<int , struct Local_view>::iterator view_it;
-			   	View& view_tmp;
+
 			   	char str_tmp[20];
 				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
 
-				  		view_tmp=reply_.add_output_views();
+				  		View& view_tmp=reply_.add_output_views();
 						view_tmp.set_worker_id(view_it->first);
 						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
 						view_tmp.set_control_port_mac(std::string(str_tmp));
@@ -234,7 +234,7 @@ class ServerImpl final {
 				  	}
 				  	for(view_it=viewlist_input.begin();view_it!=viewlist_input.end();view_it++){
 
-				  		view_tmp=reply_.add_input_views();
+				  		View& view_tmp=reply_.add_input_views();
 						view_tmp.set_worker_id(view_it->first);
 						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
 						view_tmp.set_control_port_mac(std::string(str_tmp));
