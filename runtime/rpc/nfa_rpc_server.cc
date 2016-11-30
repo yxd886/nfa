@@ -196,6 +196,8 @@ class ServerImpl final {
             	   if(deque){
             		   ok=rep_msg.reply;
             		   break;
+            	    }else{
+            	    	std::cout<<"empty reply queue"<<std::endl;
             	    }
 
                }
@@ -304,6 +306,8 @@ int main(int argc, char** argv) {
     	      reply.worker_id=request.change_view_msg_.worker_id;
     	      reply.reply=true;
     	      rte_ring_reply.enqueue(reply);
+          }else{
+        	  std::cout<<"empty request queue"<<std::endl;
           }
 
 
