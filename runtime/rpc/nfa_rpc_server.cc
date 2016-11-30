@@ -192,7 +192,7 @@ class ServerImpl final {
                std::vector<struct vswitch_msg>::iterator iter;
                while(1){
 
-            	  sleep(0.5);
+            	  sleep(3);
             	   mtx.lock();
             	   std::cout<<"get the lock to find reply"<<std::endl;
             	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
@@ -311,7 +311,7 @@ int main(int argc, char** argv) {
 
 	  std::vector<struct vswitch_msg>::iterator iter;
 	  while(1){
-		  sleep(1.0);
+		  sleep(2);
 	   mtx.lock();
 	   std::cout<<"get the lock to find request"<<std::endl;
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
