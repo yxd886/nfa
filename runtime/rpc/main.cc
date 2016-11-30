@@ -194,9 +194,9 @@ int main(int argc, char** argv) {
   reply = nfa_rpc.AddInputView(request);
 
   if(reply){
-	  std::cout << "AddOutputView: OK "<< std::endl;
+	  std::cout << "AddInputView: OK "<< std::endl;
   }else{
-	  std::cout << "AddOutputView: Fail "<< std::endl;
+	  std::cout << "AddInputView: Fail "<< std::endl;
   }
 
 
