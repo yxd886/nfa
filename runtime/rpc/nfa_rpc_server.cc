@@ -194,6 +194,7 @@ class ServerImpl final {
 
             	  sleep(0.5);
             	   mtx.lock();
+            	   std::cout<<"get the lock to find reply"<<std::endl;
             	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
             		   if(iter->msg_type==REPLY&&iter->tag==NFACTOR_CLUSTER_VIEW&&iter->change_view_msg_.worker_id==msg.change_view_msg_.worker_id){
             			   std::cout<<"find reply"<<std::endl;
@@ -312,6 +313,7 @@ int main(int argc, char** argv) {
 	  while(1){
 		  sleep(0.5);
 	   mtx.lock();
+	   std::cout<<"get the lock to find request"<<std::endl;
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
    			   std::cout<<"find one request"<<std::endl;
