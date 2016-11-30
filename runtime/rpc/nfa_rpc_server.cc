@@ -36,7 +36,7 @@
 #include <string>
 #include <string.h>
 #include <thread>
-#include <vector>
+#include <map>
 #include <queue>
 #include <unistd.h>
 #include <sys/shm.h>
@@ -53,7 +53,9 @@ using grpc::ServerCompletionQueue;
 using grpc::Status;
 using nfa_msg::LivenessRequest;
 using nfa_msg::LivenessReply;
+using nfa_msg::ViewList;
 using nfa_msg::View;
+using nfa_msg::CurrentView;
 using nfa_msg::AddOutputReply;
 using nfa_msg::Runtime_RPC;
 #include "concurrentqueue.h"
@@ -101,21 +103,21 @@ class ServerImpl final {
       // Take in the "service" instance (in this case representing an asynchronous
       // server) and the completion queue "cq" used for asynchronous communication
       // with the gRPC runtime.
-	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::vector< struct Local_view> viewlist)
+	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output)
           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE){
         // Invoke the serving logic right away.
           tags.index=LIVENESSCHECK;
           tags.tags=this;
-      	Proceed(viewlist);
+      	Proceed(viewlist_input,viewlist_output);
       }
 
-      void Proceed(std::vector< struct Local_view> viewlist) {
+      void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int ,struct Local_view> viewlist_output) {
         if (status_ == CREATE) {
           status_ = PROCESS;
           service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
                                     (void*)&tags);
         } else if (status_ == PROCESS) {
-          new LivenessCheck(service_, cq_,viewlist);
+          new LivenessCheck(service_, cq_,viewlist_input,viewlist_output);
           reply_.set_reply(true);
 
           status_ = FINISH;
@@ -150,79 +152,104 @@ class ServerImpl final {
        // Take in the "service" instance (in this case representing an asynchronous
        // server) and the completion queue "cq" used for asynchronous communication
        // with the gRPC runtime.
-	  AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::vector< struct Local_view> viewlist)
+	  AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output)
            : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
          // Invoke the serving logic right away.
            tags.index=ADDOUTPUTVIEW;
            tags.tags=this;
-       	Proceed(viewlist);
+       	Proceed(viewlist_input,viewlist_output);
        }
 
-       void Proceed(std::vector< struct Local_view> viewlist) {
+       void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output) {
          if (status_ == CREATE) {
            status_ = PROCESS;
            service_->RequestAddOutputView(&ctx_, &request_, &responder_, cq_, cq_,
                                      (void*)&tags);
          } else if (status_ == PROCESS) {
-           new AddOutputView(service_, cq_,viewlist);
-           std::vector<Local_view>::iterator it;
+           new AddOutputView(service_, cq_,viewlist_input,viewlist_output);
+           std::map<int, struct Local_view>::iterator it;
            std::cout<<"received a addoutput view request"<<std::endl;
-           for(it=viewlist.begin();it!=viewlist.end();it++){
-        	   if(request_.worker_id()==it->worker_id){
-        		   reply_.set_reply(false);
-        		   reply_.set_message("Areadly exists ");
-        	   }
 
-           }
-           if(it==viewlist.end()){
-               Local_view tmp;
-               bool ok=false;
-               bool deque=false;
-               struct vswitch_msg msg;
-               struct reply_msg rep_msg;
-               msg.tag=NFACTOR_CLUSTER_VIEW;
-               msg.change_view_msg_.worker_id=request_.worker_id();
-               msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
-               strcpy(msg.change_view_msg_.iport_mac,request_.input_port_mac().c_str());
-               strcpy(msg.change_view_msg_.oport_mac,request_.output_port_mac().c_str());
-               std::cout<<"throw the request to the ring"<<std::endl;
+          int i;
+          View& outview;
+          for(i=0;i<request_.view_size();i++){
+          		outview=request_.view(i);
+          		if(viewlist_output.find(outview.worker_id())!=viewlist_output.end()){
+          			continue;
+          		}else{
+     					 bool deque=false;
+     					 struct vswitch_msg msg;
+     					 struct reply_msg rep_msg;
+     					 msg.tag=NFACTOR_CLUSTER_VIEW;
+     					 msg.change_view_msg_.worker_id=outview.worker_id();
+     					 msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
+     					 strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
+     					 strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
+     					 std::cout<<"throw the request to the ring"<<std::endl;
+     					 rte_ring_request.enqueue(msg);
+     					 std::cout<<"throw completed, waiting to read"<<std::endl;
+     					 while(1){
+     						 sleep(2);
+     						 std::cout<<"get the lock to find reply"<<std::endl;
+     						 deque=rte_ring_reply.try_dequeue(rep_msg);
+     						 if(deque){
+     							 struct Local_view tmp;
+     						   std::cout<<"find reply"<<std::endl;
+     							 ok=rep_msg.reply;
+									 tmp.worker_id=outview.worker_id();
+									 parse_mac_addr(tmp.control_port_mac,outview.control_port_mac().c_str());
+									 parse_mac_addr(tmp.input_port_mac,outview.input_port_mac().c_str());
+									 parse_mac_addr(tmp.output_port_mac,outview.output_port_mac().c_str());
+									 parse_ip_addr(tmp.rpc_ip,outview.rpc_ip().c_str());
+									 tmp.rpc_port=outview.rpc_port();
+									 viewlist_output.insert(tmp.worker_id,tmp);
+     							 break;
+     							}else{
+     								std::cout<<"empty reply queue"<<std::endl;
+     							}
+
+     					 }
 
 
-               rte_ring_request.enqueue(msg);
-               std::cout<<"throw completed, waiting to read"<<std::endl;
-               while(1){
-            	   sleep(2);
-            	   std::cout<<"get the lock to find reply"<<std::endl;
-            	   deque=rte_ring_reply.try_dequeue(rep_msg);
-            	   if(deque){
-            		   std::cout<<"find reply"<<std::endl;
-            		   ok=rep_msg.reply;
-            		   break;
-            	    }else{
-            	    	std::cout<<"empty reply queue"<<std::endl;
-            	    }
+          		}
 
-               }
+          }
+			   	std::map<int , struct Local_view>::iterator view_it;
+			   	View& view_tmp;
+			   	char str_tmp[20];
+				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
 
-               std::cout<<"readed it from the ring"<<std::endl;
-               if(ok==true){
-                   tmp.worker_id=request_.worker_id();
-                   parse_mac_addr(tmp.control_port_mac,request_.control_port_mac().c_str());
-                   parse_mac_addr(tmp.input_port_mac,request_.input_port_mac().c_str());
-                   parse_mac_addr(tmp.output_port_mac,request_.output_port_mac().c_str());
-                   parse_ip_addr(tmp.rpc_ip,request_.rpc_ip().c_str());
-                   tmp.rpc_port=request_.rpc_port();
-                   viewlist.push_back(tmp);
-                   reply_.set_reply(true);
-                   reply_.set_message("Add OutputView OK! ");
-               }else{
-                   reply_.set_reply(false);
-                   reply_.set_message("Add OutputView Fail! ");
-               }
+				  		view_tmp=reply_.add_output_views();
+						view_tmp.set_worker_id(view_it->first);
+						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
+						view_tmp.set_control_port_mac(std::string(str_tmp));
+						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
+						view_tmp.set_input_port_mac(std::string(str_tmp));
+						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
+						view_tmp.set_output_port_mac(std::string(str_tmp));
+						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
+						view_tmp.set_rpc_ip(std::string(str_tmp));
+						view_tmp.set_rpc_port(view_it->second.rpc_port);
 
-           }
-           status_ = FINISH;
-           responder_.Finish(reply_, Status::OK, (void*)&tags);
+				  	}
+				  	for(view_it=viewlist_input.begin();view_it!=viewlist_input.end();view_it++){
+
+				  		view_tmp=reply_.add_input_views();
+						view_tmp.set_worker_id(view_it->first);
+						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
+						view_tmp.set_control_port_mac(std::string(str_tmp));
+						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
+						view_tmp.set_input_port_mac(std::string(str_tmp));
+						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
+						view_tmp.set_output_port_mac(std::string(str_tmp));
+						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
+						view_tmp.set_rpc_ip(std::string(str_tmp));
+						view_tmp.set_rpc_port(view_it->second.rpc_port);
+
+				  	}
+						 status_ = FINISH;
+						 responder_.Finish(reply_, Status::OK, (void*)&tags);
+
          } else {
            GPR_ASSERT(status_ == FINISH);
            delete this;
@@ -234,11 +261,11 @@ class ServerImpl final {
        Runtime_RPC::AsyncService* service_;
        ServerCompletionQueue* cq_;
        ServerContext ctx_;
-       View request_;
-       AddOutputReply reply_;
+       ViewList request_;
+       CurrentView reply_;
 
        // The means to get back to the client.
-       ServerAsyncResponseWriter<AddOutputReply> responder_;
+       ServerAsyncResponseWriter<CurrentView> responder_;
 
        // Let's implement a tiny state machine with the following states.
        enum CallStatus { CREATE, PROCESS, FINISH };
@@ -254,8 +281,8 @@ class ServerImpl final {
     // Spawn a new CallData instance to serve new clients.
    // new CallData(&service_, cq_.get());
    // new SayhelloAgain(&service_, cq_.get());
-	  new LivenessCheck(&service_, cq_.get(),viewlist);
-	  new AddOutputView(&service_, cq_.get(),viewlist);
+	  new LivenessCheck(&service_, cq_.get(),viewlist_output);
+	  new AddOutputView(&service_, cq_.get(),viewlist_output);
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
@@ -268,10 +295,10 @@ class ServerImpl final {
       GPR_ASSERT(ok);
       switch (static_cast<struct tag*>(tag)->index){
         case LIVENESSCHECK:
-        	static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist);
+        	static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output);
         	break;
         case ADDOUTPUTVIEW:
-        	static_cast<AddOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist);
+        	static_cast<AddOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output);
         	break;
         default:
         	break;
@@ -283,7 +310,8 @@ class ServerImpl final {
   std::unique_ptr<ServerCompletionQueue> cq_;
   Runtime_RPC::AsyncService service_;
   std::unique_ptr<Server> server_;
-  std::vector< struct Local_view> viewlist;
+  std::map<int , struct Local_view> viewlist_input;
+  std::map< int, struct Local_view> viewlist_output;
 };
 
 void child(){
@@ -311,20 +339,8 @@ void child(){
 
 int main(int argc, char** argv) {
   ServerImpl server;
-      std::thread t1(child);
-	  std::cout<<"Children process ok"<<std::endl;
-      server.Run();
-
-
-
-
-
-
-
-
-
-
-
-
+  std::thread t1(child);
+	std::cout<<"Children process ok"<<std::endl;
+  server.Run();
   return 0;
 }

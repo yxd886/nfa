@@ -8,7 +8,7 @@ service Runtime_RPC {
   // Sends a greeting
   rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
   
-  rpc AddOutputView (View) returns (AddOutputReply){}
+  rpc AddOutputView (ViewList) returns (CurrentView){}
   
   rpc AddInputView (View) returns (AddInputReply){}
   

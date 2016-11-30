@@ -47,6 +47,8 @@ using grpc::Status;
 using nfa_msg::LivenessRequest;
 using nfa_msg::LivenessReply;
 using nfa_msg::View;
+using nfa_msg::ViewList;
+using nfa_msg::CurrentView;
 using nfa_msg::AddOutputReply;
 using nfa_msg::Runtime_RPC;
 
@@ -86,14 +88,14 @@ class RuntimeClient {
       return false;
     }
   }
- bool AddOutputView(View request) {
-    AddOutputReply reply;
+ bool AddOutputView(ViewList request) {
+    CurrentView reply;
     ClientContext context;
     CompletionQueue cq;
 
     Status status;
 
-    std::unique_ptr<ClientAsyncResponseReader<AddOutputReply> > rpc(
+    std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
         stub_->AsyncAddOutputView(&context, request, &cq));
 
     rpc->Finish(&reply, &status, (void*)1);
@@ -107,7 +109,7 @@ class RuntimeClient {
     GPR_ASSERT(ok);
 
     if (status.ok()) {
-      return reply.reply();
+      return true;
 
     } else {
       std::cout<<"RPC failed"<<std::endl;

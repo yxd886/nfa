@@ -53,13 +53,9 @@ struct  vswitch_msg{
 };
 
 struct  reply_msg{
-
   int tag;
   int worker_id;
   bool reply;
-
-
-
 };
 
 
@@ -98,11 +94,48 @@ static int parse_mac_addr(char *addr, const char *str )
 
 	return 0;
 }
+static int encode_mac_addr(char *str, char *addr  )
+{
+	if (str != NULL && addr != NULL) {
+		int r = sprintf(str,
+			       "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx",
+			       addr,
+			       addr+1,
+			       addr+2,
+			       addr+3,
+			       addr+4,
+			       addr+5);
+
+		if (r != 6)
+			return -EINVAL;
+	}
+
+	return 0;
+}
 
 static int parse_ip_addr(char *addr, const char *str )
 {
 	if (str != NULL && addr != NULL) {
 		int r = sscanf(str,
+			       "%d.%d.%d.%d/%d",
+			       addr,
+			       addr+1,
+			       addr+2,
+			       addr+3,
+			       addr+4
+			      );
+
+		if (r != 5)
+			return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int encode_ip_addr( char *str ,char *addr )
+{
+	if (str != NULL && addr != NULL) {
+		int r = sprintf(str,
 			       "%d.%d.%d.%d/%d",
 			       addr,
 			       addr+1,
