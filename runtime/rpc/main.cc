@@ -46,6 +46,8 @@ using grpc::CompletionQueue;
 using grpc::Status;
 using nfa_msg::LivenessRequest;
 using nfa_msg::LivenessReply;
+using nfa_msg::View;
+using nfa_msg::AddOutputReply;
 using nfa_msg::Runtime_RPC;
 
 class RuntimeClient {
@@ -84,7 +86,34 @@ class RuntimeClient {
       return false;
     }
   }
+ bool AddOutputView(View request) {
+    AddOutputReply reply;
+    ClientContext context;
+    CompletionQueue cq;
 
+    Status status;
+
+    std::unique_ptr<ClientAsyncResponseReader<AddOutputReply> > rpc(
+        stub_->AsyncAddOutputView(&context, request, &cq));
+
+    rpc->Finish(&reply, &status, (void*)1);
+    void* got_tag;
+    bool ok = false;
+
+    GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+    GPR_ASSERT(got_tag == (void*)1);
+
+    GPR_ASSERT(ok);
+
+    if (status.ok()) {
+      return reply.reply();
+
+    } else {
+      std::cout<<"RPC failed"<<std::endl;
+      return false;
+    }
+  }
 
  private:
   // Out of the passed in Channel comes the stub, stored here, our view of the
@@ -105,6 +134,28 @@ int main(int argc, char** argv) {
 	  std::cout << "Liveness Check: OK "<< std::endl;
   }else{
 	  std::cout << "Liveness Check: Fail "<< std::endl;
+  }
+
+  View request;
+  uint64 worker_id=1;
+  string input_port_mac=2;
+  string output_port_mac=3;
+  string control_port_mac=4;
+  string rpc_ip=5;
+  uint64 rpc_port=6;
+  request.set_worker_id(1);
+  request.set_input_port_mac("11:22:33:44:55:66");
+  request.set_output_port_mac("22:33:44:55:66:77");
+  request.set_control_port_mac("33:44:55:66:77:88");
+  request.set_rpc_ip("192.168.1.1/30");
+  request.set_rpc_port(80);
+
+
+  bool reply = nfa_rpc.AddOutputView(request);
+  if(reply){
+	  std::cout << "AddOutputView: OK "<< std::endl;
+  }else{
+	  std::cout << "AddOutputView: Fail "<< std::endl;
   }
 
 

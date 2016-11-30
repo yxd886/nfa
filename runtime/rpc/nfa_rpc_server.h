@@ -11,10 +11,104 @@
 #define nfa_rpc_server
 
 
+#define NFACTOR_WORKER_RUNNING 1
+#define NFACTOR_WORKER_FAIL    2
+#define NFACTOR_WORKER_LEAVE   3
+
+
 #define  NUL 0
 #define  SAYHELLO 1
 #define SAYHELLOAGAIN 2
 #define LIVENESSCHECK 3
+#define ADDOUTPUTVIEW 4
+
+typedef struct {
+  int worker_id;
+  int state;
+  char iport_mac[6];
+  char oport_mac[6];
+} cluster_view_msg;
+
+typedef struct{
+  long transaction_id;
+  int destination_worker_id;
+  char flow_identifers[16];
+} change_route_msg;
+
+#define NFACTOR_CLUSTER_VIEW 1
+#define NFACTOR_CHANGE_ROUTE 2
+
+#define REPLY 100
+#define REQUEST 200
+
+
+typedef struct{
+
+  int tag;
+  int msg_type;
+  bool reply_result;
+  union{
+    cluster_view_msg change_view_msg_;
+    change_route_msg change_route_msg_;
+  };
+
+} vswitch_msg;
+
+
+
+
+struct tag{
+	int index;
+	void* tags;
+
+};
+
+struct Local_view{
+	uint64_t worker_id;
+    char input_port_mac[6];
+    char output_port_mac[6];
+    char control_port_mac[6];
+    char rpc_ip[20];
+    uint64_t rpc_port;
+};
+
+static int parse_mac_addr(char *addr, const char *str )
+{
+	if (str != NULL && addr != NULL) {
+		int r = sscanf(str,
+			       "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx",
+			       addr,
+			       addr+1,
+			       addr+2,
+			       addr+3,
+			       addr+4,
+			       addr+5);
+
+		if (r != 6)
+			return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int parse_ip_addr(char *addr, const char *str )
+{
+	if (str != NULL && addr != NULL) {
+		int r = sscanf(str,
+			       "%d.%d.%d.%d/%d",
+			       addr,
+			       addr+1,
+			       addr+2,
+			       addr+3,
+			       addr+4
+			      );
+
+		if (r != 5)
+			return -EINVAL;
+	}
+
+	return 0;
+}
 
 
 #endif

@@ -8,9 +8,12 @@ service Runtime_RPC {
   // Sends a greeting
   rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
   
+  rpc AddOutputView (View) returns (AddOutputReply){}
+  
+  rpc AddInputView (View) returns (AddInputReply){}
+  
   rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult) {}
   
-  rpc MigrationNegotiate (MigrationNegotiation) returns (MigrationNegotiationResult) {}
   
   
   
@@ -45,6 +48,17 @@ message View{
   uint64 rpc_port=6;
 }
 
+message AddOutputReply{
+  bool reply = 1;
+  string message = 2;
+}
+
+message AddInputReply{
+  bool reply = 1;
+  string message = 2;
+}
+
+
 message ViewList{
   repeated View view=1;
 }
@@ -58,15 +72,11 @@ message CurrentView{
 //message for migration
 message MigrationTarget{
   View Migration_target_info=1;
+  repeated View input_views=2;
+  repeated View output_views=3;
   uint64 quota = 2;
 }
 
-message MigrationNegotiation{
-  View migration_source_info=1;
-  repeated View input_views=2;
-  repeated View output_views=3;
-  uint64 qouta=5;
-}
 
 message MigrationNegotiationResult{
   bool succeed=1;

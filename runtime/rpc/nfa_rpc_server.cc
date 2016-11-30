@@ -34,12 +34,15 @@
 #include <memory>
 #include <iostream>
 #include <string>
+#include <string.h>
 #include <thread>
+#include <vector>
+#include <queue>
+#include <unistd.h>
 
 #include <grpc++/grpc++.h>
 
 #include "nfa_msg.grpc.pb.h"
-#include "nfa_rpc_server.h"
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
@@ -49,13 +52,14 @@ using grpc::ServerCompletionQueue;
 using grpc::Status;
 using nfa_msg::LivenessRequest;
 using nfa_msg::LivenessReply;
+using nfa_msg::View;
+using nfa_msg::AddOutputReply;
 using nfa_msg::Runtime_RPC;
 
-struct tag{
-	int index;
-	void* tags;
+#include "nfa_rpc_server.h"
 
-};
+
+std::vector<struct vswitch_msg> rte_ring;
 
 
 class ServerImpl final {
@@ -139,6 +143,115 @@ class ServerImpl final {
 
 
 
+  class AddOutputView {
+      public:
+       // Take in the "service" instance (in this case representing an asynchronous
+       // server) and the completion queue "cq" used for asynchronous communication
+       // with the gRPC runtime.
+	  AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq)
+           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+         // Invoke the serving logic right away.
+           tags.index=ADDOUTPUTVIEW;
+           tags.tags=this;
+       	Proceed();
+       }
+
+       void Proceed() {
+         if (status_ == CREATE) {
+           status_ = PROCESS;
+           service_->RequestAddOutputView(&ctx_, &request_, &responder_, cq_, cq_,
+                                     (void*)&tags);
+         } else if (status_ == PROCESS) {
+           new AddOutputView(service_, cq_);
+           std::vector<Local_view>::iterator it;
+           for(it=viewlist.begin();it!=viewlist.end();it++){
+        	   if(request_.worker_id()==it->worker_id){
+        		   reply_.set_reply(false);
+        		   reply_.set_message("Areadly exists ");
+        	   }
+
+           }
+           if(it==viewlist.end()){
+               Local_view tmp;
+               bool ok=false;
+               struct vswitch_msg msg;
+               msg.tag=NFACTOR_CLUSTER_VIEW;
+               msg.msg_type=REQUEST;
+               msg.reply_result=false;
+               msg.change_view_msg_.worker_id=tmp.worker_id;
+               msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
+               strcpy(msg.change_view_msg_.iport_mac,tmp.input_port_mac);
+               strcpy(msg.change_view_msg_.oport_mac,tmp.output_port_mac);
+
+               rte_ring.push_back(msg);
+
+               std::vector<struct vswitch_msg>::iterator iter;
+               while(1){
+
+
+            	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
+            		   if(iter->msg_type==REPLY&&iter->tag==NFACTOR_CLUSTER_VIEW&&iter->change_view_msg_.worker_id==msg.change_view_msg_.worker_id){
+            			   break;
+            		   }
+
+            	   }
+            	   if(iter==rte_ring.end()){
+            		   //not find, loop again
+            		   iter=rte_ring.begin();
+            	   }else{
+            		   //find.
+            		   ok=iter->reply_result;
+            		   rte_ring.erase(iter);
+            		   break;
+
+            	   }
+
+               }
+
+               if(ok==true){
+                   tmp.worker_id=request_.worker_id();
+                   parse_mac_addr(tmp.control_port_mac,request_.control_port_mac().c_str());
+                   parse_mac_addr(tmp.input_port_mac,request_.input_port_mac().c_str());
+                   parse_mac_addr(tmp.output_port_mac,request_.output_port_mac().c_str());
+                   parse_ip_addr(tmp.rpc_ip,request_.rpc_ip().c_str());
+                   tmp.rpc_port=request_.rpc_port();
+                   viewlist.push_back(tmp);
+                   reply_.set_reply(true);
+                   reply_.set_message("Add OutputView OK! ");
+               }else{
+                   reply_.set_reply(false);
+                   reply_.set_message("Add OutputView Fail! ");
+               }
+
+           }
+           status_ = FINISH;
+           responder_.Finish(reply_, Status::OK, (void*)&tags);
+         } else {
+           GPR_ASSERT(status_ == FINISH);
+           delete this;
+         }
+       }
+
+      private:
+
+       Runtime_RPC::AsyncService* service_;
+       ServerCompletionQueue* cq_;
+       ServerContext ctx_;
+       View request_;
+       AddOutputReply reply_;
+
+       // The means to get back to the client.
+       ServerAsyncResponseWriter<AddOutputReply> responder_;
+
+       // Let's implement a tiny state machine with the following states.
+       enum CallStatus { CREATE, PROCESS, FINISH };
+       CallStatus status_;  // The current serving state.
+       struct tag tags;
+     };
+
+
+
+
   // This can be run in multiple threads if needed.
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
@@ -172,11 +285,43 @@ class ServerImpl final {
   std::unique_ptr<ServerCompletionQueue> cq_;
   Runtime_RPC::AsyncService service_;
   std::unique_ptr<Server> server_;
+  std::vector<Local_view> viewlist;
 };
 
 int main(int argc, char** argv) {
   ServerImpl server;
-  server.Run();
+  int pid;
+  pid=fork();
+  if(pid==0){
+      server.Run();
+  }else{
+
+	  std::vector<struct vswitch_msg>::iterator iter;
+	  while(1){
+
+
+   	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
+   		   if(iter->msg_type==REQUEST){
+   			   break;
+   		   }
+
+   	   }
+   	   if(iter==rte_ring.end()){
+   		   //not find, loop again
+   		   iter=rte_ring.begin();
+   	   }else{
+   		   //find.
+   		   iter->reply_result=true;
+   		   iter->msg_type=REPLY;
+
+   	   }
+
+      }
+
+  }
+
+
+
 
   return 0;
 }
