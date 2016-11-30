@@ -74,7 +74,7 @@ message MigrationTarget{
   View Migration_target_info=1;
   repeated View input_views=2;
   repeated View output_views=3;
-  uint64 quota = 2;
+  uint64 quota = 4;
 }
 
 
