@@ -129,13 +129,15 @@ int main(int argc, char** argv) {
 	RuntimeClient nfa_rpc(grpc::CreateChannel(
       "localhost:50051", grpc::InsecureChannelCredentials()));
   std::string user("world");
-  bool reply = nfa_rpc.LivenessCheck();  // The actual RPC call!
+  bool reply ;
+  /*
+  reply= nfa_rpc.LivenessCheck();  // The actual RPC call!
   if(reply){
 	  std::cout << "Liveness Check: OK "<< std::endl;
   }else{
 	  std::cout << "Liveness Check: Fail "<< std::endl;
   }
-
+*/
   View request;
   request.set_worker_id(1);
   request.set_input_port_mac("11:22:33:44:55:66");

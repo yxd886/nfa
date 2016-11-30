@@ -280,8 +280,8 @@ class ServerImpl final {
         case LIVENESSCHECK:
         	static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist);
         	break;
-        case SAYHELLOAGAIN:
-        //	static_cast<SayhelloAgain *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+        case ADDOUTPUTVIEW:
+        	static_cast<AddOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist);
         	break;
         default:
         	break;
