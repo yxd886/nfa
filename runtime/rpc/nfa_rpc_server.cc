@@ -313,6 +313,7 @@ int main(int argc, char** argv) {
 	  while(1){
 		  sleep(0.5);
 	   mtx.lock();
+	   std::cout<<"elments in ring is"<<rte_ring.size()<<std::endl;
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
    			   std::cout<<"find one request"<<std::endl;
