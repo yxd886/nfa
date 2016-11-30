@@ -312,6 +312,7 @@ int main(int argc, char** argv) {
 	   mtx.lock();
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
+   			   std::cout<<"find one request"<<std::endl;
    			   break;
    		   }
 
@@ -323,9 +324,10 @@ int main(int argc, char** argv) {
    		   //find.
    		   iter->reply_result=true;
    		   iter->msg_type=REPLY;
-   		 mtx.unlock();
+
 
    	   }
+   	   mtx.unlock();
 
       }
 
