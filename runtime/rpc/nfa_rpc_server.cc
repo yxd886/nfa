@@ -187,6 +187,7 @@ class ServerImpl final {
 
                mtx.lock();
                rte_ring.push_back(msg);
+               std::cout<<"Outputview: elments in ring is "<<rte_ring.size()<<std::endl;
                mtx.unlock();
                std::cout<<"throw completed, waiting to read"<<std::endl;
                std::vector<struct vswitch_msg>::iterator iter;
@@ -197,7 +198,7 @@ class ServerImpl final {
             	   std::cout<<"get the lock to find reply"<<std::endl;
             	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
             		   if(iter->msg_type==REPLY&&iter->tag==NFACTOR_CLUSTER_VIEW&&iter->change_view_msg_.worker_id==msg.change_view_msg_.worker_id){
-            			   std::cout<<"find reply"<<std::endl;
+
             			   break;
             		   }
 
@@ -210,6 +211,7 @@ class ServerImpl final {
             		   //find.
             		   ok=iter->reply_result;
             		   rte_ring.erase(iter);
+            		   std::cout<<"find reply"<<std::endl;
             		   mtx.unlock();
             		   break;
 
@@ -313,7 +315,7 @@ int main(int argc, char** argv) {
 	  while(1){
 		  sleep(0.5);
 	   mtx.lock();
-	   std::cout<<"elments in ring is"<<rte_ring.size()<<std::endl;
+	   std::cout<<"elments in ring is "<<rte_ring.size()<<std::endl;
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
    			   std::cout<<"find one request"<<std::endl;
