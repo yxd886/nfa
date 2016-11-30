@@ -192,10 +192,11 @@ class ServerImpl final {
                std::vector<struct vswitch_msg>::iterator iter;
                while(1){
 
-            	  sleep(0.05);
+            	  sleep(0.5);
             	   mtx.lock();
             	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
             		   if(iter->msg_type==REPLY&&iter->tag==NFACTOR_CLUSTER_VIEW&&iter->change_view_msg_.worker_id==msg.change_view_msg_.worker_id){
+            			   std::cout<<"find reply"<<std::endl;
             			   break;
             		   }
 
@@ -203,6 +204,7 @@ class ServerImpl final {
             	   if(iter==rte_ring.end()){
             		   //not find, loop again
             		   iter=rte_ring.begin();
+            		   std::cout<<"did not find reply,loop again"<<std::endl;
             	   }else{
             		   //find.
             		   ok=iter->reply_result;
@@ -308,7 +310,7 @@ int main(int argc, char** argv) {
 
 	  std::vector<struct vswitch_msg>::iterator iter;
 	  while(1){
-		  sleep(0.05);
+		  sleep(0.5);
 	   mtx.lock();
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
@@ -319,6 +321,7 @@ int main(int argc, char** argv) {
    	   }
    	   if(iter==rte_ring.end()){
    		   //not find, loop again
+   		 std::cout<<"did not find request,loop again"<<std::endl;
    		   iter=rte_ring.begin();
    	   }else{
    		   //find.
