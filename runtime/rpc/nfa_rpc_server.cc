@@ -179,10 +179,10 @@ class ServerImpl final {
                msg.tag=NFACTOR_CLUSTER_VIEW;
                msg.msg_type=REQUEST;
                msg.reply_result=false;
-               msg.change_view_msg_.worker_id=tmp.worker_id;
+               msg.change_view_msg_.worker_id=request_.worker_id();
                msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
-               strcpy(msg.change_view_msg_.iport_mac,tmp.input_port_mac);
-               strcpy(msg.change_view_msg_.oport_mac,tmp.output_port_mac);
+               strcpy(msg.change_view_msg_.iport_mac,request_.input_port_mac().c_str());
+               strcpy(msg.change_view_msg_.oport_mac,request_.output_port_mac().c_str());
                std::cout<<"throw the request to the ring"<<std::endl;
 
                mtx.lock();
