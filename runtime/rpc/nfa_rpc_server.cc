@@ -195,14 +195,13 @@ class ServerImpl final {
      						 if(deque){
      							 struct Local_view tmp;
      						   std::cout<<"find reply"<<std::endl;
-     							 ok=rep_msg.reply;
 									 tmp.worker_id=outview.worker_id();
 									 parse_mac_addr(tmp.control_port_mac,outview.control_port_mac().c_str());
 									 parse_mac_addr(tmp.input_port_mac,outview.input_port_mac().c_str());
 									 parse_mac_addr(tmp.output_port_mac,outview.output_port_mac().c_str());
 									 parse_ip_addr(tmp.rpc_ip,outview.rpc_ip().c_str());
 									 tmp.rpc_port=outview.rpc_port();
-									 viewlist_output.insert(tmp.worker_id,tmp);
+									 viewlist_output[tmp.worker_id]=tmp;
      							 break;
      							}else{
      								std::cout<<"empty reply queue"<<std::endl;
@@ -217,7 +216,7 @@ class ServerImpl final {
 			   	std::map<int , struct Local_view>::iterator view_it;
 
 			   	char str_tmp[20];
-			   	View * view_tmp=NULL;
+			   	const View * view_tmp=NULL;
 				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
 
 				  	  view_tmp=reply_.add_output_views();
@@ -282,8 +281,8 @@ class ServerImpl final {
     // Spawn a new CallData instance to serve new clients.
    // new CallData(&service_, cq_.get());
    // new SayhelloAgain(&service_, cq_.get());
-	  new LivenessCheck(&service_, cq_.get(),viewlist_output);
-	  new AddOutputView(&service_, cq_.get(),viewlist_output);
+	  new LivenessCheck(&service_, cq_.get(),viewlist_input,viewlist_output);
+	  new AddOutputView(&service_, cq_.get(),viewlist_input,viewlist_output);
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
