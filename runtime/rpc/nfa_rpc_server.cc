@@ -60,7 +60,7 @@ using nfa_msg::Runtime_RPC;
 
 
 std::vector<struct vswitch_msg> rte_ring;
-
+int mutex=0;
 
 class ServerImpl final {
  public:
@@ -185,12 +185,27 @@ class ServerImpl final {
                strcpy(msg.change_view_msg_.oport_mac,tmp.output_port_mac);
                std::cout<<"throw the request to the ring, waiting to read"<<std::endl;
 
-               rte_ring.push_back(msg);
+               while(mutex==1){
+            	   sleep(0.05);
+            	   if(mutex==0){
+            		   mutex=1;
+            		   rte_ring.push_back(msg);
+            		   mutex=0;
+            		   break;
+
+            	   }
+               }
+
+
 
                std::vector<struct vswitch_msg>::iterator iter;
                while(1){
+            	   sleep(0.05);
+            	   if(mutex==1){
 
-
+            		   continue;
+            	   }
+            	   mutex=1;
             	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
             		   if(iter->msg_type==REPLY&&iter->tag==NFACTOR_CLUSTER_VIEW&&iter->change_view_msg_.worker_id==msg.change_view_msg_.worker_id){
             			   break;
@@ -200,10 +215,12 @@ class ServerImpl final {
             	   if(iter==rte_ring.end()){
             		   //not find, loop again
             		   iter=rte_ring.begin();
+            		   mutex=0;
             	   }else{
             		   //find.
             		   ok=iter->reply_result;
             		   rte_ring.erase(iter);
+            		   mutex=0;
             		   break;
 
             	   }
@@ -304,7 +321,11 @@ int main(int argc, char** argv) {
 	  std::vector<struct vswitch_msg>::iterator iter;
 	  while(1){
 
-
+       sleep(0.05);
+       if(mutex==1){
+    	   continue;
+       }
+       mutex=1;
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
    			   break;
@@ -320,6 +341,7 @@ int main(int argc, char** argv) {
    		   iter->msg_type=REPLY;
 
    	   }
+   	   mutex=0;
 
       }
 
