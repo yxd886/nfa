@@ -21,7 +21,7 @@
 #define SAYHELLOAGAIN 2
 #define LIVENESSCHECK 3
 #define ADDOUTPUTVIEW 4
-#define ADDINPUTVIEW 4
+#define ADDINPUTVIEW 5
 
 typedef struct {
   int worker_id;

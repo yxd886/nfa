@@ -10,7 +10,7 @@ service Runtime_RPC {
   
   rpc AddOutputView (ViewList) returns (CurrentView){}
   
-  rpc AddInputView (View) returns (AddInputReply){}
+  rpc AddInputView (ViewList) returns (CurrentView){}
   
   rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult) {}
   
