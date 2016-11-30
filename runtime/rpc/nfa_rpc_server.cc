@@ -313,7 +313,6 @@ int main(int argc, char** argv) {
 	  while(1){
 		  sleep(0.5);
 	   mtx.lock();
-	   std::cout<<"get the lock to find request"<<std::endl;
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
    			   std::cout<<"find one request"<<std::endl;
@@ -323,7 +322,6 @@ int main(int argc, char** argv) {
    	   }
    	   if(iter==rte_ring.end()){
    		   //not find, loop again
-   		 std::cout<<"did not find request,loop again"<<std::endl;
    		   iter=rte_ring.begin();
    	   }else{
    		   //find.
