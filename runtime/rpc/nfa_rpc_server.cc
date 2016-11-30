@@ -164,6 +164,7 @@ class ServerImpl final {
          } else if (status_ == PROCESS) {
            new AddOutputView(service_, cq_,viewlist);
            std::vector<Local_view>::iterator it;
+           std::cout<<"received a addoutput view request"<<std::endl;
            for(it=viewlist.begin();it!=viewlist.end();it++){
         	   if(request_.worker_id()==it->worker_id){
         		   reply_.set_reply(false);
@@ -182,6 +183,7 @@ class ServerImpl final {
                msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
                strcpy(msg.change_view_msg_.iport_mac,tmp.input_port_mac);
                strcpy(msg.change_view_msg_.oport_mac,tmp.output_port_mac);
+               std::cout<<"throw the request to the ring, waiting to read"<<std::endl;
 
                rte_ring.push_back(msg);
 
@@ -207,7 +209,7 @@ class ServerImpl final {
             	   }
 
                }
-
+               std::cout<<"readed it from the ring"<<std::endl;
                if(ok==true){
                    tmp.worker_id=request_.worker_id();
                    parse_mac_addr(tmp.control_port_mac,request_.control_port_mac().c_str());
@@ -294,8 +296,10 @@ int main(int argc, char** argv) {
   int pid;
   pid=fork();
   if(pid==0){
+	  std::cout<<"Children process ok"<<std::endl;
       server.Run();
   }else{
+	  std::cout<<"father process ok"<<std::endl;
 
 	  std::vector<struct vswitch_msg>::iterator iter;
 	  while(1){
