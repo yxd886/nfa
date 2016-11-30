@@ -86,7 +86,6 @@ class ServerImpl final {
     // Finally assemble the server.
     server_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
-    std::
 
     // Proceed to the server's main loop.
     HandleRpcs();
