@@ -311,7 +311,7 @@ int main(int argc, char** argv) {
 
 	  std::vector<struct vswitch_msg>::iterator iter;
 	  while(1){
-		  sleep(0.5);
+		  sleep(1.0);
 	   mtx.lock();
 	   std::cout<<"get the lock to find request"<<std::endl;
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
