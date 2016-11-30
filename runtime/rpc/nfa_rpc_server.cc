@@ -194,6 +194,7 @@ class ServerImpl final {
             	   std::cout<<"get the lock to find reply"<<std::endl;
             	   deque=rte_ring_reply.try_dequeue(rep_msg);
             	   if(deque){
+            		   std::cout<<"find reply"<<std::endl;
             		   ok=rep_msg.reply;
             		   break;
             	    }else{
@@ -305,6 +306,7 @@ int main(int argc, char** argv) {
     	      reply.tag=request.tag;
     	      reply.worker_id=request.change_view_msg_.worker_id;
     	      reply.reply=true;
+    	      std::cout<<"find request"<<std::endl;
     	      rte_ring_reply.enqueue(reply);
           }else{
         	  std::cout<<"empty request queue"<<std::endl;
