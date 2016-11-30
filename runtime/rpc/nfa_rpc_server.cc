@@ -183,12 +183,12 @@ class ServerImpl final {
                msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
                strcpy(msg.change_view_msg_.iport_mac,tmp.input_port_mac);
                strcpy(msg.change_view_msg_.oport_mac,tmp.output_port_mac);
-               std::cout<<"throw the request to the ring, waiting to read"<<std::endl;
+               std::cout<<"throw the request to the ring"<<std::endl;
 
                mtx.lock();
                rte_ring.push_back(msg);
-               mtx.lock();
-
+               mtx.unlock();
+               std::cout<<"throw completed, waiting to read"<<std::endl;
                std::vector<struct vswitch_msg>::iterator iter;
                while(1){
 
