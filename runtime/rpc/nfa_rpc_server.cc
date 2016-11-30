@@ -100,7 +100,7 @@ class ServerImpl final {
       // server) and the completion queue "cq" used for asynchronous communication
       // with the gRPC runtime.
 	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::vector< struct Local_view> viewlist)
-          : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),viewlist(viewlist){
+          : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE){
         // Invoke the serving logic right away.
           tags.index=LIVENESSCHECK;
           tags.tags=this;
@@ -139,7 +139,6 @@ class ServerImpl final {
       enum CallStatus { CREATE, PROCESS, FINISH };
       CallStatus status_;  // The current serving state.
       struct tag tags;
-      std::vector< struct Local_view> viewlist;
     };
 
 
@@ -150,7 +149,7 @@ class ServerImpl final {
        // server) and the completion queue "cq" used for asynchronous communication
        // with the gRPC runtime.
 	  AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::vector< struct Local_view> viewlist)
-           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),viewlist(viewlist) {
+           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
          // Invoke the serving logic right away.
            tags.index=ADDOUTPUTVIEW;
            tags.tags=this;
@@ -248,7 +247,6 @@ class ServerImpl final {
        enum CallStatus { CREATE, PROCESS, FINISH };
        CallStatus status_;  // The current serving state.
        struct tag tags;
-       std::vector< struct Local_view> viewlist;
      };
 
 
