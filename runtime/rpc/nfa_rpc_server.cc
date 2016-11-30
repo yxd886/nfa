@@ -39,6 +39,7 @@
 #include <vector>
 #include <queue>
 #include <unistd.h>
+#include <sys/shm.h>
 
 #include <grpc++/grpc++.h>
 
@@ -285,40 +286,42 @@ class ServerImpl final {
   std::vector< struct Local_view> viewlist;
 };
 
+void child(){
+  std::cout<<"father process ok"<<std::endl;
+  struct vswitch_msg request;
+  struct reply_msg reply;
+  bool ok;
+  while(1){
+
+  		sleep(2);
+	  ok=rte_ring_request.try_dequeue(request);
+	  if(ok){
+	  		reply.tag=request.tag;
+	    	reply.worker_id=request.change_view_msg_.worker_id;
+	    reply.reply=true;
+	    std::cout<<"find request"<<std::endl;
+	    rte_ring_reply.enqueue(reply);
+	  }else{
+	  			std::cout<<"empty request queue"<<std::endl;
+	    }
+
+
+	}
+}
+
 int main(int argc, char** argv) {
   ServerImpl server;
-  int pid;
-  pid=fork();
-  if(pid==0){
+      std::thread t1(child);
 	  std::cout<<"Children process ok"<<std::endl;
       server.Run();
-  }else{
-	  std::cout<<"father process ok"<<std::endl;
-
-	  struct vswitch_msg request;
-	  struct reply_msg reply;
-	  bool ok;
-	  while(1){
-
-		  sleep(2);
-          ok=rte_ring_request.try_dequeue(request);
-          if(ok){
-    	      reply.tag=request.tag;
-    	      reply.worker_id=request.change_view_msg_.worker_id;
-    	      reply.reply=true;
-    	      std::cout<<"find request"<<std::endl;
-    	      rte_ring_reply.enqueue(reply);
-          }else{
-        	  std::cout<<"empty request queue"<<std::endl;
-          }
-
-
-   	   }
 
 
 
 
-  }
+
+
+
+
 
 
 
