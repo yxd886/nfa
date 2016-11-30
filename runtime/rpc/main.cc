@@ -132,14 +132,14 @@ int main(int argc, char** argv) {
       "localhost:50051", grpc::InsecureChannelCredentials()));
   std::string user("world");
   bool reply ;
-  /*
+
   reply= nfa_rpc.LivenessCheck();  // The actual RPC call!
   if(reply){
 	  std::cout << "Liveness Check: OK "<< std::endl;
   }else{
 	  std::cout << "Liveness Check: Fail "<< std::endl;
   }
-*/
+
   ViewList request;
   ;
   View* req=request.add_view();
