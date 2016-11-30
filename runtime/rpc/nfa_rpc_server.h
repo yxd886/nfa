@@ -42,7 +42,7 @@ typedef struct{
 #define REQUEST 200
 
 
-typedef struct{
+struct  vswitch_msg{
 
   int tag;
   int msg_type;
@@ -52,7 +52,7 @@ typedef struct{
     change_route_msg change_route_msg_;
   };
 
-} vswitch_msg;
+};
 
 
 

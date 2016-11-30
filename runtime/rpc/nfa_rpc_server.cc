@@ -285,7 +285,7 @@ class ServerImpl final {
   std::unique_ptr<ServerCompletionQueue> cq_;
   Runtime_RPC::AsyncService service_;
   std::unique_ptr<Server> server_;
-  std::vector<Local_view> viewlist;
+  std::vector< struct Local_view> viewlist;
 };
 
 int main(int argc, char** argv) {
