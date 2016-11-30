@@ -142,13 +142,13 @@ int main(int argc, char** argv) {
 */
   ViewList request;
   ;
-  View& req=request.add_view();
-  req.set_worker_id(1);
-  req.set_input_port_mac("11:22:33:44:55:66");
-  req.set_output_port_mac("22:33:44:55:66:77");
-  req.set_control_port_mac("33:44:55:66:77:88");
-  req.set_rpc_ip("192.168.1.1/30");
-  req.set_rpc_port(80);
+  View* req=request.add_view();
+  req->set_worker_id(1);
+  req->set_input_port_mac("11:22:33:44:55:66");
+  req->set_output_port_mac("22:33:44:55:66:77");
+  req->set_control_port_mac("33:44:55:66:77:88");
+  req->set_rpc_ip("192.168.1.1/30");
+  req->set_rpc_port(80);
 
 
   reply = nfa_rpc.AddOutputView(request);

@@ -171,9 +171,9 @@ class ServerImpl final {
            std::cout<<"received a addoutput view request"<<std::endl;
 
           int i;
-          View& outview;
+
           for(i=0;i<request_.view_size();i++){
-          		outview=request_.view(i);
+          	View& outview=request_.view(i);
           		if(viewlist_output.find(outview.worker_id())!=viewlist_output.end()){
           			continue;
           		}else{
@@ -217,34 +217,35 @@ class ServerImpl final {
 			   	std::map<int , struct Local_view>::iterator view_it;
 
 			   	char str_tmp[20];
+			   	View * view_tmp=NULL;
 				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
 
-				  		View& view_tmp=reply_.add_output_views();
-						view_tmp.set_worker_id(view_it->first);
+				  	  view_tmp=reply_.add_output_views();
+						view_tmp->set_worker_id(view_it->first);
 						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-						view_tmp.set_control_port_mac(std::string(str_tmp));
+						view_tmp->set_control_port_mac(std::string(str_tmp));
 						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-						view_tmp.set_input_port_mac(std::string(str_tmp));
+						view_tmp->set_input_port_mac(std::string(str_tmp));
 						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-						view_tmp.set_output_port_mac(std::string(str_tmp));
+						view_tmp->set_output_port_mac(std::string(str_tmp));
 						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-						view_tmp.set_rpc_ip(std::string(str_tmp));
-						view_tmp.set_rpc_port(view_it->second.rpc_port);
+						view_tmp->set_rpc_ip(std::string(str_tmp));
+						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
 				  	}
 				  	for(view_it=viewlist_input.begin();view_it!=viewlist_input.end();view_it++){
 
-				  		View& view_tmp=reply_.add_input_views();
-						view_tmp.set_worker_id(view_it->first);
+				  	  view_tmp=reply_.add_input_views();
+						view_tmp->set_worker_id(view_it->first);
 						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-						view_tmp.set_control_port_mac(std::string(str_tmp));
+						view_tmp->set_control_port_mac(std::string(str_tmp));
 						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-						view_tmp.set_input_port_mac(std::string(str_tmp));
+						view_tmp->set_input_port_mac(std::string(str_tmp));
 						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-						view_tmp.set_output_port_mac(std::string(str_tmp));
+						view_tmp->set_output_port_mac(std::string(str_tmp));
 						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-						view_tmp.set_rpc_ip(std::string(str_tmp));
-						view_tmp.set_rpc_port(view_it->second.rpc_port);
+						view_tmp->set_rpc_ip(std::string(str_tmp));
+						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
 				  	}
 						 status_ = FINISH;
