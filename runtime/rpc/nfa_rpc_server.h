@@ -45,12 +45,20 @@ typedef struct{
 struct  vswitch_msg{
 
   int tag;
-  int msg_type;
-  bool reply_result;
   union{
     cluster_view_msg change_view_msg_;
     change_route_msg change_route_msg_;
   };
+
+};
+
+struct  reply_msg{
+
+  int tag;
+  int worker_id;
+  bool reply;
+
+
 
 };
 

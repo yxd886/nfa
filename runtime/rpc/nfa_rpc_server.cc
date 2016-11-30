@@ -55,11 +55,12 @@ using nfa_msg::LivenessReply;
 using nfa_msg::View;
 using nfa_msg::AddOutputReply;
 using nfa_msg::Runtime_RPC;
-
+#include "concurrentqueue.h"
 #include "nfa_rpc_server.h"
 
 
-std::vector<struct vswitch_msg> rte_ring;
+moodycamel::ConcurrentQueue<struct vswitch_msg> rte_ring_request;
+moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply;
 std::mutex mtx;
 
 class ServerImpl final {
@@ -175,7 +176,9 @@ class ServerImpl final {
            if(it==viewlist.end()){
                Local_view tmp;
                bool ok=false;
+               bool deque=false;
                struct vswitch_msg msg;
+               struct reply_msg rep_msg;
                msg.tag=NFACTOR_CLUSTER_VIEW;
                msg.msg_type=REQUEST;
                msg.reply_result=false;
@@ -185,40 +188,21 @@ class ServerImpl final {
                strcpy(msg.change_view_msg_.oport_mac,request_.output_port_mac().c_str());
                std::cout<<"throw the request to the ring"<<std::endl;
 
-               mtx.lock();
-               rte_ring.push_back(msg);
+
+               rte_ring_request.enqueue(msg);
                std::cout<<"Outputview: elments in ring is "<<rte_ring.size()<<std::endl;
-               mtx.unlock();
                std::cout<<"throw completed, waiting to read"<<std::endl;
-               std::vector<struct vswitch_msg>::iterator iter;
                while(1){
-
-            	  sleep(3);
-            	   mtx.lock();
+            	   sleep(2);
             	   std::cout<<"get the lock to find reply"<<std::endl;
-            	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
-            		   if(iter->msg_type==REPLY&&iter->tag==NFACTOR_CLUSTER_VIEW&&iter->change_view_msg_.worker_id==msg.change_view_msg_.worker_id){
-
-            			   break;
-            		   }
-
-            	   }
-            	   if(iter==rte_ring.end()){
-            		   //not find, loop again
-            		   iter=rte_ring.begin();
-            		   std::cout<<"did not find reply,loop again"<<std::endl;
-            	   }else{
-            		   //find.
-            		   ok=iter->reply_result;
-            		   rte_ring.erase(iter);
-            		   std::cout<<"find reply"<<std::endl;
-            		   mtx.unlock();
+            	   deque=rte_ring_reply.try_dequeue(rep_msg);
+            	   if(deque){
+            		   ok=rep_msg.reply;
             		   break;
-
-            	   }
-            	   mtx.unlock();
+            	    }
 
                }
+
                std::cout<<"readed it from the ring"<<std::endl;
                if(ok==true){
                    tmp.worker_id=request_.worker_id();
@@ -311,31 +295,25 @@ int main(int argc, char** argv) {
   }else{
 	  std::cout<<"father process ok"<<std::endl;
 
-	  std::vector<struct vswitch_msg>::iterator iter;
+	  struct vswitch_msg request;
+	  struct reply_msg reply;
+	  bool ok;
 	  while(1){
+
 		  sleep(2);
-	   mtx.lock();
-	   std::cout<<"elments in ring is "<<rte_ring.size()<<std::endl;
-   	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
-   		   if(iter->msg_type==REQUEST){
-   			   std::cout<<"find one request"<<std::endl;
-   			   break;
-   		   }
-
-   	   }
-   	   if(iter==rte_ring.end()){
-   		   //not find, loop again
-   		   iter=rte_ring.begin();
-   	   }else{
-   		   //find.
-   		   iter->reply_result=true;
-   		   iter->msg_type=REPLY;
+          ok=rte_ring_request.try_dequeue(request);
+          if(ok){
+    	      reply.tag=request.tag;
+    	      reply.worker_id=request.change_view_msg_.worker_id;
+    	      reply.reply=true;
+    	      rte_ring_reply.enqueue(reply);
+          }
 
 
    	   }
-   	   mtx.unlock();
 
-      }
+
+
 
   }
 
