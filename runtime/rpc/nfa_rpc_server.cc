@@ -222,13 +222,13 @@ class ServerImpl final {
 				  	  view_tmp=reply_.add_output_views();
 						view_tmp->set_worker_id(view_it->first);
 						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-						view_tmp->set_control_port_mac(std::string(str_tmp));
+						view_tmp->set_control_port_mac(str_tmp);
 						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-						view_tmp->set_input_port_mac(std::string(str_tmp));
+						view_tmp->set_input_port_mac(str_tmp);
 						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-						view_tmp->set_output_port_mac(std::string(str_tmp));
+						view_tmp->set_output_port_mac(str_tmp);
 						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-						view_tmp->set_rpc_ip(std::string(str_tmp));
+						view_tmp->set_rpc_ip(str_tmp);
 						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
 				  	}
@@ -237,13 +237,13 @@ class ServerImpl final {
 				  	  view_tmp=reply_.add_input_views();
 						view_tmp->set_worker_id(view_it->first);
 						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-						view_tmp->set_control_port_mac(std::string(str_tmp));
+						view_tmp->set_control_port_mac(str_tmp);
 						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-						view_tmp->set_input_port_mac(std::string(str_tmp));
+						view_tmp->set_input_port_mac(str_tmp);
 						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-						view_tmp->set_output_port_mac(std::string(str_tmp));
+						view_tmp->set_output_port_mac(str_tmp);
 						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-						view_tmp->set_rpc_ip(std::string(str_tmp));
+						view_tmp->set_rpc_ip(str_tmp);
 						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
 				  	}
