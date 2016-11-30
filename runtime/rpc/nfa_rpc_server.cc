@@ -104,10 +104,10 @@ class ServerImpl final {
         // Invoke the serving logic right away.
           tags.index=LIVENESSCHECK;
           tags.tags=this;
-      	Proceed();
+      	Proceed(viewlist);
       }
 
-      void Proceed() {
+      void Proceed(std::vector< struct Local_view> viewlist) {
         if (status_ == CREATE) {
           status_ = PROCESS;
           service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
@@ -153,10 +153,10 @@ class ServerImpl final {
          // Invoke the serving logic right away.
            tags.index=ADDOUTPUTVIEW;
            tags.tags=this;
-       	Proceed();
+       	Proceed(viewlist);
        }
 
-       void Proceed() {
+       void Proceed(std::vector< struct Local_view> viewlist) {
          if (status_ == CREATE) {
            status_ = PROCESS;
            service_->RequestAddOutputView(&ctx_, &request_, &responder_, cq_, cq_,
@@ -271,7 +271,7 @@ class ServerImpl final {
       GPR_ASSERT(ok);
       switch (static_cast<struct tag*>(tag)->index){
         case LIVENESSCHECK:
-        	static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+        	static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist);
         	break;
         case SAYHELLOAGAIN:
         //	static_cast<SayhelloAgain *>(static_cast<struct tag*>(tag)->tags)->Proceed();
