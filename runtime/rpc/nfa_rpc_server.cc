@@ -60,7 +60,7 @@ using nfa_msg::Runtime_RPC;
 
 
 std::vector<struct vswitch_msg> rte_ring;
-int mutex=0;
+std::mutex mtx;
 
 class ServerImpl final {
  public:
@@ -185,27 +185,15 @@ class ServerImpl final {
                strcpy(msg.change_view_msg_.oport_mac,tmp.output_port_mac);
                std::cout<<"throw the request to the ring, waiting to read"<<std::endl;
 
-               while(mutex==1){
-            	   sleep(0.05);
-            	   if(mutex==0){
-            		   mutex=1;
-            		   rte_ring.push_back(msg);
-            		   mutex=0;
-            		   break;
-
-            	   }
-               }
-
-
+               mtx.lock();
+               rte_ring.push_back(msg);
+               mtx.lock();
 
                std::vector<struct vswitch_msg>::iterator iter;
                while(1){
-            	   sleep(0.05);
-            	   if(mutex==1){
 
-            		   continue;
-            	   }
-            	   mutex=1;
+            	  sleep(0.05);
+            	   mtx.lock();
             	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
             		   if(iter->msg_type==REPLY&&iter->tag==NFACTOR_CLUSTER_VIEW&&iter->change_view_msg_.worker_id==msg.change_view_msg_.worker_id){
             			   break;
@@ -215,15 +203,15 @@ class ServerImpl final {
             	   if(iter==rte_ring.end()){
             		   //not find, loop again
             		   iter=rte_ring.begin();
-            		   mutex=0;
             	   }else{
             		   //find.
             		   ok=iter->reply_result;
             		   rte_ring.erase(iter);
-            		   mutex=0;
+            		   mtx.unlock();
             		   break;
 
             	   }
+            	   mtx.unlock();
 
                }
                std::cout<<"readed it from the ring"<<std::endl;
@@ -320,12 +308,8 @@ int main(int argc, char** argv) {
 
 	  std::vector<struct vswitch_msg>::iterator iter;
 	  while(1){
-
-       sleep(0.05);
-       if(mutex==1){
-    	   continue;
-       }
-       mutex=1;
+		  sleep(0.05);
+	   mtx.lock();
    	   for(iter=rte_ring.begin();iter!=rte_ring.end();iter++){
    		   if(iter->msg_type==REQUEST){
    			   break;
@@ -339,9 +323,9 @@ int main(int argc, char** argv) {
    		   //find.
    		   iter->reply_result=true;
    		   iter->msg_type=REPLY;
+   		 mtx.unlock();
 
    	   }
-   	   mutex=0;
 
       }
 
