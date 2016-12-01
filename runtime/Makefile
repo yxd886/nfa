@@ -1,0 +1,132 @@
+# Disable all implicit Makefile rules
+MAKEFLAGS += --no-builtin-rules
+.SUFFIXES: ;
+
+CXX ?= g++
+PROTOC ?= protoc
+
+VERBOSE ?= 1
+
+DEPDIR ?= .deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$(@:.o=.d)
+$(shell mkdir -p $(DEPDIR) >/dev/null)
+$(shell mkdir -p $(DEPDIR)/utils >/dev/null)
+$(shell mkdir -p $(DEPDIR)/hooks >/dev/null)
+
+# e.g., 4.9.3 -> 40903
+CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
+
+CXXVERSION_4_8_OR_HIGHER := $(shell expr $(CXXVERSION) \>= 40800)
+ifeq "$(CXXVERSION_4_8_OR_HIGHER)" "0"
+  $(error g++ 4.8 or higher is required)
+endif
+
+RTE_SDK ?= $(abspath ../bess/deps/dpdk-16.07)
+RTE_TARGET ?= $(shell uname -m)-native-linuxapp-gcc
+DPDK_LIB ?= dpdk
+
+ifneq ($(wildcard $(RTE_SDK)/$(RTE_TARGET)/*),)
+    DPDK_INC_DIR = $(RTE_SDK)/$(RTE_TARGET)/include
+    DPDK_LIB_DIR = $(RTE_SDK)/$(RTE_TARGET)/lib
+else ifneq ($(wildcard $(RTE_SDK)/build/*),)
+    # if the user didn't do "make install" for DPDK
+    DPDK_INC_DIR = $(RTE_SDK)/build/include
+    DPDK_LIB_DIR = $(RTE_SDK)/build/lib
+else
+    ifeq ($(words $(MAKECMDGOALS)),1)
+        ifneq ($(MAKECMDGOALS),clean)
+            $(error DPDK is not available. \
+                    Make sure $(abspath $(RTE_SDK)) is available and built)
+        endif
+    endif
+endif
+
+CXXFLAGS += -std=gnu++11 -g3 -ggdb3 -Ofast -march=native \
+	    -Werror -isystem $(DPDK_INC_DIR) -D_GNU_SOURCE \
+	    -Wall -Wextra -Wcast-align
+
+# -Wshadow should not be used for g++ 4.x, as it has too many false positives
+CXXVERSION_5_OR_HIGHER := $(shell expr $(CXXVERSION) \>= 50000)
+ifeq "$(CXXVERSION_5_OR_HIGHER)" "1"
+  CXXFLAGS += -Wshadow
+endif
+
+LDFLAGS += -rdynamic -L$(DPDK_LIB_DIR) -Wl,-rpath=$(DPDK_LIB_DIR) -pthread \
+	   -static-libstdc++
+
+LIBS += -Wl,-non_shared \
+	-Wl,--whole-archive -l$(DPDK_LIB) -Wl,--no-whole-archive \
+	-lglog -lgflags -lprotobuf -lgrpc++ -lgrpc \
+	-lssl -lcrypto -lunwind -llzma -lpcap -lz \
+	-Wl,-call_shared \
+	-ldl
+
+ifdef SANITIZE
+    CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
+    LDFLAGS += -fsanitize=address -static-libasan
+endif
+
+ifdef COVERAGE
+    # override -Ofast with -Og for better results
+    CXXFLAGS += --coverage -Og
+    LDFLAGS += --coverage
+endif
+
+LIBS += -libverbs
+
+ALL_SRCS = $(wildcard base/*.cc base/hooks/*.cc base/utils/*.cc)
+HEADERS = $(wildcard base/*.h base/hooks/*.h base/utils/*.h)
+
+
+SRCS = $(ALL_SRCS)
+OBJS = $(SRCS:.cc=.o)
+
+EXEC = bessd
+
+.PHONY: all clean
+
+all: $(EXEC)
+
+clean:
+	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
+		*.a *.pb.* *.o */*.o *.gcda *.gcno */*.gcda */*.gcno \
+		coverage.info coverage_html
+
+# This build wrapper takes 4 parameters:
+# $(1): build type (CXX, LD, ...)
+# $(2): Make target
+# $(3): Make prerequisites
+# $(4): command
+define BUILD
+$(2): $(3)
+	$$(eval _TYPE = $$(strip $(1)))
+	$$(eval _CMD = $$(strip $(4)))
+	@if [ $$(VERBOSE) -eq 0 ]; then \
+		printf "%-11s %s\n" "[$$(_TYPE)]" "$$@"; \
+	else \
+		printf "%-11s %s\n" "[$$(_TYPE)]" "$$(_CMD)"; \
+	fi
+	@if ! $$(_CMD); then \
+		echo "Error: \033[0;31m$$@"; \
+		echo "\033[0;33m$$(_CMD)\033[0m"; \
+		false; \
+	fi
+endef
+
+$(eval $(call BUILD, \
+	CXX, \
+	%.o, \
+	%.cc $(DEPDIR)/$$@.d, \
+	$$(CXX) -o $$@ -c $$< $$(CXXFLAGS) $$(DEPFLAGS)))
+
+$(eval $(call BUILD, \
+	LD, \
+	$$(EXEC), \
+	$$(OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+
+%.d: ;
+
+.PRECIOUS: %.d
+
+-include $(patsubst %,$(DEPDIR)/%.d,$(basename $(ALL_SRCS)))
