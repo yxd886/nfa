@@ -698,6 +698,10 @@ class ServerImpl final {
 								   reply_.set_quota(request_.quota());
 									 Local_view local_view;
 									 request_msg msg;
+									 std::map<int,Local_view> inputview;
+									 std::map<int,Local_view> outputview;
+									 msg.change_migration_msg_.input_views=&inputview;
+									 msg.change_migration_msg_.output_views=&outputview;
 									 reply_msg rep_msg;
 									 bool deque;
 									 msg.action=SETMIGRATIONTARGET;
@@ -705,11 +709,11 @@ class ServerImpl final {
 									 msg.change_migration_msg_.quota=request_.quota();
 								 	 for(i=0;i<request_.input_views_size();i++){     //add input to msg
 										 view_copy(&local_view,request_.input_views(i));
-										 msg.change_migration_msg_.input_views[local_view.worker_id]=local_view;
+										 *(msg.change_migration_msg_.input_views)[local_view.worker_id]=local_view;
 									 }
 								 	 for(i=0;i<request_.output_views_size();i++){     //add output msg
 										 view_copy(&local_view,request_.output_views(i));
-										 msg.change_migration_msg_.output_views[local_view.worker_id]=local_view;
+										 *(msg.change_migration_msg_.output_views)[local_view.worker_id]=local_view;
 									 }
 								 	 rte_ring_request->enqueue(msg); //throw the msg to the ring
 									 while(1){
