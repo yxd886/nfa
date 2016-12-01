@@ -84,6 +84,7 @@ message MigrationTarget{
 
 message MigrationNegotiationResult{
   bool succeed=1;
+  string fail_reason=3;
   uint64 quota=2;
 }
 

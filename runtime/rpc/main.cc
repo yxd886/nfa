@@ -50,6 +50,8 @@ using nfa_msg::View;
 using nfa_msg::ViewList;
 using nfa_msg::CurrentView;
 using nfa_msg::AddOutputReply;
+using nfa_msg::MigrationTarget;
+using nfa_msg::MigrationNegotiationResult;
 using nfa_msg::Runtime_RPC;
 
 class RuntimeClient {
@@ -109,7 +111,7 @@ class RuntimeClient {
     GPR_ASSERT(ok);
 
     if (status.ok()) {
-      return true;
+      return reply.reply();
 
     } else {
       std::cout<<"RPC failed"<<std::endl;
@@ -137,7 +139,7 @@ class RuntimeClient {
     GPR_ASSERT(ok);
 
     if (status.ok()) {
-      return true;
+      return reply.reply();
 
     } else {
       std::cout<<"RPC failed"<<std::endl;
@@ -166,7 +168,7 @@ class RuntimeClient {
      GPR_ASSERT(ok);
 
      if (status.ok()) {
-       return true;
+       return reply.reply();
 
      } else {
        std::cout<<"RPC failed"<<std::endl;
@@ -194,14 +196,41 @@ class RuntimeClient {
       GPR_ASSERT(ok);
 
       if (status.ok()) {
-        return true;
+        return reply.reply();
 
       } else {
         std::cout<<"RPC failed"<<std::endl;
         return false;
       }
     }
+ bool SetMigrationTarget(MigrationTarget request) {
+      MigrationNegotiationResult reply;
+      ClientContext context;
+      CompletionQueue cq;
 
+      Status status;
+
+      std::unique_ptr<ClientAsyncResponseReader<MigrationNegotiationResult> > rpc(
+          stub_->AsyncSetMigrationTarget(&context, request, &cq));
+
+      rpc->Finish(&reply, &status, (void*)1);
+      void* got_tag;
+      bool ok = false;
+
+      GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+      GPR_ASSERT(got_tag == (void*)1);
+
+      GPR_ASSERT(ok);
+
+      if (status.ok()) {
+        return reply.reply();
+
+      } else {
+        std::cout<<"RPC failed"<<std::endl;
+        return false;
+      }
+    }
  private:
   // Out of the passed in Channel comes the stub, stored here, our view of the
   // server's exposed services.
@@ -226,35 +255,21 @@ int main(int argc, char** argv) {
   }
 
   ViewList request;
+  MigrationTarget migration_request;
   ;
   View* req=request.add_view();
-  req->set_worker_id(1);
+  req->set_worker_id(2);
   req->set_input_port_mac("11:22:33:44:55:66");
   req->set_output_port_mac("22:33:44:55:66:77");
   req->set_control_port_mac("33:44:55:66:77:88");
   req->set_rpc_ip("192.168.1.1/30");
   req->set_rpc_port(80);
-
-
+/*
   reply = nfa_rpc.AddOutputView(request);
   if(reply){
 	  std::cout << "AddOutputView: OK "<< std::endl;
   }else{
 	  std::cout << "AddOutputView: Fail "<< std::endl;
-  }
-
-  reply = nfa_rpc.AddOutputView(request);
-  if(reply){
-	  std::cout << "AddOutputView: OK "<< std::endl;
-  }else{
-	  std::cout << "AddOutputView: Fail "<< std::endl;
-  }
-  reply = nfa_rpc.AddInputView(request);
-
-  if(reply){
-	  std::cout << "AddInputView: OK "<< std::endl;
-  }else{
-	  std::cout << "AddInputView: Fail "<< std::endl;
   }
 
 
@@ -266,6 +281,15 @@ int main(int argc, char** argv) {
   	  std::cout << "DeleteOutputView: Fail "<< std::endl;
     }
 
+  */
+  reply = nfa_rpc.AddInputView(request);
+
+  if(reply){
+	  std::cout << "AddInputView: OK "<< std::endl;
+  }else{
+	  std::cout << "AddInputView: Fail "<< std::endl;
+  }
+/*
     reply = nfa_rpc.DeleteInputView(request);
 
         if(reply){
@@ -273,6 +297,32 @@ int main(int argc, char** argv) {
         }else{
       	  std::cout << "DeleteInputView: Fail "<< std::endl;
         }
+
+
+*/
+
+	migration_request.Migration_target_info.set_worker_id(1);
+	migration_request.Migration_target_info.set_input_port_mac("11:22:33:44:55:66");
+	migration_request.Migration_target_info.set_output_port_mac("22:33:44:55:66:77");
+	migration_request.Migration_target_info.set_control_port_mac("33:44:55:66:77:88");
+	migration_request.Migration_target_info.set_rpc_ip("192.168.1.1/30");
+	migration_request.Migration_target_info.set_rpc_port(80);
+	req=migration_request.add_input_views();
+	req->set_worker_id(2);
+	req->set_input_port_mac("11:22:33:44:55:66");
+	req->set_output_port_mac("22:33:44:55:66:77");
+	req->set_control_port_mac("33:44:55:66:77:88");
+	req->set_rpc_ip("192.168.1.1/30");
+	req->set_rpc_port(80);
+
+
+	reply = nfa_rpc.SetMigrationTarget(migration_request);
+
+	if(reply){
+	  std::cout << "SetMigrationTarget: OK "<< std::endl;
+	}else{
+	  std::cout << "SetMigrationTarget: Fail "<< std::endl;
+	}
 
 
   return 0;

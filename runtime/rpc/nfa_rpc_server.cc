@@ -62,13 +62,12 @@ using nfa_msg::Runtime_RPC;
 #include "nfa_rpc_server.h"
 
 
-moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request;
-moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply;
-std::mutex mtx;
-
 class ServerImpl final {
- public:
-  ~ServerImpl() {
+	public:
+	ServerImpl(int worker_id):worker_id(worker_id){
+
+	}
+	~ServerImpl() {
     server_->Shutdown();
     // Always shutdown the completion queue after the server.
     cq_->Shutdown();
@@ -103,21 +102,21 @@ class ServerImpl final {
       // Take in the "service" instance (in this case representing an asynchronous
       // server) and the completion queue "cq" used for asynchronous communication
       // with the gRPC runtime.
-	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output)
-          : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE){
+	  LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply,int worker_id)
+          : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id){
         // Invoke the serving logic right away.
           tags.index=LIVENESSCHECK;
           tags.tags=this;
-      	Proceed(viewlist_input,viewlist_output);
+      	Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
       }
 
-      void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int ,struct Local_view> viewlist_output) {
+      void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int ,struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply) {
         if (status_ == CREATE) {
           status_ = PROCESS;
           service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
                                     (void*)&tags);
         } else if (status_ == PROCESS) {
-          new LivenessCheck(service_, cq_,viewlist_input,viewlist_output);
+          new LivenessCheck(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
           reply_.set_reply(true);
 
           status_ = FINISH;
@@ -143,6 +142,7 @@ class ServerImpl final {
       enum CallStatus { CREATE, PROCESS, FINISH };
       CallStatus status_;  // The current serving state.
       struct tag tags;
+      int worker_id;
     };
 
 
@@ -152,21 +152,21 @@ class ServerImpl final {
        // Take in the "service" instance (in this case representing an asynchronous
        // server) and the completion queue "cq" used for asynchronous communication
        // with the gRPC runtime.
-  	    AddInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output)
-           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+  	    AddInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply,int worker_id)
+           : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id) {
          // Invoke the serving logic right away.
            tags.index=ADDINPUTVIEW;
            tags.tags=this;
-       	Proceed(viewlist_input,viewlist_output);
+       	Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
        }
 
-       void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output) {
+       void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply) {
          if (status_ == CREATE) {
            status_ = PROCESS;
            service_->RequestAddInputView(&ctx_, &request_, &responder_, cq_, cq_,
                                      (void*)&tags);
          } else if (status_ == PROCESS) {
-           new AddInputView(service_, cq_,viewlist_input,viewlist_output);
+           new AddInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
            std::map<int, struct Local_view>::iterator it;
            std::cout<<"received a addinput view request"<<std::endl;
 
@@ -180,10 +180,8 @@ class ServerImpl final {
      					 bool deque=false;
      					 struct request_msg msg;
      					 struct reply_msg rep_msg;
-     					 msg.tag=NFACTOR_CLUSTER_VIEW;
-     					msg.action=ADDINPUTVIEW;
+     					 msg.action=ADDINPUTVIEW;
      					 msg.change_view_msg_.worker_id=outview.worker_id();
-     					 msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
      					 strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
      					 strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
      					 std::cout<<"throw the request to the ring"<<std::endl;
@@ -197,13 +195,8 @@ class ServerImpl final {
 									 struct Local_view tmp;
 									 std::cout<<"find reply"<<std::endl;
 								   if(rep_msg.reply){
-										 tmp.worker_id=outview.worker_id();
-										 parse_mac_addr(tmp.control_port_mac,outview.control_port_mac().c_str());
-										 parse_mac_addr(tmp.input_port_mac,outview.input_port_mac().c_str());
-										 parse_mac_addr(tmp.output_port_mac,outview.output_port_mac().c_str());
-										 parse_ip_addr(tmp.rpc_ip,outview.rpc_ip().c_str());
-										 tmp.rpc_port=outview.rpc_port();
-										 viewlist_output[tmp.worker_id]=tmp;
+										 view_copy(&tmp,outview);
+										 viewlist_input[tmp.worker_id]=tmp;
 									 }
      							 break;
      							}else{
@@ -274,6 +267,7 @@ class ServerImpl final {
        enum CallStatus { CREATE, PROCESS, FINISH };
        CallStatus status_;  // The current serving state.
        struct tag tags;
+       int worker_id;
      };
 
   class AddOutputView {
@@ -281,21 +275,21 @@ class ServerImpl final {
          // Take in the "service" instance (in this case representing an asynchronous
          // server) and the completion queue "cq" used for asynchronous communication
          // with the gRPC runtime.
-  	       AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output)
-             : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+  	       AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply,int worker_id)
+             : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id) {
            // Invoke the serving logic right away.
              tags.index=ADDOUTPUTVIEW;
              tags.tags=this;
-         	Proceed(viewlist_input,viewlist_output);
+         	Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
          }
 
-         void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output) {
+         void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply) {
            if (status_ == CREATE) {
              status_ = PROCESS;
              service_->RequestAddOutputView(&ctx_, &request_, &responder_, cq_, cq_,
                                        (void*)&tags);
            } else if (status_ == PROCESS) {
-             new AddOutputView(service_, cq_,viewlist_input,viewlist_output);
+             new AddOutputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
              std::map<int, struct Local_view>::iterator it;
              std::cout<<"received a addoutput view request"<<std::endl;
 
@@ -309,10 +303,8 @@ class ServerImpl final {
        					 bool deque=false;
        					 struct request_msg msg;
        					 struct reply_msg rep_msg;
-       					 msg.tag=NFACTOR_CLUSTER_VIEW;
        					 msg.action=ADDOUTPUTVIEW;
        					 msg.change_view_msg_.worker_id=outview.worker_id();
-       					 msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
        					 strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
        					 strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
        					 std::cout<<"throw the request to the ring"<<std::endl;
@@ -403,29 +395,29 @@ class ServerImpl final {
          enum CallStatus { CREATE, PROCESS, FINISH };
          CallStatus status_;  // The current serving state.
          struct tag tags;
+         int worker_id;
        };
 
   class DeleteOutputView {
-
          public:
           // Take in the "service" instance (in this case representing an asynchronous
           // server) and the completion queue "cq" used for asynchronous communication
           // with the gRPC runtime.
-  	DeleteOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output)
-              : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+  	      DeleteOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply,int worker_id)
+              : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id) {
             // Invoke the serving logic right away.
               tags.index=DELETEOUTPUTVIEW;
               tags.tags=this;
-          	Proceed(viewlist_input,viewlist_output);
+          	Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
           }
 
-          void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output) {
+          void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply) {
             if (status_ == CREATE) {
               status_ = PROCESS;
               service_->RequestDeleteOutputView(&ctx_, &request_, &responder_, cq_, cq_,
                                         (void*)&tags);
             } else if (status_ == PROCESS) {
-              new DeleteOutputView(service_, cq_,viewlist_input,viewlist_output);
+              new DeleteOutputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
               std::map<int, struct Local_view>::iterator it;
               std::cout<<"received a deleteoutput view request"<<std::endl;
 
@@ -439,10 +431,8 @@ class ServerImpl final {
         					 bool deque=false;
         					 struct request_msg msg;
         					 struct reply_msg rep_msg;
-        					 msg.tag=NFACTOR_CLUSTER_VIEW;
         					 msg.action=DELETEOUTPUTVIEW;
         					 msg.change_view_msg_.worker_id=outview.worker_id();
-        					 msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
         					 strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
         					 strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
         					 std::cout<<"throw the request to the ring"<<std::endl;
@@ -453,7 +443,6 @@ class ServerImpl final {
         						 std::cout<<"get the lock to find reply"<<std::endl;
         						 deque=rte_ring_reply.try_dequeue(rep_msg);
         						 if(deque){
-        							 struct Local_view tmp;
         						   std::cout<<"find reply"<<std::endl;
         						   if(rep_msg.reply){
         						  	 	 viewlist_output.erase(it);
@@ -527,6 +516,7 @@ class ServerImpl final {
           enum CallStatus { CREATE, PROCESS, FINISH };
           CallStatus status_;  // The current serving state.
           struct tag tags;
+          int worker_id;
         };
 
   class DeleteInputView {
@@ -534,21 +524,21 @@ class ServerImpl final {
             // Take in the "service" instance (in this case representing an asynchronous
             // server) and the completion queue "cq" used for asynchronous communication
             // with the gRPC runtime.
-  						DeleteInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output)
-                : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+  			DeleteInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply,int worker_id)
+                : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id) {
               // Invoke the serving logic right away.
                 tags.index=DELETEINPUTVIEW;
                 tags.tags=this;
-            	Proceed(viewlist_input,viewlist_output);
+            	Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
             }
 
-            void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output) {
+            void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply) {
               if (status_ == CREATE) {
                 status_ = PROCESS;
                 service_->RequestDeleteInputView(&ctx_, &request_, &responder_, cq_, cq_,
                                           (void*)&tags);
               } else if (status_ == PROCESS) {
-                new DeleteInputView(service_, cq_,viewlist_input,viewlist_output);
+                new DeleteInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
                 std::map<int, struct Local_view>::iterator it;
                 std::cout<<"received a deleteinput view request"<<std::endl;
 
@@ -562,10 +552,8 @@ class ServerImpl final {
           					 bool deque=false;
           					 struct request_msg msg;
           					 struct reply_msg rep_msg;
-          					 msg.tag=NFACTOR_CLUSTER_VIEW;
           					 msg.action=DELETEINPUTVIEW;
           					 msg.change_view_msg_.worker_id=outview.worker_id();
-          					 msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
           					 strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
           					 strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
           					 std::cout<<"throw the request to the ring"<<std::endl;
@@ -576,7 +564,6 @@ class ServerImpl final {
           						 std::cout<<"get the lock to find reply"<<std::endl;
           						 deque=rte_ring_reply.try_dequeue(rep_msg);
           						 if(deque){
-          							 struct Local_view tmp;
           						   std::cout<<"find reply"<<std::endl;
           						   if(rep_msg.reply){
           						  	 	 viewlist_input.erase(it);
@@ -650,18 +637,139 @@ class ServerImpl final {
             enum CallStatus { CREATE, PROCESS, FINISH };
             CallStatus status_;  // The current serving state.
             struct tag tags;
+            int worker_id;
           };
+
+  class SetMigrationTarget {
+        public:
+         // Take in the "service" instance (in this case representing an asynchronous
+         // server) and the completion queue "cq" used for asynchronous communication
+         // with the gRPC runtime.
+  	SetMigrationTarget(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply,int worker_id)
+             : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+           // Invoke the serving logic right away.
+             tags.index=SETMIGRATIONTARGET;
+             tags.tags=this;
+         	Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
+         }
+
+         void Proceed(std::map< int, struct Local_view> viewlist_input,std::map< int, struct Local_view> viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply) {
+           if (status_ == CREATE) {
+             status_ = PROCESS;
+             service_->RequestSetMigrationTarget(&ctx_, &request_, &responder_, cq_, cq_,
+                                       (void*)&tags);
+           } else if (status_ == PROCESS) {
+							 new SetMigrationTarget(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+							 std::map<int, struct Local_view>::iterator it;
+							 std::cout<<"received a setmigrationtarget view request"<<std::endl;
+
+							//compare received view with local view
+						 	 bool flag=true;
+						 	 int i;
+							 if(worker_id!=request_.Migration_target_info().worker_id()){
+								 	 flag=false;
+									 reply_.set_fail_reason("Here is not the target you specified!");
+							 }else if(viewlist_input.size()!=request_.input_views_size()||viewlist_output.size()!=request_.output_views_size()){	 	 //check input and output size
+									 flag=false;
+								 	 reply_.set_fail_reason("Input size or output size does not match!");
+							 }else{
+								 	 for(i=0;i<request_.input_views_size();i++){     //compare input
+								 		 if(viewlist_input.find(request_.input_views(i).worker_id)==viewlist_input.end()){
+								 			 flag=false;
+								 			 reply_.set_fail_reason("Input contents do not match!");
+								 			 break;
+								 		 }
+								 	 }
+								 	 for(i=0;i<request_.input_views_size();i++){     //compare output
+								 		 if(viewlist_output.find(request_.output_views(i).worker_id)==viewlist_output.end()){
+								 			 flag=false;
+								 			reply_.set_fail_reason("Output contents do not match!");
+								 			 break;
+								 		 }
+								 	 }
+							 }
+							 if(flag==false){
+								 reply_.set_succeed(false);
+								 reply_.set_quota(0);
+							 }else{
+								   reply_.set_succeed(true);
+								   reply_.set_quota(request_.quota());
+									 Local_view local_view;
+									 request_msg msg;
+									 reply_msg rep_msg;
+									 bool deque;
+									 msg.action=SETMIGRATIONTARGET;
+									 view_copy(&msg.change_migration_msg_.Migration_target_info,request_.Migration_target_info());
+									 msg.change_migration_msg_.quota=request_.quota();
+								 	 for(i=0;i<request_.input_views_size();i++){     //add input to msg
+										 view_copy(&local_view,request_.input_views(i));
+										 msg.change_migration_msg_.input_views[local_view.worker_id]=local_view;
+									 }
+								 	 for(i=0;i<request_.output_views_size();i++){     //add output msg
+										 view_copy(&local_view,request_.output_views(i));
+										 msg.change_migration_msg_.output_views[local_view.worker_id]=local_view;
+									 }
+								 	 rte_ring_request.enqueue(msg); //throw the msg to the ring
+									 while(1){
+										 sleep(2);
+										 std::cout<<"get the lock to find reply"<<std::endl;
+										 deque=rte_ring_reply.try_dequeue(rep_msg);
+										 if(deque){
+											 	 std::cout<<"find reply"<<std::endl;
+											 if(rep_msg.reply){
+												 std::cout<<"Set migration target succeed!"<<std::endl;
+											 }
+											 break;
+											}else{
+												std::cout<<"empty reply queue"<<std::endl;
+											 }
+
+									   }
+
+
+							 }
+
+							 status_ = FINISH;
+							 responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+           } else {
+          	 	 	 GPR_ASSERT(status_ == FINISH);
+          	 	 	 delete this;
+           	 }
+         }
+
+        private:
+
+         Runtime_RPC::AsyncService* service_;
+         ServerCompletionQueue* cq_;
+         ServerContext ctx_;
+         MigrationTarget request_;
+         MigrationNegotiationResult reply_;
+
+         // The means to get back to the client.
+         ServerAsyncResponseWriter<MigrationNegotiationResult> responder_;
+
+         // Let's implement a tiny state machine with the following states.
+         enum CallStatus { CREATE, PROCESS, FINISH };
+         CallStatus status_;  // The current serving state.
+         struct tag tags;
+         int worker_id;
+       };
+
+
+
 
   // This can be run in multiple threads if needed.
   void HandleRpcs() {
     // Spawn a new CallData instance to serve new clients.
    // new CallData(&service_, cq_.get());
    // new SayhelloAgain(&service_, cq_.get());
-	  new LivenessCheck(&service_, cq_.get(),viewlist_input,viewlist_output);
-	  new AddOutputView(&service_, cq_.get(),viewlist_input,viewlist_output);
-	  new AddInputView(&service_, cq_.get(),viewlist_input,viewlist_output);
-	  new DeleteOutputView(&service_, cq_.get(),viewlist_input,viewlist_output);
-	  new DeleteInputView(&service_, cq_.get(),viewlist_input,viewlist_output);
+	  new LivenessCheck(&service_, cq_.get(),viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	  new AddOutputView(&service_, cq_.get(),viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	  new AddInputView(&service_, cq_.get(),viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	  new DeleteOutputView(&service_, cq_.get(),viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	  new DeleteInputView(&service_, cq_.get(),viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	  new SetMigrationTarget(&service_, cq_.get(),viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
@@ -674,19 +782,22 @@ class ServerImpl final {
       GPR_ASSERT(ok);
       switch (static_cast<struct tag*>(tag)->index){
         case LIVENESSCHECK:
-						static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output);
+						static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
 						break;
         case ADDOUTPUTVIEW:
-						static_cast<AddOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output);
+						static_cast<AddOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
 						break;
         case ADDINPUTVIEW:
-						static_cast<AddInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output);
+						static_cast<AddInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
 						break;
         case DELETEOUTPUTVIEW:
-        						static_cast<DeleteOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output);
+        						static_cast<DeleteOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
         						break;
         case DELETEINPUTVIEW:
-        						static_cast<DeleteInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output);
+        						static_cast<DeleteInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
+        						break;
+        case SETMIGRATIONTARGET:
+        						static_cast<SetMigrationTarget *>(static_cast<struct tag*>(tag)->tags)->Proceed(viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply);
         						break;
         default:
 						break;
@@ -700,6 +811,9 @@ class ServerImpl final {
   std::unique_ptr<Server> server_;
   std::map<int , struct Local_view> viewlist_input;
   std::map< int, struct Local_view> viewlist_output;
+  static moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request;
+  static moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply;
+  int worker_id;
 };
 
 void child(){
@@ -710,30 +824,38 @@ void child(){
   while(1){
 
   		sleep(2);
-	  ok=rte_ring_request.try_dequeue(request);
+	  ok=ServerImpl::rte_ring_request.try_dequeue(request);
 	  if(ok){
 	  		switch(request.action){
 	  			case ADDOUTPUTVIEW:
 	  				//process of addoutputview
+	  				reply.worker_id=request.change_view_msg_.worker_id;
 	  				break;
 	  			case ADDINPUTVIEW:
 	  				//process of addinputview
+	  				reply.worker_id=request.change_view_msg_.worker_id;
 	  				break;
 	  			case DELETEOUTPUTVIEW:
 	  				//process of deleteoutputview
+	  				reply.worker_id=request.change_view_msg_.worker_id;
 	  				break;
 	  			case DELETEINPUTVIEW:
 	  				//process of deleteinputview
+	  				reply.worker_id=request.change_view_msg_.worker_id;
+	  				break;
+	  			case SETMIGRATIONTARGET:
+	  				//process of setmigrationtarget
+	  				reply.worker_id=request.change_migration_msg_.Migration_target_info.worker_id;
 	  				break;
 	  			default:
 	  				break;
 	  		}
 
-	  	  reply.tag=request.tag;
-	    	reply.worker_id=request.change_view_msg_.worker_id;
+	  	  reply.tag=request.action;
+
 	    reply.reply=true;
 	    std::cout<<"find request"<<std::endl;
-	    rte_ring_reply.enqueue(reply);
+	    ServerImpl::rte_ring_reply.enqueue(reply);
 	  }else{
 	  			std::cout<<"empty request queue"<<std::endl;
 	    }
@@ -743,7 +865,8 @@ void child(){
 }
 
 int main(int argc, char** argv) {
-  ServerImpl server;
+
+  ServerImpl server(1);
   std::thread t1(child);
 	std::cout<<"Children process ok"<<std::endl;
   server.Run();

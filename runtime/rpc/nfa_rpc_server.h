@@ -24,19 +24,33 @@
 #define ADDINPUTVIEW 5
 #define DELETEOUTPUTVIEW 6
 #define DELETEINPUTVIEW 7
+#define SETMIGRATIONTARGET 8
+struct Local_view{
+	uint64_t worker_id;
+    char input_port_mac[6];
+    char output_port_mac[6];
+    char control_port_mac[6];
+    char rpc_ip[20];
+    uint64_t rpc_port;
+};
 
 typedef struct {
   int worker_id;
-  int state;
   char iport_mac[6];
   char oport_mac[6];
+  char cport_mac[6];
+  char rpc_ip[20];
+  int rpc_port;
 } cluster_view_msg;
 
+
 typedef struct{
-  long transaction_id;
-  int destination_worker_id;
-  char flow_identifers[16];
-} change_route_msg;
+	Local_view Migration_target_info;
+	std::map<int, Local_view> input_views;
+	std::map<int, Local_view> output_views;
+	int quota;
+}migration_target_msg;
+
 
 #define NFACTOR_CLUSTER_VIEW 1
 #define NFACTOR_CHANGE_ROUTE 2
@@ -46,12 +60,10 @@ typedef struct{
 
 
 struct  request_msg{
-
-  int tag;
   int action;
   union{
     cluster_view_msg change_view_msg_;
-    change_route_msg change_route_msg_;
+    migration_target_msg change_migration_msg_;
   };
 
 };
@@ -71,14 +83,7 @@ struct tag{
 
 };
 
-struct Local_view{
-	uint64_t worker_id;
-    char input_port_mac[6];
-    char output_port_mac[6];
-    char control_port_mac[6];
-    char rpc_ip[20];
-    uint64_t rpc_port;
-};
+
 
 static int parse_mac_addr(char *addr, const char *str )
 {
@@ -134,6 +139,16 @@ static int encode_ip_addr( char *str ,char *addr )
 
 	return 0;
 }
+
+static void view_copy(Local_view* local_view, View source){
+	local_view->worker_id=source.worker_id();
+	parse_mac_addr(local_view->control_port_mac,source.control_port_mac().c_str());
+	parse_mac_addr(local_view->input_port_mac,source.input_port_mac().c_str());
+	parse_mac_addr(local_view->output_port_mac,source.output_port_mac().c_str());
+	parse_ip_addr(local_view->rpc_ip,source.rpc_ip().c_str());
+	local_view->rpc_port=source.rpc_port();
+	}
+
 
 
 #endif
