@@ -49,236 +49,235 @@ using nfa_msg::LivenessReply;
 using nfa_msg::View;
 using nfa_msg::ViewList;
 using nfa_msg::CurrentView;
-using nfa_msg::AddOutputReply;
 using nfa_msg::MigrationTarget;
 using nfa_msg::MigrationNegotiationResult;
 using nfa_msg::Runtime_RPC;
 
 class RuntimeClient {
- public:
-  explicit RuntimeClient(std::shared_ptr<Channel> channel)
+public:
+	explicit RuntimeClient(std::shared_ptr<Channel> channel)
       : stub_(Runtime_RPC::NewStub(channel)) {}
 
   // Assembles the client's payload, sends it and presents the response back
   // from the server.
- bool LivenessCheck() {
-	LivenessRequest request;
-    LivenessReply reply;
-    ClientContext context;
-    CompletionQueue cq;
+	bool LivenessCheck() {
+		LivenessRequest request;
+		LivenessReply reply;
+		ClientContext context;
+		CompletionQueue cq;
 
-    Status status;
+		Status status;
 
-    std::unique_ptr<ClientAsyncResponseReader<LivenessReply> > rpc(
-        stub_->AsyncLivenessCheck(&context, request, &cq));
+		std::unique_ptr<ClientAsyncResponseReader<LivenessReply> > rpc(
+			stub_->AsyncLivenessCheck(&context, request, &cq));
 
-    rpc->Finish(&reply, &status, (void*)1);
-    void* got_tag;
-    bool ok = false;
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
 
-    GPR_ASSERT(cq.Next(&got_tag, &ok));
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
 
-    GPR_ASSERT(got_tag == (void*)1);
+		GPR_ASSERT(got_tag == (void*)1);
 
-    GPR_ASSERT(ok);
+		GPR_ASSERT(ok);
 
-    if (status.ok()) {
-      return reply.reply();
+		if (status.ok()) {
+			return reply.reply();
 
-    } else {
-      std::cout<<"RPC failed"<<std::endl;
-      return false;
-    }
-  }
- bool AddOutputView(ViewList request) {
-    CurrentView reply;
-    ClientContext context;
-    CompletionQueue cq;
+		} else {
 
-    Status status;
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+	bool AddOutputView(ViewList request) {
+		CurrentView reply;
+		ClientContext context;
+		CompletionQueue cq;
 
-    std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
-        stub_->AsyncAddOutputView(&context, request, &cq));
+		Status status;
 
-    rpc->Finish(&reply, &status, (void*)1);
-    void* got_tag;
-    bool ok = false;
+		std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
+				stub_->AsyncAddOutputView(&context, request, &cq));
 
-    GPR_ASSERT(cq.Next(&got_tag, &ok));
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
 
-    GPR_ASSERT(got_tag == (void*)1);
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
 
-    GPR_ASSERT(ok);
+		GPR_ASSERT(got_tag == (void*)1);
 
-    if (status.ok()) {
-      return true;
+		GPR_ASSERT(ok);
 
-    } else {
-      std::cout<<"RPC failed"<<std::endl;
-      return false;
-    }
-  }
- bool AddInputView(ViewList request) {
-    CurrentView reply;
-    ClientContext context;
-    CompletionQueue cq;
+		if (status.ok()) {
+			return true;
 
-    Status status;
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+	bool AddInputView(ViewList request) {
+		CurrentView reply;
+		ClientContext context;
+		CompletionQueue cq;
 
-    std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
-        stub_->AsyncAddInputView(&context, request, &cq));
+		Status status;
 
-    rpc->Finish(&reply, &status, (void*)1);
-    void* got_tag;
-    bool ok = false;
+		std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
+				stub_->AsyncAddInputView(&context, request, &cq));
 
-    GPR_ASSERT(cq.Next(&got_tag, &ok));
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
 
-    GPR_ASSERT(got_tag == (void*)1);
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
 
-    GPR_ASSERT(ok);
+		GPR_ASSERT(got_tag == (void*)1);
 
-    if (status.ok()) {
-      return true;
+		GPR_ASSERT(ok);
 
-    } else {
-      std::cout<<"RPC failed"<<std::endl;
-      return false;
-    }
-  }
+		if (status.ok()) {
+			return true;
 
- bool DeleteOutputView(ViewList request) {
-     CurrentView reply;
-     ClientContext context;
-     CompletionQueue cq;
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
 
-     Status status;
+	bool DeleteOutputView(ViewList request) {
+		CurrentView reply;
+		ClientContext context;
+		CompletionQueue cq;
 
-     std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
-         stub_->AsyncDeleteOutputView(&context, request, &cq));
+		Status status;
 
-     rpc->Finish(&reply, &status, (void*)1);
-     void* got_tag;
-     bool ok = false;
+		std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
+				stub_->AsyncDeleteOutputView(&context, request, &cq));
 
-     GPR_ASSERT(cq.Next(&got_tag, &ok));
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
 
-     GPR_ASSERT(got_tag == (void*)1);
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
 
-     GPR_ASSERT(ok);
+		GPR_ASSERT(got_tag == (void*)1);
 
-     if (status.ok()) {
-       return true;
+		GPR_ASSERT(ok);
 
-     } else {
-       std::cout<<"RPC failed"<<std::endl;
-       return false;
-     }
-   }
- bool DeleteInputView(ViewList request) {
-      CurrentView reply;
-      ClientContext context;
-      CompletionQueue cq;
+		if (status.ok()) {
+			return true;
 
-      Status status;
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+	bool DeleteInputView(ViewList request) {
+		CurrentView reply;
+		ClientContext context;
+		CompletionQueue cq;
 
-      std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
-          stub_->AsyncDeleteInputView(&context, request, &cq));
+		Status status;
 
-      rpc->Finish(&reply, &status, (void*)1);
-      void* got_tag;
-      bool ok = false;
+		std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
+				stub_->AsyncDeleteInputView(&context, request, &cq));
 
-      GPR_ASSERT(cq.Next(&got_tag, &ok));
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
 
-      GPR_ASSERT(got_tag == (void*)1);
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
 
-      GPR_ASSERT(ok);
+		GPR_ASSERT(got_tag == (void*)1);
 
-      if (status.ok()) {
-        return true;
+		GPR_ASSERT(ok);
 
-      } else {
-        std::cout<<"RPC failed"<<std::endl;
-        return false;
-      }
-    }
- bool SetMigrationTarget(MigrationTarget request) {
-      MigrationNegotiationResult reply;
-      ClientContext context;
-      CompletionQueue cq;
+		if (status.ok()) {
+			return true;
 
-      Status status;
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+	bool SetMigrationTarget(MigrationTarget request) {
+		MigrationNegotiationResult reply;
+		ClientContext context;
+		CompletionQueue cq;
 
-      std::unique_ptr<ClientAsyncResponseReader<MigrationNegotiationResult> > rpc(
-          stub_->AsyncSetMigrationTarget(&context, request, &cq));
+		Status status;
 
-      rpc->Finish(&reply, &status, (void*)1);
-      void* got_tag;
-      bool ok = false;
+		std::unique_ptr<ClientAsyncResponseReader<MigrationNegotiationResult> > rpc(
+				stub_->AsyncSetMigrationTarget(&context, request, &cq));
 
-      GPR_ASSERT(cq.Next(&got_tag, &ok));
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
 
-      GPR_ASSERT(got_tag == (void*)1);
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
 
-      GPR_ASSERT(ok);
+		GPR_ASSERT(got_tag == (void*)1);
 
-      if (status.ok()) {
-    	  	  if(reply.succeed()){
-    	  		return true;
-    	  	  }else{
-    	  		  std::cout<<reply.fail_reason()<<std::endl;
-    	  	  }
+		GPR_ASSERT(ok);
+
+		if (status.ok()) {
+			if(reply.succeed()){
+				return true;
+			}else{
+				std::cout<<reply.fail_reason()<<std::endl;
+			}
 
 
-      } else {
-        std::cout<<"RPC failed"<<std::endl;
-        return false;
-      }
-    }
- private:
-  // Out of the passed in Channel comes the stub, stored here, our view of the
-  // server's exposed services.
-  std::unique_ptr<Runtime_RPC::Stub> stub_;
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+private:
+	// Out of the passed in Channel comes the stub, stored here, our view of the
+	// server's exposed services.
+	std::unique_ptr<Runtime_RPC::Stub> stub_;
 };
 
 int main(int argc, char** argv) {
-  // Instantiate the client. It requires a channel, out of which the actual RPCs
-  // are created. This channel models a connection to an endpoint (in this case,
-  // localhost at port 50051). We indicate that the channel isn't authenticated
-  // (use of InsecureChannelCredentials()).
+	// Instantiate the client. It requires a channel, out of which the actual RPCs
+	// are created. This channel models a connection to an endpoint (in this case,
+	// localhost at port 50051). We indicate that the channel isn't authenticated
+	// (use of InsecureChannelCredentials()).
 	RuntimeClient nfa_rpc(grpc::CreateChannel(
       "localhost:50051", grpc::InsecureChannelCredentials()));
-  std::string user("world");
-  bool reply ;
+	std::string user("world");
+	bool reply ;
 
-  reply= nfa_rpc.LivenessCheck();  // The actual RPC call!
-  if(reply){
-	  std::cout << "Liveness Check: OK "<< std::endl;
-  }else{
-	  std::cout << "Liveness Check: Fail "<< std::endl;
-  }
+	reply= nfa_rpc.LivenessCheck();  // The actual RPC call!
+	if(reply){
+		std::cout << "Liveness Check: OK "<< std::endl;
+	}else{
+		std::cout << "Liveness Check: Fail "<< std::endl;
+	}
 
-  ViewList request;
-  MigrationTarget migration_request;
-  ;
-  View* req=request.add_view();
-  req->set_worker_id(2);
-  req->set_input_port_mac("11:22:33:44:55:66");
-  req->set_output_port_mac("22:33:44:55:66:77");
-  req->set_control_port_mac("33:44:55:66:77:88");
-  req->set_rpc_ip("192.168.1.1/30");
-  req->set_rpc_port(80);
+	ViewList request;
+	MigrationTarget migration_request;
+	View* req=request.add_view();
+	req->set_worker_id(2);
+	req->set_input_port_mac("11:22:33:44:55:66");
+	req->set_output_port_mac("22:33:44:55:66:77");
+	req->set_control_port_mac("33:44:55:66:77:88");
+	req->set_rpc_ip("192.168.1.1/30");
+	req->set_rpc_port(80);
 /*
-  reply = nfa_rpc.AddOutputView(request);
-  if(reply){
-	  std::cout << "AddOutputView: OK "<< std::endl;
-  }else{
-	  std::cout << "AddOutputView: Fail "<< std::endl;
-  }
+	reply = nfa_rpc.AddOutputView(request);
+	if(reply){
+		std::cout << "AddOutputView: OK "<< std::endl;
+	}else{
+		std::cout << "AddOutputView: Fail "<< std::endl;
+	}
 
 
-  reply = nfa_rpc.DeleteOutputView(request);
+	reply = nfa_rpc.DeleteOutputView(request);
 
     if(reply){
   	  std::cout << "DeleteOutputView: OK "<< std::endl;
@@ -287,21 +286,21 @@ int main(int argc, char** argv) {
     }
 
   */
-  reply = nfa_rpc.AddInputView(request);
+	reply = nfa_rpc.AddInputView(request);
 
-  if(reply){
-	  std::cout << "AddInputView: OK "<< std::endl;
-  }else{
-	  std::cout << "AddInputView: Fail "<< std::endl;
-  }
+	if(reply){
+		std::cout << "AddInputView: OK "<< std::endl;
+	}else{
+		std::cout << "AddInputView: Fail "<< std::endl;
+	}
 /*
     reply = nfa_rpc.DeleteInputView(request);
 
-        if(reply){
-      	  std::cout << "DeleteInputView: OK "<< std::endl;
-        }else{
-      	  std::cout << "DeleteInputView: Fail "<< std::endl;
-        }
+	if(reply){
+    		std::cout << "DeleteInputView: OK "<< std::endl;
+    	}else{
+    		std::cout << "DeleteInputView: Fail "<< std::endl;
+    }
 
 
 */
@@ -323,11 +322,11 @@ int main(int argc, char** argv) {
 	reply = nfa_rpc.SetMigrationTarget(migration_request);
 
 	if(reply){
-	  std::cout << "SetMigrationTarget: OK "<< std::endl;
+		std::cout << "SetMigrationTarget: OK "<< std::endl;
 	}else{
-	  std::cout << "SetMigrationTarget: Fail "<< std::endl;
+		std::cout << "SetMigrationTarget: Fail "<< std::endl;
 	}
 
 
-  return 0;
+	return 0;
 }
