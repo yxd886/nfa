@@ -21,7 +21,7 @@ ifeq "$(CXXVERSION_4_8_OR_HIGHER)" "0"
   $(error g++ 4.8 or higher is required)
 endif
 
-RTE_SDK ?= $(abspath ../bess/deps/dpdk-16.07)
+RTE_SDK ?= $(abspath ../deps/bess/deps/dpdk-16.07)
 RTE_TARGET ?= $(shell uname -m)-native-linuxapp-gcc
 DPDK_LIB ?= dpdk
 
