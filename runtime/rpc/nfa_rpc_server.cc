@@ -56,7 +56,6 @@ using nfa_msg::LivenessReply;
 using nfa_msg::ViewList;
 using nfa_msg::View;
 using nfa_msg::CurrentView;
-using nfa_msg::AddOutputReply;
 using nfa_msg::Runtime_RPC;
 using nfa_msg::MigrationTarget;
 using nfa_msg::MigrationNegotiationResult;

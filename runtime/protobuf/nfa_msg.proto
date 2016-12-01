@@ -52,17 +52,6 @@ message View{
   uint64 rpc_port=6;
 }
 
-message AddOutputReply{
-  bool reply = 1;
-  string message = 2;
-}
-
-message AddInputReply{
-  bool reply = 1;
-  string message = 2;
-}
-
-
 message ViewList{
   repeated View view=1;
 }
