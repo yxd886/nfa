@@ -84,7 +84,7 @@ OBJS = $(SRCS:.cc=.o)
 
 .PHONY: all clean
 
-all:
+all: $(OBJS)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
