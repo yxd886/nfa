@@ -201,7 +201,7 @@ class ServerImpl final {
 									 struct Local_view tmp;
 									 std::cout<<"find reply"<<std::endl;
 								   if(rep_msg.reply){
-										 view_copy(&tmp,outview);
+										 view_rpc2local(&tmp,outview);
 										 viewlist_input->insert(std::make_pair(tmp.worker_id,tmp));
 									 }
      							 break;
@@ -222,31 +222,13 @@ class ServerImpl final {
 				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
 				  	  view_tmp=reply_.add_output_views();
-						view_tmp->set_worker_id(view_it->first);
-						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-						view_tmp->set_control_port_mac(str_tmp);
-						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-						view_tmp->set_input_port_mac(str_tmp);
-						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-						view_tmp->set_output_port_mac(str_tmp);
-						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-						view_tmp->set_rpc_ip(str_tmp);
-						view_tmp->set_rpc_port(view_it->second.rpc_port);
+				      view_local2rpc(view_tmp,view_it->second);
 
 				  	}
 				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
 				  	  view_tmp=reply_.add_input_views();
-						view_tmp->set_worker_id(view_it->first);
-						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-						view_tmp->set_control_port_mac(str_tmp);
-						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-						view_tmp->set_input_port_mac(str_tmp);
-						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-						view_tmp->set_output_port_mac(str_tmp);
-						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-						view_tmp->set_rpc_ip(str_tmp);
-						view_tmp->set_rpc_port(view_it->second.rpc_port);
+				  	  view_local2rpc(view_tmp,view_it->second);
 
 				  	}
 						 status_ = FINISH;
@@ -328,13 +310,8 @@ class ServerImpl final {
        							 struct Local_view tmp;
        						   std::cout<<"find reply"<<std::endl;
        						   if(rep_msg.reply){
-											 tmp.worker_id=outview.worker_id();
-											 parse_mac_addr(tmp.control_port_mac,outview.control_port_mac().c_str());
-											 parse_mac_addr(tmp.input_port_mac,outview.input_port_mac().c_str());
-											 parse_mac_addr(tmp.output_port_mac,outview.output_port_mac().c_str());
-											 parse_ip_addr(tmp.rpc_ip,outview.rpc_ip().c_str());
-											 tmp.rpc_port=outview.rpc_port();
-											 viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
+								 view_rpc2local(&tmp,outview);
+								 viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
        						   }
        							 break;
        							}else{
@@ -354,31 +331,13 @@ class ServerImpl final {
   				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
   				  	  view_tmp=reply_.add_output_views();
-  						view_tmp->set_worker_id(view_it->first);
-  						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-  						view_tmp->set_control_port_mac(str_tmp);
-  						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-  						view_tmp->set_input_port_mac(str_tmp);
-  						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-  						view_tmp->set_output_port_mac(str_tmp);
-  						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-  						view_tmp->set_rpc_ip(str_tmp);
-  						view_tmp->set_rpc_port(view_it->second.rpc_port);
+  				  	  view_local2rpc(view_tmp,view_it->second);
 
   				  	}
   				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
   				  	  view_tmp=reply_.add_input_views();
-  						view_tmp->set_worker_id(view_it->first);
-  						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-  						view_tmp->set_control_port_mac(str_tmp);
-  						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-  						view_tmp->set_input_port_mac(str_tmp);
-  						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-  						view_tmp->set_output_port_mac(str_tmp);
-  						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-  						view_tmp->set_rpc_ip(str_tmp);
-  						view_tmp->set_rpc_port(view_it->second.rpc_port);
+  				      view_local2rpc(view_tmp,view_it->second);
 
   				  	}
   						 status_ = FINISH;
@@ -479,31 +438,13 @@ class ServerImpl final {
    				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
    				  	  view_tmp=reply_.add_output_views();
-   						view_tmp->set_worker_id(view_it->first);
-   						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-   						view_tmp->set_control_port_mac(str_tmp);
-   						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-   						view_tmp->set_input_port_mac(str_tmp);
-   						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-   						view_tmp->set_output_port_mac(str_tmp);
-   						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-   						view_tmp->set_rpc_ip(str_tmp);
-   						view_tmp->set_rpc_port(view_it->second.rpc_port);
+   				  	  view_local2rpc(view_tmp,view_it->second);
 
    				  	}
    				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
    				  	  view_tmp=reply_.add_input_views();
-   						view_tmp->set_worker_id(view_it->first);
-   						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-   						view_tmp->set_control_port_mac(str_tmp);
-   						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-   						view_tmp->set_input_port_mac(str_tmp);
-   						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-   						view_tmp->set_output_port_mac(str_tmp);
-   						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-   						view_tmp->set_rpc_ip(str_tmp);
-   						view_tmp->set_rpc_port(view_it->second.rpc_port);
+   				  	  view_local2rpc(view_tmp,view_it->second);
 
    				  	}
    						 status_ = FINISH;
@@ -604,31 +545,13 @@ class ServerImpl final {
      				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
      				  	  view_tmp=reply_.add_output_views();
-     						view_tmp->set_worker_id(view_it->first);
-     						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-     						view_tmp->set_control_port_mac(str_tmp);
-     						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-     						view_tmp->set_input_port_mac(str_tmp);
-     						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-     						view_tmp->set_output_port_mac(str_tmp);
-     						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-     						view_tmp->set_rpc_ip(str_tmp);
-     						view_tmp->set_rpc_port(view_it->second.rpc_port);
+     				      view_local2rpc(view_tmp,view_it->second);
 
      				  	}
      				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
      				  	  view_tmp=reply_.add_input_views();
-     						view_tmp->set_worker_id(view_it->first);
-     						encode_mac_addr(str_tmp,view_it->second.control_port_mac);
-     						view_tmp->set_control_port_mac(str_tmp);
-     						encode_mac_addr(str_tmp,view_it->second.input_port_mac);
-     						view_tmp->set_input_port_mac(str_tmp);
-     						encode_mac_addr(str_tmp,view_it->second.output_port_mac);
-     						view_tmp->set_output_port_mac(str_tmp);
-     						encode_ip_addr(str_tmp,view_it->second.rpc_ip);
-     						view_tmp->set_rpc_ip(str_tmp);
-     						view_tmp->set_rpc_port(view_it->second.rpc_port);
+     				  	  view_local2rpc(view_tmp,view_it->second);
 
      				  	}
      						 status_ = FINISH;
@@ -727,14 +650,14 @@ class ServerImpl final {
 									 reply_msg rep_msg;
 									 bool deque;
 									 msg.action=SETMIGRATIONTARGET;
-									 view_copy(&msg.change_migration_msg_.migration_target_info,request_.migration_target_info());
+									 view_rpc2local(&msg.change_migration_msg_.migration_target_info,request_.migration_target_info());
 									 msg.change_migration_msg_.quota=request_.quota();
 								 	 for(i=0;i<request_.input_views_size();i++){     //add input to msg
-										 view_copy(&local_view,request_.input_views(i));
+										 view_rpc2local(&local_view,request_.input_views(i));
 										 msg.change_migration_msg_.input_views->insert(std::make_pair(local_view.worker_id,local_view));
 									 }
 								 	 for(i=0;i<request_.output_views_size();i++){     //add output msg
-										 view_copy(&local_view,request_.output_views(i));
+										 view_rpc2local(&local_view,request_.output_views(i));
 										 msg.change_migration_msg_.output_views->insert(std::make_pair(local_view.worker_id,local_view));
 									 }
 								 	 rte_ring_request->enqueue(msg); //throw the msg to the ring
