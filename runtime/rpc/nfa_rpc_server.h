@@ -23,6 +23,7 @@
 #define ADDOUTPUTVIEW 4
 #define ADDINPUTVIEW 5
 #define DELETEOUTPUTVIEW 6
+#define DELETEINPUTVIEW 7
 
 typedef struct {
   int worker_id;

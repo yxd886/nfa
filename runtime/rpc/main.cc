@@ -173,7 +173,34 @@ class RuntimeClient {
        return false;
      }
    }
+ bool DeleteInputView(ViewList request) {
+      CurrentView reply;
+      ClientContext context;
+      CompletionQueue cq;
 
+      Status status;
+
+      std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
+          stub_->AsyncDeleteInputView(&context, request, &cq));
+
+      rpc->Finish(&reply, &status, (void*)1);
+      void* got_tag;
+      bool ok = false;
+
+      GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+      GPR_ASSERT(got_tag == (void*)1);
+
+      GPR_ASSERT(ok);
+
+      if (status.ok()) {
+        return true;
+
+      } else {
+        std::cout<<"RPC failed"<<std::endl;
+        return false;
+      }
+    }
 
  private:
   // Out of the passed in Channel comes the stub, stored here, our view of the
@@ -238,6 +265,14 @@ int main(int argc, char** argv) {
     }else{
   	  std::cout << "DeleteOutputView: Fail "<< std::endl;
     }
+
+    reply = nfa_rpc.DeleteInputView(request);
+
+        if(reply){
+      	  std::cout << "DeleteInputView: OK "<< std::endl;
+        }else{
+      	  std::cout << "DeleteInputView: Fail "<< std::endl;
+        }
 
 
   return 0;
