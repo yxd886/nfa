@@ -144,6 +144,37 @@ class RuntimeClient {
       return false;
     }
   }
+
+ bool DeleteOutputView(ViewList request) {
+     CurrentView reply;
+     ClientContext context;
+     CompletionQueue cq;
+
+     Status status;
+
+     std::unique_ptr<ClientAsyncResponseReader<CurrentView> > rpc(
+         stub_->AsyncDeleteOutputView(&context, request, &cq));
+
+     rpc->Finish(&reply, &status, (void*)1);
+     void* got_tag;
+     bool ok = false;
+
+     GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+     GPR_ASSERT(got_tag == (void*)1);
+
+     GPR_ASSERT(ok);
+
+     if (status.ok()) {
+       return true;
+
+     } else {
+       std::cout<<"RPC failed"<<std::endl;
+       return false;
+     }
+   }
+
+
  private:
   // Out of the passed in Channel comes the stub, stored here, our view of the
   // server's exposed services.
@@ -198,6 +229,15 @@ int main(int argc, char** argv) {
   }else{
 	  std::cout << "AddInputView: Fail "<< std::endl;
   }
+
+
+  reply = nfa_rpc.DeleteOutputView(request);
+
+    if(reply){
+  	  std::cout << "DeleteOutputView: OK "<< std::endl;
+    }else{
+  	  std::cout << "DeleteOutputView: Fail "<< std::endl;
+    }
 
 
   return 0;

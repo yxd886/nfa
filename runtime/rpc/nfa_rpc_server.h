@@ -22,6 +22,7 @@
 #define LIVENESSCHECK 3
 #define ADDOUTPUTVIEW 4
 #define ADDINPUTVIEW 5
+#define DELETEOUTPUTVIEW 6
 
 typedef struct {
   int worker_id;
