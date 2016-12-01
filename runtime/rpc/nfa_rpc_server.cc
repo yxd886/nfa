@@ -703,7 +703,7 @@ class ServerImpl final {
 								 			 break;
 								 		 }
 								 	 }
-								 	 for(i=0;i<request_.input_views_size();i++){     //compare output
+								 	 for(i=0;i<request_.output_views_size();i++){     //compare output
 								 		 if(viewlist_output->find(request_.output_views(i).worker_id())==viewlist_output->end()){
 								 			 flag=false;
 								 			reply_.set_fail_reason("Output contents do not match!");
