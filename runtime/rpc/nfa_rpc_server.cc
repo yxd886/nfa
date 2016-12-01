@@ -715,7 +715,7 @@ class ServerImpl final {
 								 reply_.set_succeed(false);
 								 reply_.set_quota(0);
 							 }else{
-								   std::cout<<"setmigration target match succeed!"<<endl;
+								   std::cout<<"setmigration target match succeed!"<<std::endl;
 								   reply_.set_succeed(true);
 								   reply_.set_quota(request_.quota());
 									 Local_view local_view;
