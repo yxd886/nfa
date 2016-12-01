@@ -45,7 +45,7 @@ typedef struct {
 
 
 typedef struct{
-	Local_view Migration_target_info;
+	Local_view migration_target_info;
 	std::map<int, Local_view> *input_views;
 	std::map<int, Local_view> *output_views;
 	int quota;

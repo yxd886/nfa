@@ -852,7 +852,7 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 	  				break;
 	  			case SETMIGRATIONTARGET:
 	  				//process of setmigrationtarget
-	  				reply.worker_id=request.change_migration_msg_.migration_target_info().worker_id();
+	  				reply.worker_id=request.change_migration_msg_.migration_target_info.worker_id;
 	  				break;
 	  			default:
 	  				break;
