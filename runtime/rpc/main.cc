@@ -224,7 +224,12 @@ class RuntimeClient {
       GPR_ASSERT(ok);
 
       if (status.ok()) {
-        return reply.succeed();
+    	  	  if(reply.succeed()){
+    	  		return true;
+    	  	  }else{
+    	  		  std::cout<<reply.fail_reason()<<std::endl;
+    	  	  }
+
 
       } else {
         std::cout<<"RPC failed"<<std::endl;
