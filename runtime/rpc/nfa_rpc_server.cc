@@ -202,7 +202,7 @@ class ServerImpl final {
 									 std::cout<<"find reply"<<std::endl;
 								   if(rep_msg.reply){
 										 view_copy(&tmp,outview);
-										 viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
+										 viewlist_input->insert(std::make_pair(tmp.worker_id,tmp));
 									 }
      							 break;
      							}else{
