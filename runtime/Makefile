@@ -120,11 +120,6 @@ $(eval $(call BUILD, \
 	%.cc $(DEPDIR)/$$@.d, \
 	$$(CXX) -o $$@ -c $$< $$(CXXFLAGS) $$(DEPFLAGS)))
 
-$(eval $(call BUILD, \
-	LD, \
-	$$(EXEC), \
-	$$(OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
 
