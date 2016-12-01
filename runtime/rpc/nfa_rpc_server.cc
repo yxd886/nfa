@@ -648,7 +648,7 @@ class ServerImpl final {
          // server) and the completion queue "cq" used for asynchronous communication
          // with the gRPC runtime.
   	SetMigrationTarget(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view> viewlist_input, std::map< int, struct Local_view> viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
-             : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE) {
+             : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id) {
            // Invoke the serving logic right away.
              tags.index=SETMIGRATIONTARGET;
              tags.tags=this;
