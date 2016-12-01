@@ -668,7 +668,7 @@ class ServerImpl final {
 							//compare received view with local view
 						 	 bool flag=true;
 						 	 int i;
-							 if(worker_id!=request_.Migration_target_info().worker_id()){
+							 if(worker_id!=request_.migration_target_info().worker_id()){
 								 	 flag=false;
 									 reply_.set_fail_reason("Here is not the target you specified!");
 							 }else if(viewlist_input.size()!=request_.input_views_size()||viewlist_output.size()!=request_.output_views_size()){	 	 //check input and output size
@@ -705,7 +705,7 @@ class ServerImpl final {
 									 reply_msg rep_msg;
 									 bool deque;
 									 msg.action=SETMIGRATIONTARGET;
-									 view_copy(&msg.change_migration_msg_.Migration_target_info,request_.Migration_target_info());
+									 view_copy(&msg.change_migration_msg_.migration_target_info,request_.migration_target_info());
 									 msg.change_migration_msg_.quota=request_.quota();
 								 	 for(i=0;i<request_.input_views_size();i++){     //add input to msg
 										 view_copy(&local_view,request_.input_views(i));
@@ -852,7 +852,7 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 	  				break;
 	  			case SETMIGRATIONTARGET:
 	  				//process of setmigrationtarget
-	  				reply.worker_id=request.change_migration_msg_.Migration_target_info.worker_id;
+	  				reply.worker_id=request.change_migration_msg_.migration_target_info.worker_id;
 	  				break;
 	  			default:
 	  				break;
