@@ -58,6 +58,8 @@ using nfa_msg::View;
 using nfa_msg::CurrentView;
 using nfa_msg::AddOutputReply;
 using nfa_msg::Runtime_RPC;
+using nfa_msg::MigrationTarget;
+using nfa_msg::MigrationNegotiationResult;
 #include "concurrentqueue.h"
 #include "nfa_rpc_server.h"
 
@@ -811,6 +813,7 @@ class ServerImpl final {
   std::unique_ptr<Server> server_;
   std::map<int , struct Local_view> viewlist_input;
   std::map< int, struct Local_view> viewlist_output;
+ public:
   static moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request;
   static moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply;
   int worker_id;
