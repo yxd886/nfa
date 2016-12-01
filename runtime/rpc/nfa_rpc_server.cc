@@ -180,7 +180,7 @@ class ServerImpl final {
 
           for(i=0;i<request_.view_size();i++){
           	const View& outview=request_.view(i);
-          		if(viewlist_input.find(outview.worker_id())!=viewlist_input.end()){
+          		if(viewlist_input->find(outview.worker_id())!=viewlist_input->end()){
           			continue;
           		}else{
      					 bool deque=false;
@@ -202,7 +202,7 @@ class ServerImpl final {
 									 std::cout<<"find reply"<<std::endl;
 								   if(rep_msg.reply){
 										 view_copy(&tmp,outview);
-										 viewlist_input[tmp.worker_id]=tmp;
+										 viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
 									 }
      							 break;
      							}else{
@@ -219,7 +219,7 @@ class ServerImpl final {
           //prepare CurrentView data to send back
 			   	char str_tmp[20];
 			   	View * view_tmp=NULL;
-				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
+				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
 				  	  view_tmp=reply_.add_output_views();
 						view_tmp->set_worker_id(view_it->first);
@@ -234,7 +234,7 @@ class ServerImpl final {
 						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
 				  	}
-				  	for(view_it=viewlist_input.begin();view_it!=viewlist_input.end();view_it++){
+				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
 				  	  view_tmp=reply_.add_input_views();
 						view_tmp->set_worker_id(view_it->first);
@@ -307,7 +307,7 @@ class ServerImpl final {
 
             for(i=0;i<request_.view_size();i++){
             	const View& outview=request_.view(i);
-            		if(viewlist_output.find(outview.worker_id())!=viewlist_output.end()){
+            		if(viewlist_output->find(outview.worker_id())!=viewlist_output->end()){
             			continue;
             		}else{
        					 bool deque=false;
@@ -334,7 +334,7 @@ class ServerImpl final {
 											 parse_mac_addr(tmp.output_port_mac,outview.output_port_mac().c_str());
 											 parse_ip_addr(tmp.rpc_ip,outview.rpc_ip().c_str());
 											 tmp.rpc_port=outview.rpc_port();
-											 viewlist_output[tmp.worker_id]=tmp;
+											 viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
        						   }
        							 break;
        							}else{
@@ -351,7 +351,7 @@ class ServerImpl final {
 
   			   	char str_tmp[20];
   			   	View * view_tmp=NULL;
-  				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
+  				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
   				  	  view_tmp=reply_.add_output_views();
   						view_tmp->set_worker_id(view_it->first);
@@ -366,7 +366,7 @@ class ServerImpl final {
   						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
   				  	}
-  				  	for(view_it=viewlist_input.begin();view_it!=viewlist_input.end();view_it++){
+  				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
   				  	  view_tmp=reply_.add_input_views();
   						view_tmp->set_worker_id(view_it->first);
@@ -439,7 +439,7 @@ class ServerImpl final {
 
              for(i=0;i<request_.view_size();i++){
              	const View& outview=request_.view(i);
-             		if((it=viewlist_output.find(outview.worker_id()))==viewlist_output.end()){
+             		if((it=viewlist_output->find(outview.worker_id()))==viewlist_output->end()){
              			continue;
              		}else{
         					 bool deque=false;
@@ -459,7 +459,7 @@ class ServerImpl final {
         						 if(deque){
         						   std::cout<<"find reply"<<std::endl;
         						   if(rep_msg.reply){
-        						  	 	 viewlist_output.erase(it);
+        						  	 	 viewlist_output->erase(it);
         						   }
         							 break;
         							}else{
@@ -476,7 +476,7 @@ class ServerImpl final {
 
    			   	char str_tmp[20];
    			   	View * view_tmp=NULL;
-   				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
+   				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
    				  	  view_tmp=reply_.add_output_views();
    						view_tmp->set_worker_id(view_it->first);
@@ -491,7 +491,7 @@ class ServerImpl final {
    						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
    				  	}
-   				  	for(view_it=viewlist_input.begin();view_it!=viewlist_input.end();view_it++){
+   				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
    				  	  view_tmp=reply_.add_input_views();
    						view_tmp->set_worker_id(view_it->first);
@@ -564,7 +564,7 @@ class ServerImpl final {
 
                for(i=0;i<request_.view_size();i++){
                	const View& outview=request_.view(i);
-               		if((it=viewlist_input.find(outview.worker_id()))==viewlist_input.end()){
+               		if((it=viewlist_input->find(outview.worker_id()))==viewlist_input->end()){
                			continue;
                		}else{
           					 bool deque=false;
@@ -584,7 +584,7 @@ class ServerImpl final {
           						 if(deque){
           						   std::cout<<"find reply"<<std::endl;
           						   if(rep_msg.reply){
-          						  	 	 viewlist_input.erase(it);
+          						  	 	 viewlist_input->erase(it);
           						   }
           							 break;
           							}else{
@@ -601,7 +601,7 @@ class ServerImpl final {
 
      			   	char str_tmp[20];
      			   	View * view_tmp=NULL;
-     				  	for(view_it=viewlist_output.begin();view_it!=viewlist_output.end();view_it++){
+     				  	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
      				  	  view_tmp=reply_.add_output_views();
      						view_tmp->set_worker_id(view_it->first);
@@ -616,7 +616,7 @@ class ServerImpl final {
      						view_tmp->set_rpc_port(view_it->second.rpc_port);
 
      				  	}
-     				  	for(view_it=viewlist_input.begin();view_it!=viewlist_input.end();view_it++){
+     				  	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
 
      				  	  view_tmp=reply_.add_input_views();
      						view_tmp->set_worker_id(view_it->first);
@@ -691,20 +691,20 @@ class ServerImpl final {
 							 if(worker_id!=request_.migration_target_info().worker_id()){
 								 	 flag=false;
 									 reply_.set_fail_reason("Here is not the target you specified!");
-							 }else if(viewlist_input.size()!=request_.input_views_size()||viewlist_output.size()!=request_.output_views_size()){	 	 //check input and output size
+							 }else if(viewlist_input->size()!=request_.input_views_size()||viewlist_output->size()!=request_.output_views_size()){	 	 //check input and output size
 									 flag=false;
-								 	 std::cout<<"local inputsize:"<<viewlist_input.size()<<std::endl<<"request inputsize:"<<request_.input_views_size()<<std::endl<<"local outputsize:"<<viewlist_output.size()<<std::endl<<"local inputsize:"<<request_.output_views_size()<<std::endl;
+								 	 std::cout<<"local inputsize:"<<viewlist_input->size()<<std::endl<<"request inputsize:"<<request_.input_views_size()<<std::endl<<"local outputsize:"<<viewlist_output->size()<<std::endl<<"local inputsize:"<<request_.output_views_size()<<std::endl;
 									 reply_.set_fail_reason("Input size or output size does not match!");
 							 }else{
 								 	 for(i=0;i<request_.input_views_size();i++){     //compare input
-								 		 if(viewlist_input.find(request_.input_views(i).worker_id())==viewlist_input.end()){
+								 		 if(viewlist_input->find(request_.input_views(i).worker_id())==viewlist_input->end()){
 								 			 flag=false;
 								 			 reply_.set_fail_reason("Input contents do not match!");
 								 			 break;
 								 		 }
 								 	 }
 								 	 for(i=0;i<request_.input_views_size();i++){     //compare output
-								 		 if(viewlist_output.find(request_.output_views(i).worker_id())==viewlist_output.end()){
+								 		 if(viewlist_output->find(request_.output_views(i).worker_id())==viewlist_output->end()){
 								 			 flag=false;
 								 			reply_.set_fail_reason("Output contents do not match!");
 								 			 break;
@@ -730,11 +730,11 @@ class ServerImpl final {
 									 msg.change_migration_msg_.quota=request_.quota();
 								 	 for(i=0;i<request_.input_views_size();i++){     //add input to msg
 										 view_copy(&local_view,request_.input_views(i));
-										 (*(msg.change_migration_msg_.input_views))[local_view.worker_id]=local_view;
+										 msg.change_migration_msg_.input_views->insert(std::make_pair(local_view.worker_id,local_view));
 									 }
 								 	 for(i=0;i<request_.output_views_size();i++){     //add output msg
 										 view_copy(&local_view,request_.output_views(i));
-										 (*(msg.change_migration_msg_.output_views))[local_view.worker_id]=local_view;
+										 msg.change_migration_msg_.output_views->insert(std::make_pair(local_view.worker_id,local_view));
 									 }
 								 	 rte_ring_request->enqueue(msg); //throw the msg to the ring
 									 while(1){
