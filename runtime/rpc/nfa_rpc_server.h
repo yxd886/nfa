@@ -118,17 +118,7 @@ static int encode_mac_addr(char *str, char *addr  )
 static int parse_ip_addr(char *addr, const char *str )
 {
 	if (str != NULL && addr != NULL) {
-		int r = sscanf(str,
-			       "%d.%d.%d.%d/%d",
-			       addr,
-			       addr+1,
-			       addr+2,
-			       addr+3,
-			       addr+4
-			      );
-
-		if (r != 5)
-			return -EINVAL;
+		strcpy(addr,str);
 	}
 
 	return 0;
@@ -137,17 +127,7 @@ static int parse_ip_addr(char *addr, const char *str )
 static int encode_ip_addr( char *str ,char *addr )
 {
 	if (str != NULL && addr != NULL) {
-		int r = sprintf(str,
-			       "%d.%d.%d.%d/%d",
-			       addr,
-			       addr+1,
-			       addr+2,
-			       addr+3,
-			       addr+4
-			      );
-
-		if (r != 5)
-			return -EINVAL;
+		strpy(str,addr);
 	}
 
 	return 0;
