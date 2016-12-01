@@ -168,7 +168,7 @@ class ServerImpl final {
          } else if (status_ == PROCESS) {
            new AddInputView(service_, cq_,viewlist_input,viewlist_output);
            std::map<int, struct Local_view>::iterator it;
-           std::cout<<"received a addoutput view request"<<std::endl;
+           std::cout<<"received a addinput view request"<<std::endl;
 
           int i;
 
@@ -426,7 +426,7 @@ class ServerImpl final {
             } else if (status_ == PROCESS) {
               new DeleteOutputView(service_, cq_,viewlist_input,viewlist_output);
               std::map<int, struct Local_view>::iterator it;
-              std::cout<<"received a addoutput view request"<<std::endl;
+              std::cout<<"received a deleteoutput view request"<<std::endl;
 
              int i;
 
