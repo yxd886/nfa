@@ -82,11 +82,9 @@ HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
 SRCS = $(ALL_SRCS)
 OBJS = $(SRCS:.cc=.o)
 
-EXEC = bessd
-
 .PHONY: all clean
 
-all: $(EXEC)
+all:
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
