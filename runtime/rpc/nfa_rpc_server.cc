@@ -62,7 +62,7 @@ using nfa_msg::Runtime_RPC;
 #include "nfa_rpc_server.h"
 
 
-moodycamel::ConcurrentQueue<struct vswitch_msg> rte_ring_request;
+moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request;
 moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply;
 std::mutex mtx;
 
@@ -178,9 +178,10 @@ class ServerImpl final {
           			continue;
           		}else{
      					 bool deque=false;
-     					 struct vswitch_msg msg;
+     					 struct request_msg msg;
      					 struct reply_msg rep_msg;
      					 msg.tag=NFACTOR_CLUSTER_VIEW;
+     					msg.action=ADDINPUTVIEW;
      					 msg.change_view_msg_.worker_id=outview.worker_id();
      					 msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
      					 strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -306,9 +307,10 @@ class ServerImpl final {
             			continue;
             		}else{
        					 bool deque=false;
-       					 struct vswitch_msg msg;
+       					 struct request_msg msg;
        					 struct reply_msg rep_msg;
        					 msg.tag=NFACTOR_CLUSTER_VIEW;
+       					 msg.action=ADDOUTPUTVIEW;
        					 msg.change_view_msg_.worker_id=outview.worker_id();
        					 msg.change_view_msg_.state=NFACTOR_WORKER_RUNNING;
        					 strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -449,7 +451,7 @@ class ServerImpl final {
 
 void child(){
   std::cout<<"father process ok"<<std::endl;
-  struct vswitch_msg request;
+  struct request_msg request;
   struct reply_msg reply;
   bool ok;
   while(1){
@@ -457,7 +459,18 @@ void child(){
   		sleep(2);
 	  ok=rte_ring_request.try_dequeue(request);
 	  if(ok){
-	  		reply.tag=request.tag;
+	  		switch(request.action){
+	  			case ADDOUTPUTVIEW:
+	  				//process of addoutputview
+	  				break;
+	  			case ADDINPUTVIEW:
+	  				//process of addinputview
+	  				break;
+	  			default:
+	  				break;
+	  		}
+
+	  	  reply.tag=request.tag;
 	    	reply.worker_id=request.change_view_msg_.worker_id;
 	    reply.reply=true;
 	    std::cout<<"find request"<<std::endl;

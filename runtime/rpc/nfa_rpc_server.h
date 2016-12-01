@@ -43,9 +43,10 @@ typedef struct{
 #define REQUEST 200
 
 
-struct  vswitch_msg{
+struct  request_msg{
 
   int tag;
+  int action;
   union{
     cluster_view_msg change_view_msg_;
     change_route_msg change_route_msg_;
