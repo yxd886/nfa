@@ -127,7 +127,7 @@ static int parse_ip_addr(char *addr, const char *str )
 static int encode_ip_addr( char *str ,char *addr )
 {
 	if (str != NULL && addr != NULL) {
-		strpy(str,addr);
+		strcpy(str,addr);
 	}
 
 	return 0;
