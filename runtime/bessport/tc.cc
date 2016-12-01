@@ -6,7 +6,6 @@
 
 #include <glog/logging.h>
 
-#include "debug.h"
 #include "mem_alloc.h"
 #include "opts.h"
 #include "task.h"
