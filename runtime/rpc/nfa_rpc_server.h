@@ -35,12 +35,12 @@ struct Local_view{
 };
 
 typedef struct {
-  int worker_id;
-  char iport_mac[6];
-  char oport_mac[6];
-  char cport_mac[6];
-  char rpc_ip[20];
-  int rpc_port;
+	int worker_id;
+	char iport_mac[6];
+	char oport_mac[6];
+	char cport_mac[6];
+	char rpc_ip[20];
+	int rpc_port;
 } cluster_view_msg;
 
 
@@ -60,18 +60,18 @@ typedef struct{
 
 
 struct  request_msg{
-  int action;
-  union{
-    cluster_view_msg change_view_msg_;
-    migration_target_msg change_migration_msg_;
-  };
+	int action;
+	union{
+		cluster_view_msg change_view_msg_;
+		migration_target_msg change_migration_msg_;
+	};
 
 };
 
 struct  reply_msg{
-  int tag;
-  int worker_id;
-  bool reply;
+	int tag;
+	int worker_id;
+	bool reply;
 };
 
 
@@ -85,11 +85,10 @@ struct tag{
 
 
 
-static int parse_mac_addr(char *addr, const char *str )
-{
+static int parse_mac_addr(char *addr, const char *str ){
 	if (str != NULL && addr != NULL) {
 		int r = sscanf(str,
-			       "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx",
+				"%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx",
 			       addr,
 			       addr+1,
 			       addr+2,
@@ -160,7 +159,7 @@ static void view_local2rpc(View* rpc_view_ptr, Local_view local_view ){
 	encode_ip_addr(str_tmp,local_view.rpc_ip);
 	rpc_view_ptr->set_rpc_ip(str_tmp);
 	rpc_view_ptr->set_rpc_port(local_view.rpc_port);
-	}
+}
 
 
 
