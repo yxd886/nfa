@@ -63,10 +63,10 @@ using nfa_msg::MigrationNegotiationResult;
 #include "concurrentqueue.h"
 #include "nfa_rpc_server.h"
 
-
 class ServerImpl final {
 	public:
-	ServerImpl(int worker_id):worker_id(worker_id){
+	ServerImpl(int worker_id,moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply)
+	:worker_id(worker_id),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
 
 	}
 	~ServerImpl() {
@@ -852,7 +852,7 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 	  				break;
 	  			case SETMIGRATIONTARGET:
 	  				//process of setmigrationtarget
-	  				reply.worker_id=request.change_migration_msg_.migration_target_info.worker_id;
+	  				reply.worker_id=request.change_migration_msg_.migration_target_info().worker_id();
 	  				break;
 	  			default:
 	  				break;
