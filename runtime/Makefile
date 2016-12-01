@@ -10,8 +10,9 @@ VERBOSE ?= 1
 DEPDIR ?= .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$(@:.o=.d)
 $(shell mkdir -p $(DEPDIR) >/dev/null)
-$(shell mkdir -p $(DEPDIR)/utils >/dev/null)
-$(shell mkdir -p $(DEPDIR)/hooks >/dev/null)
+$(shell mkdir -p $(DEPDIR)/base >/dev/null)
+$(shell mkdir -p $(DEPDIR)/base/utils >/dev/null)
+$(shell mkdir -p $(DEPDIR)/base/hooks >/dev/null)
 
 # e.g., 4.9.3 -> 40903
 CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
