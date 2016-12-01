@@ -10,9 +10,9 @@ VERBOSE ?= 1
 DEPDIR ?= .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$(@:.o=.d)
 $(shell mkdir -p $(DEPDIR) >/dev/null)
-$(shell mkdir -p $(DEPDIR)/base >/dev/null)
-$(shell mkdir -p $(DEPDIR)/base/utils >/dev/null)
-$(shell mkdir -p $(DEPDIR)/base/hooks >/dev/null)
+$(shell mkdir -p $(DEPDIR)/bessport >/dev/null)
+$(shell mkdir -p $(DEPDIR)/bessport/utils >/dev/null)
+$(shell mkdir -p $(DEPDIR)/bessport/hooks >/dev/null)
 
 # e.g., 4.9.3 -> 40903
 CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
@@ -75,8 +75,8 @@ endif
 
 LIBS += -libverbs
 
-ALL_SRCS = $(wildcard base/*.cc base/hooks/*.cc base/utils/*.cc)
-HEADERS = $(wildcard base/*.h base/hooks/*.h base/utils/*.h)
+ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc)
+HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
 
 
 SRCS = $(ALL_SRCS)
