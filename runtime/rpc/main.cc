@@ -111,7 +111,7 @@ class RuntimeClient {
     GPR_ASSERT(ok);
 
     if (status.ok()) {
-      return reply.succeed();
+      return true;
 
     } else {
       std::cout<<"RPC failed"<<std::endl;
@@ -139,7 +139,7 @@ class RuntimeClient {
     GPR_ASSERT(ok);
 
     if (status.ok()) {
-      return reply.succeed();
+      return true;
 
     } else {
       std::cout<<"RPC failed"<<std::endl;
@@ -168,7 +168,7 @@ class RuntimeClient {
      GPR_ASSERT(ok);
 
      if (status.ok()) {
-       return reply.succeed();
+       return true;
 
      } else {
        std::cout<<"RPC failed"<<std::endl;
@@ -196,7 +196,7 @@ class RuntimeClient {
       GPR_ASSERT(ok);
 
       if (status.ok()) {
-        return reply.succeed();
+        return true;
 
       } else {
         std::cout<<"RPC failed"<<std::endl;
@@ -301,12 +301,12 @@ int main(int argc, char** argv) {
 
 */
 
-	migration_request.Migration_target_info().set_worker_id(1);
-	migration_request.Migration_target_info().set_input_port_mac("11:22:33:44:55:66");
-	migration_request.Migration_target_info().set_output_port_mac("22:33:44:55:66:77");
-	migration_request.Migration_target_info().set_control_port_mac("33:44:55:66:77:88");
-	migration_request.Migration_target_info().set_rpc_ip("192.168.1.1/30");
-	migration_request.Migration_target_info().set_rpc_port(80);
+	migration_request.migration_target_info().set_worker_id(1);
+	migration_request.migration_target_info().set_input_port_mac("11:22:33:44:55:66");
+	migration_request.migration_target_info().set_output_port_mac("22:33:44:55:66:77");
+	migration_request.migration_target_info().set_control_port_mac("33:44:55:66:77:88");
+	migration_request.migration_target_info().set_rpc_ip("192.168.1.1/30");
+	migration_request.migration_target_info().set_rpc_port(80);
 	req=migration_request.add_input_views();
 	req->set_worker_id(2);
 	req->set_input_port_mac("11:22:33:44:55:66");
