@@ -673,7 +673,8 @@ class ServerImpl final {
 									 reply_.set_fail_reason("Here is not the target you specified!");
 							 }else if(viewlist_input.size()!=request_.input_views_size()||viewlist_output.size()!=request_.output_views_size()){	 	 //check input and output size
 									 flag=false;
-								 	 reply_.set_fail_reason("Input size or output size does not match!");
+								 	 std::cout<<"local inputsize:"<<viewlist_input.size()<<std::endl<<"request inputsize:"<<request_.input_views_size()<<std::endl<<"local outputsize:"<<viewlist_output.size()<<std::endl<<"local inputsize:"<<request_.output_views_size()<<std::endl;
+									 reply_.set_fail_reason("Input size or output size does not match!");
 							 }else{
 								 	 for(i=0;i<request_.input_views_size();i++){     //compare input
 								 		 if(viewlist_input.find(request_.input_views(i).worker_id())==viewlist_input.end()){
