@@ -92,7 +92,7 @@ HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
 SRCS = $(ALL_SRCS) $(PROTO_SRCS)
 OBJS = $(SRCS:.cc=.o)
 
-.PHONY: all clean
+.PHONY: all clean protobuf
 
 all: $(OBJS)
 
@@ -100,6 +100,8 @@ clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
 		*.a *.pb.* *.o */*.o *.gcda *.gcno */*.gcda */*.gcno \
 		coverage.info coverage_html
+		
+protobuf: $(PROTO_SRCS)
 
 # This build wrapper takes 4 parameters:
 # $(1): build type (CXX, LD, ...)
