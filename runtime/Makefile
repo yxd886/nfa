@@ -127,7 +127,7 @@ endef
 $(eval $(call BUILD, \
 	PROTOC, \
 	%.pb.cc %.pb.h %.grpc.pb.cc %.grpc.pb.h, \
-	%.proto, \
+	$$(PROTO_DIR)/%.proto, \
 	$$(PROTOC) $$< $$(PROTOCFLAGS)))
 	
 $(eval $(call BUILD, \
