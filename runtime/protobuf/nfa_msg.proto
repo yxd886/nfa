@@ -18,7 +18,7 @@ service Runtime_RPC {
   
   rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult) {}
   
-  
+  rpc AddReplicas (ReplicaList) returns (ReplicaNegotiationResult){}
   
   
   
