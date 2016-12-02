@@ -734,7 +734,7 @@ private:
 			} else if (status_ == PROCESS) {
 				new AddReplicas(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id,replicalist);
 				std::map<int, struct Local_view>::iterator it;
-				std::cout<<"received a setmigrationtarget view request"<<std::endl;
+				std::cout<<"received a add replica request"<<std::endl;
 				//compare received view with local view
 				bool ok_flag=false;
 				int i,j;
@@ -891,7 +891,7 @@ private:
 			} else if (status_ == PROCESS) {
 				new DeleteReplicas(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id,replicalist);
 				std::map<int, struct Local_view>::iterator it;
-				std::cout<<"received a setmigrationtarget view request"<<std::endl;
+				std::cout<<"received a delete replica request"<<std::endl;
 				//compare received view with local view
 				bool ok_flag=false;
 				int i,j;
@@ -946,7 +946,7 @@ private:
 								std::cout<<"find reply"<<std::endl;
 								if(rep_msg.reply){
 									ok_flag=true;
-									std::cout<<"add replica "<<rep_msg.worker_id<<"succeed!"<<std::endl;
+									std::cout<<"delete replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
 									replicalist->erase(replicalist->find(msg.change_replica_msg_.replica.worker_id));
 								}else{
 									printf("%s\n",rep_msg.fail_reason);
