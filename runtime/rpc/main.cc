@@ -329,7 +329,7 @@ public:
 		GPR_ASSERT(ok);
 
 		if (status.ok()) {
-			if(reply.succeed()){
+			if(reply.ack()){
 				return true;
 			}else{
 				std::cout<<reply.fail_reason()<<std::endl;
