@@ -409,7 +409,7 @@ int main(int argc, char** argv) {
 
 
 	ViewList request2;
-	reuqest2.CopyFrom(request);
+	request2.CopyFrom(request);
 	request2.mutable_view(0)->set_worker_id(4);
 	request2.mutable_view(0)->set_worker_id(5);
 
