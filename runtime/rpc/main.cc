@@ -51,6 +51,9 @@ using nfa_msg::ViewList;
 using nfa_msg::CurrentView;
 using nfa_msg::MigrationTarget;
 using nfa_msg::MigrationNegotiationResult;
+using nfa_msg::ReplicaList;
+using nfa_msg::ReplicaNegotiationResult;
+using nfa_msg::ReplicaInfo;
 using nfa_msg::Runtime_RPC;
 
 class RuntimeClient {
@@ -236,6 +239,39 @@ public:
 			return false;
 		}
 	}
+	bool AddReplicas(ReplicaList request) {
+		ReplicaNegotiationResult reply;
+		ClientContext context;
+		CompletionQueue cq;
+
+		Status status;
+
+		std::unique_ptr<ClientAsyncResponseReader<ReplicaNegotiationResult> > rpc(
+				stub_->AsyncAddReplicas(&context, request, &cq));
+
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
+
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+		GPR_ASSERT(got_tag == (void*)1);
+
+		GPR_ASSERT(ok);
+
+		if (status.ok()) {
+			if(reply.succeed()){
+				return true;
+			}else{
+				std::cout<<reply.fail_reason()<<std::endl;
+			}
+
+
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
 private:
 	// Out of the passed in Channel comes the stub, stored here, our view of the
 	// server's exposed services.
@@ -261,7 +297,9 @@ int main(int argc, char** argv) {
 
 	ViewList request;
 	MigrationTarget migration_request;
+
 	View* req=request.add_view();
+
 	req->set_worker_id(2);
 	req->set_input_port_mac("11:22:33:44:55:66");
 	req->set_output_port_mac("22:33:44:55:66:77");
@@ -318,8 +356,39 @@ int main(int argc, char** argv) {
 	req->set_rpc_ip("192.168.1.1/30");
 	req->set_rpc_port(80);
 
-
 	reply = nfa_rpc.SetMigrationTarget(migration_request);
+
+	if(reply){
+		std::cout << "SetMigrationTarget: OK "<< std::endl;
+	}else{
+		std::cout << "SetMigrationTarget: Fail "<< std::endl;
+	}
+
+	ReplicaList replicalist_request;
+	Replica_Info* replica_info=replicalist_request.add_replicas();
+/*
+	replica_info.mutable_replica()->set_worker_id(3);
+	replica_info.mutable_replica()->set_input_port_mac("11:22:33:44:55:66");
+	replica_info.mutable_replica()->set_output_port_mac("22:33:44:55:66:77");
+	replica_info.mutable_replica()->set_control_port_mac("33:44:55:66:77:88");
+	replica_info.mutable_replica()->set_rpc_ip("192.168.1.1/30");
+	replica_info.mutable_replica()->set_rpc_port(80);
+	*/
+	replica_info.mutable_replica()->CopyFrom(migration_request.migration_target_info());
+	replica_info.mutable_replica()->set_worker_id(3);
+
+
+	req=replica_info->add_input_views();
+	req->CopyFrom(migration_request.input_views(0));
+	/*
+	req->set_worker_id(2);
+	req->set_input_port_mac("11:22:33:44:55:66");
+	req->set_output_port_mac("22:33:44:55:66:77");
+	req->set_control_port_mac("33:44:55:66:77:88");
+	req->set_rpc_ip("192.168.1.1/30");
+	req->set_rpc_port(80);
+	*/
+	reply = nfa_rpc.AddReplicas(replicalist_request);
 
 	if(reply){
 		std::cout << "SetMigrationTarget: OK "<< std::endl;

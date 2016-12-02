@@ -25,6 +25,11 @@
 #define DELETEOUTPUTVIEW 6
 #define DELETEINPUTVIEW 7
 #define SETMIGRATIONTARGET 8
+#define  ADDREPLICAS 9
+
+
+
+
 struct Local_view{
 	uint64_t worker_id;
     char input_port_mac[6];
@@ -51,12 +56,12 @@ typedef struct{
 	int quota;
 }migration_target_msg;
 
+typedef struct{
+	Local_view replica;
+	std::map<int, Local_view> *input_views;
+	std::map<int, Local_view> *output_views;
+}replica_msg;
 
-#define NFACTOR_CLUSTER_VIEW 1
-#define NFACTOR_CHANGE_ROUTE 2
-
-#define REPLY 100
-#define REQUEST 200
 
 
 struct  request_msg{
@@ -64,6 +69,7 @@ struct  request_msg{
 	union{
 		cluster_view_msg change_view_msg_;
 		migration_target_msg change_migration_msg_;
+		replica_msg change_replica_msg_;
 	};
 
 };
@@ -72,6 +78,7 @@ struct  reply_msg{
 	int tag;
 	int worker_id;
 	bool reply;
+	char fail_reason[80];
 };
 
 

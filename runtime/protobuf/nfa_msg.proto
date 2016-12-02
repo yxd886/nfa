@@ -78,10 +78,21 @@ message MigrationNegotiationResult{
 }
 
 //message for replication
-message ReplicaList{
-  repeated View replicas=1;
+
+message ReplicaInfo{
+  View replica = 1;
+  repeated View input_views = 3;
+  repeated View output_views = 4;
 }
 
-message CurrentReplicas{
-  repeated View replicas=1;
+message ReplicaList{
+
+  repeated ReplicaInfo replicas = 2;
+}
+
+
+message ReplicaNegotiationResult{
+  repeated View current_replicas=1;
+  bool succeed=2;
+  string fail_reason=3;
 }
