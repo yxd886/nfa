@@ -592,9 +592,6 @@ int main(int argc, char** argv) {
 	}else{
 		std::cout << "Query Runtime Info: Fail "<< std::endl;
 	}
-	return 0;
-}
-
 
 	return 0;
 }
