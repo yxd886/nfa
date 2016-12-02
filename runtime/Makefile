@@ -77,7 +77,7 @@ endif
 
 LIBS += -libverbs
 
-PROTO_DIR = bessport/
+PROTO_DIR = bessport
 PROTOS = $(wildcard $(PROTO_DIR)/*.proto)
 PROTO_SRCS = $(patsubst %.proto,%.pb.cc, $(PROTOS))
 PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
@@ -98,7 +98,7 @@ all: $(OBJS)
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
 		*.a *.pb.* *.o */*.o *.gcda *.gcno */*.gcda */*.gcno \
-		coverage.info coverage_html
+		coverage.info coverage_html */*.pb.cc */*.pb.h
 		
 protobuf: $(PROTO_SRCS)
 
@@ -126,7 +126,7 @@ endef
 $(eval $(call BUILD, \
 	PROTOC, \
 	%.pb.cc %.pb.h %.grpc.pb.cc %.grpc.pb.h, \
-	$$(PROTO_DIR)/%.proto, \
+	%.proto, \
 	$$(PROTOC) $$< $$(PROTOCFLAGS)))
 	
 $(eval $(call BUILD, \
