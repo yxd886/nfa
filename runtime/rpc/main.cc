@@ -410,8 +410,8 @@ int main(int argc, char** argv) {
 
 	ViewList request2;
 	reuqest2.CopyFrom(request);
-	request2.view(0).set_worker(4);
-	request2.view(0).set_worker(5);
+	request2.view(0).set_worker_id(4);
+	request2.view(0).set_worker_id(5);
 
 	reply = nfa_rpc.AddOutputView(request2);
 
@@ -439,8 +439,10 @@ int main(int argc, char** argv) {
 	migration_request.mutable_migration_target_info()->set_control_port_mac("33:44:55:66:77:88");
 	migration_request.mutable_migration_target_info()->set_rpc_ip("192.168.1.1/30");
 	migration_request.mutable_migration_target_info()->set_rpc_port(80);
-	migration_request.mutable_input_views()->MergeFrom(request);
-	migration_request.mutable_output_views()->MergeFrom(request2);
+	migration_request.add_input_views()->CopyFrom(request.view(0));
+	migration_request.add_input_views()->CopyFrom(request.view(1));
+	migration_request.add_output_views()->CopyFrom(request2.view(0));
+	migration_request.add_output_views()->CopyFrom(request2.view(1));
 
 
 	reply = nfa_rpc.SetMigrationTarget(migration_request);
@@ -465,8 +467,10 @@ int main(int argc, char** argv) {
 	replica_info->mutable_replica()->set_worker_id(3);
 
 
-	replica_info->mutable_input_views()->MergeFrom(request);
-	replica_info->mutable_output_views()->MergeFrom(request2);
+	replica_info->add_input_views()->CopyFrom(request.view(0));
+	replica_info->add_input_views()->CopyFrom(request.view(1));
+	replica_info->add_output_views()->CopyFrom(request2.view(0));
+	replica_info->add_output_views()->CopyFrom(request2.view(1));
 	/*
 	req->set_worker_id(2);
 	req->set_input_port_mac("11:22:33:44:55:66");
