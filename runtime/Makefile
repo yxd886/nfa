@@ -89,7 +89,6 @@ HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
 
 TEST_SRCS = $(filter %_test.cc gtest_main.cc, $(ALL_SRCS))
 TEST_OBJS = $(TEST_SRCS:.cc=.o)
-TEST_EXEC = $(filter-out gtest_main, $(TEST_OBJS:%.o=%))
 TEST_ALL_EXEC = all_test
 
 
@@ -107,7 +106,7 @@ clean:
 		*.a *.pb.* *.o */*.o *.gcda *.gcno */*.gcda */*.gcno \
 		coverage.info coverage_html */*.pb.cc */*.pb.h
 		
-tests: $(TEST_OBJS) $(TEST_EXEC) $(TEST_ALL_EXEC)
+tests: $(TEST_OBJS) $(TEST_ALL_EXEC)
 		
 protobuf: $(PROTO_SRCS)
 
