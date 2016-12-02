@@ -272,6 +272,41 @@ public:
 			return false;
 		}
 	}
+
+	bool DeleteReplicas(ReplicaList request) {
+		ReplicaNegotiationResult reply;
+		ClientContext context;
+		CompletionQueue cq;
+
+		Status status;
+
+		std::unique_ptr<ClientAsyncResponseReader<ReplicaNegotiationResult> > rpc(
+				stub_->AsyncDeleteReplicas(&context, request, &cq));
+
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
+
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+		GPR_ASSERT(got_tag == (void*)1);
+
+		GPR_ASSERT(ok);
+
+		if (status.ok()) {
+			if(reply.succeed()){
+				return true;
+			}else{
+				std::cout<<reply.fail_reason()<<std::endl;
+			}
+
+
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+
 private:
 	// Out of the passed in Channel comes the stub, stored here, our view of the
 	// server's exposed services.
@@ -406,5 +441,27 @@ int main(int argc, char** argv) {
 		std::cout << "AddReplicas: Fail "<< std::endl;
 	}
 
+
+
+
+	// delete this replica
+
+	reply = nfa_rpc.DeleteReplicas(replicalist_request);
+
+	if(reply){
+		std::cout << "DeleteReplicas: OK "<< std::endl;
+	}else{
+		std::cout << "DeleteReplicas: Fail "<< std::endl;
+	}
+
 	return 0;
 }
+
+
+
+	return 0;
+}
+
+
+
+

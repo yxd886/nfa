@@ -869,6 +869,143 @@ private:
 		int worker_id;
 	};
 
+	class DeleteReplicas {
+	public:
+		// Take in the "service" instance (in this case representing an asynchronous
+		// server) and the completion queue "cq" used for asynchronous communication
+		// with the gRPC runtime.
+		DeleteReplicas(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id,
+				std::map< int, struct Local_view> * replicalist)
+			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply),replicalist(replicalist){
+			// Invoke the serving logic right away.
+			tags.index=DELETEREPLICAS;
+			tags.tags=this;
+			Proceed();
+		}
+
+		void Proceed() {
+			if (status_ == CREATE) {
+				status_ = PROCESS;
+				service_->RequestDeleteReplicas(&ctx_, &request_, &responder_, cq_, cq_,
+                                       (void*)&tags);
+			} else if (status_ == PROCESS) {
+				new DeleteReplicas(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id,replicalist);
+				std::map<int, struct Local_view>::iterator it;
+				std::cout<<"received a setmigrationtarget view request"<<std::endl;
+				//compare received view with local view
+				bool ok_flag=false;
+				int i,j;
+				for(j=0;j<request_.replicas_size();j++){
+					bool flag=true;
+					const ReplicaInfo& rpc_replica=request_.replicas(j);
+					if(worker_id==rpc_replica.replica().worker_id()){
+						//can not replica itself
+						flag=false;
+						reply_.set_fail_reason("The replica you want to delete is myself!");
+					}else if(replicalist->find(rpc_replica.replica().worker_id())==replicalist->end()){
+						//the replica does not exist
+						flag=false;
+						reply_.set_fail_reason("the replica already exists!");
+
+					}
+
+
+					if(flag==false){
+						std::cout<<reply_.fail_reason()<<std::endl;
+						continue;
+
+					}else{
+
+						Local_view local_view;
+						request_msg msg;
+						std::map<int,Local_view> inputview;
+						std::map<int,Local_view> outputview;
+						msg.change_replica_msg_.input_views=&inputview;
+						msg.change_replica_msg_.output_views=&outputview;
+						reply_msg rep_msg;
+						bool deque;
+
+						msg.action=DELETEREPLICAS;
+
+
+						view_rpc2local(&msg.change_replica_msg_.replica,rpc_replica.replica());
+						for(i=0;i<rpc_replica.input_views_size();i++){     //add input to msg
+							view_rpc2local(&local_view,rpc_replica.input_views(i));
+							msg.change_replica_msg_.input_views->insert(std::make_pair(local_view.worker_id,local_view));
+						}
+						for(i=0;i<rpc_replica.output_views_size();i++){     //add output msg
+							view_rpc2local(&local_view,rpc_replica.output_views(i));
+							msg.change_replica_msg_.output_views->insert(std::make_pair(local_view.worker_id,local_view));
+						}
+						rte_ring_request->enqueue(msg); //throw the msg to the ring
+						while(1){
+							sleep(2);
+							std::cout<<"get the lock to find reply"<<std::endl;
+							deque=rte_ring_reply->try_dequeue(rep_msg);
+							if(deque){
+								std::cout<<"find reply"<<std::endl;
+								if(rep_msg.reply){
+									ok_flag=true;
+									std::cout<<"add replica "<<rep_msg.worker_id<<"succeed!"<<std::endl;
+									replicalist->erase(replicalist->find(msg.change_replica_msg_.replica.worker_id));
+								}else{
+									printf("%s\n",rep_msg.fail_reason);
+								}
+								break;
+							}else{
+								std::cout<<"empty reply queue"<<std::endl;
+							}
+
+						}
+					}
+				}
+				if(ok_flag==false){
+					reply_.set_succeed(false);
+
+				}else{
+					reply_.set_succeed(true);
+				}
+				std::map<int , struct Local_view>::iterator local_replica_it;
+				//prepare replicalist data to send back
+				View * view_tmp=NULL;
+				for(local_replica_it=replicalist->begin();local_replica_it!=replicalist->end();local_replica_it++){
+
+					view_tmp=reply_.add_current_replicas();
+					view_local2rpc(view_tmp,local_replica_it->second);
+
+				}
+
+				status_ = FINISH;
+				responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+			} else {
+				GPR_ASSERT(status_ == FINISH);
+				delete this;
+			}
+		}
+
+	private:
+
+		Runtime_RPC::AsyncService* service_;
+		ServerCompletionQueue* cq_;
+		ServerContext ctx_;
+		ReplicaList request_;
+		ReplicaNegotiationResult reply_;
+
+		// The means to get back to the client.
+		ServerAsyncResponseWriter<ReplicaNegotiationResult> responder_;
+
+		// Let's implement a tiny state machine with the following states.
+		enum CallStatus { CREATE, PROCESS, FINISH };
+		CallStatus status_;  // The current serving state.
+		struct tag tags;
+		std::map< int, struct Local_view> *viewlist_input;
+		std::map< int, struct Local_view> *viewlist_output;
+		std::map< int, struct Local_view> * replicalist;
+		moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+		moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+		int worker_id;
+	};
 
 	// This can be run in multiple threads if needed.
 	void HandleRpcs() {
@@ -882,6 +1019,7 @@ private:
 		new DeleteInputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
 		new SetMigrationTarget(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
 		new AddReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
+		new DeleteReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
 		void* tag;  // uniquely identifies a request.
 		bool ok;
 		while (true) {
@@ -913,6 +1051,9 @@ private:
 				break;
 			case ADDREPLICAS:
 				static_cast<AddReplicas *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+				break;
+			case DELETEREPLICAS:
+				static_cast<DeleteReplicas *>(static_cast<struct tag*>(tag)->tags)->Proceed();
 				break;
 			default:
 				break;
@@ -948,29 +1089,34 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 					//process of addoutputview
 					reply.worker_id=request.change_view_msg_.worker_id;
 					break;
-	  			case ADDINPUTVIEW:
-	  				//process of addinputview
-	  				reply.worker_id=request.change_view_msg_.worker_id;
-	  				break;
-	  			case DELETEOUTPUTVIEW:
-	  				//process of deleteoutputview
-	  				reply.worker_id=request.change_view_msg_.worker_id;
-	  				break;
-	  			case DELETEINPUTVIEW:
-	  				//process of deleteinputview
-	  				reply.worker_id=request.change_view_msg_.worker_id;
-	  				break;
-	  			case SETMIGRATIONTARGET:
-	  				//process of setmigrationtarget
-	  				reply.worker_id=request.change_migration_msg_.migration_target_info.worker_id;
-	  				break;
-	  			case ADDREPLICAS:
-	  				//process of setmigrationtarget
-	  				reply.worker_id=request.change_replica_msg_.replica.worker_id;
-	  				std::cout<<"replica worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
-	  				break;
-	  			default:
-	  				break;
+				case ADDINPUTVIEW:
+					//process of addinputview
+					reply.worker_id=request.change_view_msg_.worker_id;
+					break;
+				case DELETEOUTPUTVIEW:
+					//process of deleteoutputview
+					reply.worker_id=request.change_view_msg_.worker_id;
+					break;
+				case DELETEINPUTVIEW:
+					//process of deleteinputview
+					reply.worker_id=request.change_view_msg_.worker_id;
+					break;
+				case SETMIGRATIONTARGET:
+					//process of setmigrationtarget
+					reply.worker_id=request.change_migration_msg_.migration_target_info.worker_id;
+					break;
+				case ADDREPLICAS:
+					//process of setmigrationtarget
+					reply.worker_id=request.change_replica_msg_.replica.worker_id;
+					std::cout<<"add replica worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
+					break;
+				case DELETEREPLICAS:
+					//process of setmigrationtarget
+					reply.worker_id=request.change_replica_msg_.replica.worker_id;
+					std::cout<<"delete replica worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
+					break;
+				default:
+					break;
 			}
 
 			reply.tag=request.action;
