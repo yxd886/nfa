@@ -27,6 +27,7 @@
 #define 	SETMIGRATIONTARGET 8
 #define 	ADDREPLICAS 9
 #define		DELETEREPLICAS 10
+#define		RECOVER 11
 
 
 
@@ -63,7 +64,10 @@ typedef struct{
 	std::map<int, Local_view> *output_views;
 }replica_msg;
 
+typedef struct{
+	int runtime_id;
 
+}recover_msg;
 
 struct  request_msg{
 	int action;
@@ -71,6 +75,7 @@ struct  request_msg{
 		cluster_view_msg change_view_msg_;
 		migration_target_msg change_migration_msg_;
 		replica_msg change_replica_msg_;
+		recover_msg set_recover_msg_;
 	};
 
 };

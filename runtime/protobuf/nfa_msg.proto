@@ -22,6 +22,8 @@ service Runtime_RPC {
   
   rpc DeleteReplicas (ReplicaList) returns (ReplicaNegotiationResult){}  
   
+  rpc Recover (RecoverRuntime) returns (RecoverRuntimeResult){}  
+  
   
   
   
@@ -95,4 +97,13 @@ message ReplicaNegotiationResult{
   repeated View current_replicas=1;
   bool succeed=2;
   string fail_reason=3;
+}
+//message for recover
+message RecoverRuntime{
+  uint64 runtime_id = 1;
+}
+
+
+message RecoverRuntimeResult{
+  bool ack = 1;
 }

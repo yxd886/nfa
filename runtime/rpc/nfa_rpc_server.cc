@@ -62,6 +62,9 @@ using nfa_msg::MigrationNegotiationResult;
 using nfa_msg::ReplicaList;
 using nfa_msg::ReplicaNegotiationResult;
 using nfa_msg::ReplicaInfo;
+using nfa_msg::RecoverRuntimeResult;
+using nfa_msg::RecoverRuntime;
+
 #include "concurrentqueue.h"
 #include "nfa_rpc_server.h"
 
@@ -1006,7 +1009,113 @@ private:
 		moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
 		int worker_id;
 	};
+	class Recover {
+	public:
+		// Take in the "service" instance (in this case representing an asynchronous
+		// server) and the completion queue "cq" used for asynchronous communication
+		// with the gRPC runtime.
+		Recover(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id,
+				std::map< int, struct Local_view> * replicalist)
+			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply),replicalist(replicalist){
+			// Invoke the serving logic right away.
+			tags.index=RECOVER;
+			tags.tags=this;
+			Proceed();
+		}
 
+		void Proceed() {
+			if (status_ == CREATE) {
+				status_ = PROCESS;
+				service_->RequestRecover(&ctx_, &request_, &responder_, cq_, cq_,
+                                       (void*)&tags);
+			} else if (status_ == PROCESS) {
+				new Recover(service_, cq_,rte_ring_request,rte_ring_reply,worker_id,replicalist);
+				std::map<int, struct Local_view>::iterator it;
+				std::cout<<"received a delete replica request"<<std::endl;
+				//compare received view with local view
+				bool ok_flag=false;
+				int i;
+					bool flag=true;
+					if(worker_id==request_.runtime_id()){
+						//can not replica itself
+						flag=false;
+						reply_.set_fail_reason("the runtime you want to recover is  myself!");
+					}else if(replicalist->find(request_.runtime_id())==replicalist->end()){
+						//the replica does not exist
+						flag=false;
+						reply_.set_fail_reason("do not have the replica of the runtime that you want to recover!");
+
+					}
+
+
+					if(flag==false){
+						std::cout<<reply_.fail_reason()<<std::endl;
+
+					}else{
+
+						request_msg msg;
+						reply_msg rep_msg;
+						bool deque;
+						msg.action=RECOVER;
+						msg.set_recover_msg_.runtime_id=request_.runtime_id();
+						rte_ring_request->enqueue(msg); //throw the msg to the ring
+						while(1){
+							sleep(2);
+							std::cout<<"get the lock to find reply"<<std::endl;
+							deque=rte_ring_reply->try_dequeue(rep_msg);
+							if(deque){
+								std::cout<<"find reply"<<std::endl;
+								if(rep_msg.reply){
+									ok_flag=true;
+									std::cout<<"recover succeed, start to replay runtime:"<<rep_msg.worker_id<<"'s function"<<std::endl;
+									replicalist->erase(replicalist->find(msg.change_replica_msg_.replica.worker_id));
+								}else{
+									printf("%s\n",rep_msg.fail_reason);
+								}
+								break;
+							}else{
+								std::cout<<"empty reply queue"<<std::endl;
+							}
+
+						}
+					}
+
+				if(ok_flag==false){
+					reply_.set_ack(false);
+
+				}else{
+					reply_.set_ack(true);
+				}
+
+				status_ = FINISH;
+				responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+			} else {
+				GPR_ASSERT(status_ == FINISH);
+				delete this;
+			}
+		}
+
+	private:
+
+		Runtime_RPC::AsyncService* service_;
+		ServerCompletionQueue* cq_;
+		ServerContext ctx_;
+		RecoverRuntime request_;
+		RecoverRuntimeResult reply_;
+
+		// The means to get back to the client.
+		ServerAsyncResponseWriter<RecoverRuntimeResult> responder_;
+
+		// Let's implement a tiny state machine with the following states.
+		enum CallStatus { CREATE, PROCESS, FINISH };
+		CallStatus status_;  // The current serving state.
+		struct tag tags;
+		std::map< int, struct Local_view> * replicalist;
+		moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+		moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+		int worker_id;
+	};
 	// This can be run in multiple threads if needed.
 	void HandleRpcs() {
 		// Spawn a new CallData instance to serve new clients.
@@ -1020,6 +1129,8 @@ private:
 		new SetMigrationTarget(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
 		new AddReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
 		new DeleteReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
+		new Recover(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id,&replicalist);
+
 		void* tag;  // uniquely identifies a request.
 		bool ok;
 		while (true) {
@@ -1054,6 +1165,9 @@ private:
 				break;
 			case DELETEREPLICAS:
 				static_cast<DeleteReplicas *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+				break;
+			case RECOVER:
+				static_cast<Recover *>(static_cast<struct tag*>(tag)->tags)->Proceed();
 				break;
 			default:
 				break;
@@ -1106,14 +1220,19 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 					reply.worker_id=request.change_migration_msg_.migration_target_info.worker_id;
 					break;
 				case ADDREPLICAS:
-					//process of setmigrationtarget
+					//process of add replicas
 					reply.worker_id=request.change_replica_msg_.replica.worker_id;
 					std::cout<<"add replica worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
 					break;
 				case DELETEREPLICAS:
-					//process of setmigrationtarget
+					//process of delete replicas
 					reply.worker_id=request.change_replica_msg_.replica.worker_id;
 					std::cout<<"delete replica worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
+					break;
+				case RECOVER:
+					//process of recover
+					reply.worker_id=request.change_replica_msg_.replica.worker_id;
+					std::cout<<"recover runtime worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
 					break;
 				default:
 					break;
