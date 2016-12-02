@@ -454,10 +454,6 @@ int main(int argc, char** argv) {
 		std::cout << "DeleteReplicas: Fail "<< std::endl;
 	}
 
-	return 0;
-}
-
-
 
 	return 0;
 }
