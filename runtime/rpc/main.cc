@@ -444,8 +444,17 @@ int main(int argc, char** argv) {
 
 
 
-	// delete this replica
+	// delete this replica expect succeed
 
+	reply = nfa_rpc.DeleteReplicas(replicalist_request);
+
+	if(reply){
+		std::cout << "DeleteReplicas: OK "<< std::endl;
+	}else{
+		std::cout << "DeleteReplicas: Fail "<< std::endl;
+	}
+
+//delete again, expect fail
 	reply = nfa_rpc.DeleteReplicas(replicalist_request);
 
 	if(reply){
