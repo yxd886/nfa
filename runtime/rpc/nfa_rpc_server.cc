@@ -1147,6 +1147,7 @@ private:
 					bool flag=true;
 					if(worker_id!=request_.runtime_id()){
 						//can not replica itself
+						reply_.set_fail_reason("this is not the runtime you are looking for");
 						flag=false;
 					}
 

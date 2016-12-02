@@ -235,6 +235,7 @@ public:
 				return true;
 			}else{
 				std::cout<<reply.fail_reason()<<std::endl;
+				return false;
 			}
 
 
@@ -268,6 +269,7 @@ public:
 				return true;
 			}else{
 				std::cout<<reply.fail_reason()<<std::endl;
+				return false;
 			}
 
 
@@ -302,6 +304,7 @@ public:
 				return true;
 			}else{
 				std::cout<<reply.fail_reason()<<std::endl;
+				return false;
 			}
 
 
@@ -335,6 +338,7 @@ public:
 				return true;
 			}else{
 				std::cout<<reply.fail_reason()<<std::endl;
+				return false;
 			}
 
 
@@ -369,6 +373,7 @@ public:
 				return true;
 			}else{
 				std::cout<<reply.fail_reason()<<std::endl;
+				return false;
 			}
 
 
@@ -452,9 +457,9 @@ int main(int argc, char** argv) {
 	reply = nfa_rpc.AddOutputView(request2);
 
 	if(reply){
-		std::cout << "AddInputView: OK "<< std::endl;
+		std::cout << "AddOutputView: OK "<< std::endl;
 	}else{
-		std::cout << "AddInputView: Fail "<< std::endl;
+		std::cout << "AddOutputView: Fail "<< std::endl;
 	}
 
 
