@@ -106,4 +106,5 @@ message RecoverRuntime{
 
 message RecoverRuntimeResult{
   bool ack = 1;
+  string fail_reason=3;
 }
