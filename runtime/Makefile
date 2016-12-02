@@ -42,6 +42,8 @@ else
     endif
 endif
 
+PROTOCXXFLAGS = -std=gnu++11 -O0
+
 CXXFLAGS += -std=gnu++11 -g3 -ggdb3 -Ofast -march=native \
 	    -Werror -isystem $(DPDK_INC_DIR) -D_GNU_SOURCE \
 	    -Wall -Wextra -Wcast-align
@@ -75,11 +77,19 @@ endif
 
 LIBS += -libverbs
 
+PROTO_DIR = ./bessprotobuf
+PROTOS = $(wildcard $(PROTO_DIR)/*.proto)
+NODIR_PROTOS = $(notdir $(PROTOS))
+PROTO_SRCS = $(patsubst %.proto,%.pb.cc, $(addprefix bessport/, $(NODIR_PROTOS)))
+PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(addprefix bessport/, $(NODIR_PROTOS)))
+PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
+PROTOCFLAGS += --proto_path=$(PROTO_DIR) --cpp_out=./bessport --grpc_out=./bessport --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
+
 ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc)
 HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
 
 
-SRCS = $(ALL_SRCS)
+SRCS = $(ALL_SRCS) $(PROTO_SRCS)
 OBJS = $(SRCS:.cc=.o)
 
 .PHONY: all clean
@@ -113,14 +123,26 @@ $(2): $(3)
 endef
 
 $(eval $(call BUILD, \
+	PROTOC, \
+	%.pb.cc %.pb.h %.grpc.pb.cc %.grpc.pb.h, \
+	$$(PROTO_DIR)/%.proto, \
+	$$(PROTOC) $$< $$(PROTOCFLAGS)))
+	
+$(eval $(call BUILD, \
+	CXX, \
+	%.pb.o, \
+	%.pb.cc $(DEPDIR)/$$@.d, \
+	$$(CXX) -o $$@ -c $$< $$(PROTOCXXFLAGS) $$(DEPFLAGS)))
+
+$(eval $(call BUILD, \
 	CXX, \
 	%.o, \
-	%.cc $(DEPDIR)/$$@.d, \
+	%.cc $(PROTO_HEADERS) $(DEPDIR)/$$@.d, \
 	$$(CXX) -o $$@ -c $$< $$(CXXFLAGS) $$(DEPFLAGS)))
 
 
 %.d: ;
 
-.PRECIOUS: %.d
+.PRECIOUS: %.d $(PROTO_HEADERS)
 
 -include $(patsubst %,$(DEPDIR)/%.d,$(basename $(ALL_SRCS)))
