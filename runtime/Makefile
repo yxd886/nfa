@@ -157,12 +157,6 @@ $(eval $(call BUILD, \
 
 $(eval $(call BUILD, \
 	TEST_LD, \
-	%_test, \
-	%_test.o gtest-all.o gtest_main.o bess.a, \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $(LIBS)))
-
-$(eval $(call BUILD, \
-	TEST_LD, \
 	$$(TEST_ALL_EXEC), \
 	$$(TEST_OBJS) gtest-all.o bess.a, \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $(LIBS)))
