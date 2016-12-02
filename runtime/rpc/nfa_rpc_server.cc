@@ -773,7 +773,7 @@ private:
 
 
 					if(flag==false){
-						std::cout<<reply_.fail_reason<<std::endl;
+						std::cout<<reply_.fail_reason()<<std::endl;
 						continue;
 
 					}else{
