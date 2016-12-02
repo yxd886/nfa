@@ -808,7 +808,7 @@ private:
 								std::cout<<"find reply"<<std::endl;
 								if(rep_msg.reply){
 									ok_flag=true;
-									std::cout<<"add replica "<<rep_msg.worker_id<<"succeed!"<<std::endl;
+									std::cout<<"add replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
 									replicalist->insert(std::make_pair(msg.change_replica_msg_.replica.worker_id,msg.change_replica_msg_.replica));
 								}else{
 									printf("%s\n",rep_msg.fail_reason);
