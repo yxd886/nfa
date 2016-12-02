@@ -77,10 +77,11 @@ endif
 
 LIBS += -libverbs
 
-PROTO_DIR = bessport
+PROTO_DIR = bessprotobuf
 PROTOS = $(wildcard $(PROTO_DIR)/*.proto)
-PROTO_SRCS = $(patsubst %.proto,%.pb.cc, $(PROTOS))
-PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
+NODIR_PROTOS = $(notdir PROTOS)
+PROTO_SRCS = $(patsubst %.proto,%.pb.cc, bessport/$(PROTOS))
+PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, bessport/$(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
 PROTOCFLAGS += --proto_path=$(PROTO_DIR) --cpp_out=bessport/ --grpc_out=bessport/ --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
