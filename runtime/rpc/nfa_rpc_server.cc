@@ -1297,6 +1297,8 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 	std::cout<<"father process ok"<<std::endl;
 	struct request_msg request;
 	struct reply_msg reply;
+	RuntimeInfo runtimeinfo;
+	reply.runtime_info_msg_=&runtimeinfo;
 	bool ok;
 	while(1){
 
@@ -1341,8 +1343,8 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 					break;
 				case QUERYRUNTIMEINFO:
 					//process of QueryRuntimeInfo
-					RuntimeInfo runtimeinfo;
-					reply.runtime_info_msg_=&runtimeinfo;
+
+
 					reply.runtime_info_msg_->set_succeed(true);
 
 					break;
