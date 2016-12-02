@@ -64,6 +64,8 @@ using nfa_msg::ReplicaNegotiationResult;
 using nfa_msg::ReplicaInfo;
 using nfa_msg::RecoverRuntimeResult;
 using nfa_msg::RecoverRuntime;
+using nfa_msg::RuntimeInfo;
+using nfa_msg::RuntimeInfoRequest;
 
 #include "concurrentqueue.h"
 #include "nfa_rpc_server.h"

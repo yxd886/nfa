@@ -57,6 +57,8 @@ using nfa_msg::ReplicaInfo;
 using nfa_msg::Runtime_RPC;
 using nfa_msg::RecoverRuntimeResult;
 using nfa_msg::RecoverRuntime;
+using nfa_msg::RuntimeInfo;
+using nfa_msg::RuntimeInfoRequest;
 
 class RuntimeClient {
 public:
