@@ -578,10 +578,24 @@ int main(int argc, char** argv) {
 	query_runtime_info.set_runtime_id(1);
 	reply = nfa_rpc.QueryRuntimeInfo(query_runtime_info);
 	if(reply){
-		std::cout << "Recover: OK "<< std::endl;
+		std::cout << "Query Runtime Info : OK "<< std::endl;
 	}else{
-		std::cout << "Recover: Fail "<< std::endl;
+		std::cout << "Query Runtime Info: Fail "<< std::endl;
 	}
+
+
+
+	query_runtime_info.set_runtime_id(2);
+	reply = nfa_rpc.QueryRuntimeInfo(query_runtime_info);
+	if(reply){
+		std::cout << "Query Runtime Info : OK "<< std::endl;
+	}else{
+		std::cout << "Query Runtime Info: Fail "<< std::endl;
+	}
+	return 0;
+}
+
+
 	return 0;
 }
 
