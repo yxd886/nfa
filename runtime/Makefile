@@ -87,11 +87,16 @@ PROTOCFLAGS += --proto_path=$(PROTO_DIR) --cpp_out=$(PROTO_DIR) --grpc_out=$(PRO
 ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc)
 HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
 
+TEST_SRCS = $(filter %_test.cc gtest_main.cc, $(ALL_SRCS))
+TEST_OBJS = $(TEST_SRCS:.cc=.o)
+TEST_EXEC = $(filter-out gtest_main, $(TEST_OBJS:%.o=%))
+TEST_ALL_EXEC = all_test
 
-SRCS = $(ALL_SRCS) $(PROTO_SRCS)
+
+SRCS = $(filter-out $(TEST_SRCS), $(ALL_SRCS)) $(PROTO_SRCS)
 OBJS = $(SRCS:.cc=.o)
 
-.PHONY: all clean protobuf
+.PHONY: all clean tests protobuf
 
 all: $(OBJS)
 
@@ -99,6 +104,8 @@ clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
 		*.a *.pb.* *.o */*.o *.gcda *.gcno */*.gcda */*.gcno \
 		coverage.info coverage_html */*.pb.cc */*.pb.h
+		
+tests: $(TEST_OBJS) $(TEST_EXEC) $(TEST_ALL_EXEC)
 		
 protobuf: $(PROTO_SRCS)
 
@@ -140,7 +147,30 @@ $(eval $(call BUILD, \
 	%.o, \
 	%.cc $(PROTO_HEADERS) $(DEPDIR)/$$@.d, \
 	$$(CXX) -o $$@ -c $$< $$(CXXFLAGS) $$(DEPFLAGS)))
+	
+$(eval $(call BUILD, \
+	TEST_CXX, \
+	%_test.o, \
+	%_test.cc $(DEPDIR)/$$@.d, \
+	$$(CXX) -o $$@ -c $$< $$(CXXFLAGS) $$(DEPFLAGS)))
 
+$(eval $(call BUILD, \
+	TEST_LD, \
+	%_test, \
+	%_test.o gtest-all.o gtest_main.o bess.a, \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $(LIBS)))
+
+$(eval $(call BUILD, \
+	TEST_LD, \
+	$$(TEST_ALL_EXEC), \
+	$$(TEST_OBJS) gtest-all.o bess.a, \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $(LIBS)))
+
+$(eval $(call BUILD, \
+	TEST_CXX, \
+	gtest-all.o, \
+	$$(GTEST_DIR)/src/gtest-all.cc, \
+	$$(CXX) -o $$@ -c $$< -I$$(GTEST_DIR) $$(CXXFLAGS) $$(DEPFLAGS)))
 
 %.d: ;
 
