@@ -1116,6 +1116,103 @@ private:
 		moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
 		int worker_id;
 	};
+
+	class QueryRuntimeInfo {
+	public:
+		// Take in the "service" instance (in this case representing an asynchronous
+		// server) and the completion queue "cq" used for asynchronous communication
+		// with the gRPC runtime.
+		QueryRuntimeInfo(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
+			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
+			// Invoke the serving logic right away.
+			tags.index=QUERYRUNTIMEINFO;
+			tags.tags=this;
+			Proceed();
+		}
+
+		void Proceed() {
+			if (status_ == CREATE) {
+				status_ = PROCESS;
+				service_->RequestQueryRuntimeInfo(&ctx_, &request_, &responder_, cq_, cq_,
+                                       (void*)&tags);
+			} else if (status_ == PROCESS) {
+				new QueryRuntimeInfo(service_, cq_,rte_ring_request,rte_ring_reply,worker_id);
+				std::map<int, struct Local_view>::iterator it;
+				std::cout<<"received a delete replica request"<<std::endl;
+				//compare received view with local view
+				bool ok_flag=false;
+				int i;
+					bool flag=true;
+					if(worker_id!=request_.runtime_id()){
+						//can not replica itself
+						flag=false;
+					}
+
+
+					if(flag==false){
+						std::cout<<"this is not the runtime you are looking for!"""<<std::endl;
+
+					}else{
+
+						request_msg msg;
+						reply_msg rep_msg;
+						bool deque;
+						msg.action=QUERYRUNTIMEINFO;
+						msg.runtime_info_request_.CopyFrom(request_);
+						rte_ring_request->enqueue(msg); //throw the msg to the ring
+						while(1){
+							sleep(2);
+							std::cout<<"get the lock to find reply"<<std::endl;
+							deque=rte_ring_reply->try_dequeue(rep_msg);
+							if(deque){
+								std::cout<<"find reply"<<std::endl;
+								if(rep_msg.reply){
+									reply_.CopyFrom(rep_msg.runtime_info_msg_);
+									ok_flag=true;
+									std::cout<<"Runtime query succeed:"<<std::endl;
+								}else{
+									printf("%s\n",rep_msg.fail_reason);
+								}
+								break;
+							}else{
+								std::cout<<"empty reply queue"<<std::endl;
+							}
+
+						}
+					}
+
+
+					status_ = FINISH;
+					responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+			} else {
+				GPR_ASSERT(status_ == FINISH);
+				delete this;
+			}
+		}
+
+	private:
+
+		Runtime_RPC::AsyncService* service_;
+		ServerCompletionQueue* cq_;
+		ServerContext ctx_;
+		RuntimeInfoRequest request_;
+		RuntimeInfo reply_;
+
+		// The means to get back to the client.
+		ServerAsyncResponseWriter<RuntimeInfo> responder_;
+
+		// Let's implement a tiny state machine with the following states.
+		enum CallStatus { CREATE, PROCESS, FINISH };
+		CallStatus status_;  // The current serving state.
+		struct tag tags;
+		std::map< int, struct Local_view> * replicalist;
+		moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+		moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+		int worker_id;
+	};
+
+
 	// This can be run in multiple threads if needed.
 	void HandleRpcs() {
 		// Spawn a new CallData instance to serve new clients.
@@ -1130,6 +1227,7 @@ private:
 		new AddReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
 		new DeleteReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
 		new Recover(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id,&replicalist);
+		new QueryRuntimeInfo(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id);
 
 		void* tag;  // uniquely identifies a request.
 		bool ok;
@@ -1168,6 +1266,9 @@ private:
 				break;
 			case RECOVER:
 				static_cast<Recover *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+				break;
+			case QUERYRUNTIMEINFO:
+				static_cast<QueryRuntimeInfo *>(static_cast<struct tag*>(tag)->tags)->Proceed();
 				break;
 			default:
 				break;
@@ -1231,8 +1332,13 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 					break;
 				case RECOVER:
 					//process of recover
-					reply.worker_id=request.change_replica_msg_.replica.worker_id;
+					reply.worker_id=request.set_recover_msg_.runtime_id;
 					std::cout<<"recover runtime worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
+					break;
+				case QUERYRUNTIMEINFO:
+					//process of QueryRuntimeInfo
+					reply.runtime_info_msg_.set_succeed(true);
+
 					break;
 				default:
 					break;

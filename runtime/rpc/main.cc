@@ -342,6 +342,40 @@ public:
 		}
 	}
 
+	bool QueryRuntimeInfo(RuntimeInfoRequest request) {
+		RuntimeInfo reply;
+		ClientContext context;
+		CompletionQueue cq;
+
+		Status status;
+
+		std::unique_ptr<ClientAsyncResponseReader<RuntimeInfo> > rpc(
+				stub_->AsyncQueryRuntimeInfo(&context, request, &cq));
+
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
+
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+		GPR_ASSERT(got_tag == (void*)1);
+
+		GPR_ASSERT(ok);
+
+		if (status.ok()) {
+			if(reply.succeed()){
+				return true;
+			}else{
+				std::cout<<reply.fail_reason()<<std::endl;
+			}
+
+
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+
 private:
 	// Out of the passed in Channel comes the stub, stored here, our view of the
 	// server's exposed services.
@@ -538,7 +572,14 @@ int main(int argc, char** argv) {
 		std::cout << "Recover: Fail "<< std::endl;
 	}
 
-
+	RuntimeInfoRequest query_runtime_info;
+	query_runtime_info.set_runtime_id(1);
+	reply = nfa_rpc.QueryRuntimeInfo(query_runtime_info);
+	if(reply){
+		std::cout << "Recover: OK "<< std::endl;
+	}else{
+		std::cout << "Recover: Fail "<< std::endl;
+	}
 	return 0;
 }
 

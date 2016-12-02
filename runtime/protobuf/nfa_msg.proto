@@ -24,6 +24,7 @@ service Runtime_RPC {
   
   rpc Recover (RecoverRuntime) returns (RecoverRuntimeResult){}  
   
+  rpc QueryRuntimeInfo (RuntimeInfoRequest) returns (RuntimeInfo){} 
   
   
   
@@ -108,3 +109,59 @@ message RecoverRuntimeResult{
   bool ack = 1;
   string fail_reason=3;
 }
+
+//message for query
+
+
+
+
+message RuntimeInfoRequest{
+  int runtime_id=1;
+}
+
+message RuntimeInfo{
+  message BasicInfo{
+    uint64 worker_id = 1;
+    string input_port_mac = 2;
+    string output_port_mac = 3;
+    string control_port_mac = 4;
+    string rpc_ip = 5;
+    uint16 rpc_port = 6;
+  }
+
+
+  message ViewInfo{
+    repeated View input_views = 7;
+    repeated View output_views = 8;
+  }
+
+
+  message MigrationInfo{
+    View migration_target = 9;
+    uint64 migration_quota = 10;
+  }
+
+
+  message ReplicationInfo{
+    repeated View replica_list = 11;
+    repeated View storage_list = 12;
+  }
+
+
+  message NFModuleInfo{
+    repeated uint8 loaded_nf_modules = 13;
+    repeated uint8 service_chain_type = 14;
+  }
+
+
+  BasicInfo basic_info = 1;
+  ViewInfo view_info = 2;
+  MigrationInfo migration_info = 3;
+  ReplicationInfo replication_info = 4;
+  NFModuleInfo nf_module_info = 5;
+  bool succeed;
+  string fail_reason;
+}
+
+
+
