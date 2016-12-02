@@ -905,7 +905,7 @@ private:
 					}else if(replicalist->find(rpc_replica.replica().worker_id())==replicalist->end()){
 						//the replica does not exist
 						flag=false;
-						reply_.set_fail_reason("the replica already exists!");
+						reply_.set_fail_reason("the replica does not exist!");
 
 					}
 
