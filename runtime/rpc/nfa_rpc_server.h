@@ -84,7 +84,7 @@ struct  request_msg{
 		migration_target_msg change_migration_msg_;
 		replica_msg change_replica_msg_;
 		recover_msg set_recover_msg_;
-		runtime_info_request runtime_info_request_;
+		runtime_info_request *runtime_info_request_;
 	};
 
 };
@@ -94,7 +94,7 @@ struct  reply_msg{
 	int worker_id;
 	bool reply;
 	char fail_reason[80];
-	runtime_info_msg runtime_info_msg_;
+	runtime_info_msg *runtime_info_msg_;
 };
 
 

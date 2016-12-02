@@ -1160,7 +1160,9 @@ private:
 						reply_msg rep_msg;
 						bool deque;
 						msg.action=QUERYRUNTIMEINFO;
-						msg.runtime_info_request_.CopyFrom(request_);
+						RuntimeInfoRequest query_runtimeinfo;
+						msg.runtime_info_request_=&query_runtimeinfo;
+						msg.runtime_info_request_->CopyFrom(request_);
 						rte_ring_request->enqueue(msg); //throw the msg to the ring
 						while(1){
 							sleep(2);
@@ -1169,7 +1171,7 @@ private:
 							if(deque){
 								std::cout<<"find reply"<<std::endl;
 								if(rep_msg.reply){
-									reply_.CopyFrom(rep_msg.runtime_info_msg_);
+									reply_.CopyFrom(*(rep_msg.runtime_info_msg_));
 									ok_flag=true;
 									std::cout<<"Runtime query succeed:"<<std::endl;
 								}else{
@@ -1339,7 +1341,9 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 					break;
 				case QUERYRUNTIMEINFO:
 					//process of QueryRuntimeInfo
-					reply.runtime_info_msg_.set_succeed(true);
+					RuntimeInfo runtimeinfo;
+					reply.runtime_info_msg_=&runtimeinfo;
+					reply.runtime_info_msg_->set_succeed(true);
 
 					break;
 				default:
