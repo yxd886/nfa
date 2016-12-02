@@ -6,3 +6,4 @@ deps/*
 *.pb.cc
 *.pb.h
 *.o
+*.a
