@@ -365,7 +365,7 @@ int main(int argc, char** argv) {
 	}
 
 	ReplicaList replicalist_request;
-	Replica_Info* replica_info=replicalist_request.add_replicas();
+	ReplicaInfo* replica_info=replicalist_request.add_replicas();
 /*
 	replica_info.mutable_replica()->set_worker_id(3);
 	replica_info.mutable_replica()->set_input_port_mac("11:22:33:44:55:66");
