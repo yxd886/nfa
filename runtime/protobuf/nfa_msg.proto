@@ -116,7 +116,7 @@ message RecoverRuntimeResult{
 
 
 message RuntimeInfoRequest{
-  int runtime_id=1;
+  uint64 runtime_id=1;
 }
 
 message RuntimeInfo{
@@ -126,7 +126,7 @@ message RuntimeInfo{
     string output_port_mac = 3;
     string control_port_mac = 4;
     string rpc_ip = 5;
-    uint16 rpc_port = 6;
+    uint32 rpc_port = 6;
   }
 
 
@@ -149,8 +149,8 @@ message RuntimeInfo{
 
 
   message NFModuleInfo{
-    repeated uint8 loaded_nf_modules = 13;
-    repeated uint8 service_chain_type = 14;
+    repeated uint32 loaded_nf_modules = 13;
+    repeated uint32 service_chain_type = 14;
   }
 
 
