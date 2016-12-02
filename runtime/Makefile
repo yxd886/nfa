@@ -77,13 +77,12 @@ endif
 
 LIBS += -libverbs
 
-PROTO_DIR = bessprotobuf
+PROTO_DIR = bessport
 PROTOS = $(wildcard $(PROTO_DIR)/*.proto)
-NODIR_PROTOS = $(notdir $(PROTOS))
-PROTO_SRCS = $(patsubst %.proto,%.pb.cc, bessport/$(NODIR_PROTOS))
-PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, bessport/$(NODIR_PROTOS))
+PROTO_SRCS = $(patsubst %.proto,%.pb.cc, $(PROTOS))
+PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
-PROTOCFLAGS += --proto_path=$(PROTO_DIR) --cpp_out=bessport/ --grpc_out=bessport/ --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
+PROTOCFLAGS += --proto_path=$(PROTO_DIR) --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
 ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc)
 HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
@@ -127,7 +126,7 @@ endef
 $(eval $(call BUILD, \
 	PROTOC, \
 	%.pb.cc %.pb.h %.grpc.pb.cc %.grpc.pb.h, \
-	$$(patsubst bessport%, bessprotobuf%, %.proto), \
+	%.proto, \
 	$$(PROTOC) $$< $$(PROTOCFLAGS)))
 	
 $(eval $(call BUILD, \
