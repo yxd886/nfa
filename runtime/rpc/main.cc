@@ -374,8 +374,8 @@ int main(int argc, char** argv) {
 	replica_info.mutable_replica()->set_rpc_ip("192.168.1.1/30");
 	replica_info.mutable_replica()->set_rpc_port(80);
 	*/
-	replica_info.mutable_replica()->CopyFrom(migration_request.migration_target_info());
-	replica_info.mutable_replica()->set_worker_id(3);
+	replica_info->mutable_replica()->CopyFrom(migration_request.migration_target_info());
+	replica_info->mutable_replica()->set_worker_id(3);
 
 
 	req=replica_info->add_input_views();
