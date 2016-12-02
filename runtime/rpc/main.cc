@@ -388,14 +388,23 @@ int main(int argc, char** argv) {
 	req->set_rpc_ip("192.168.1.1/30");
 	req->set_rpc_port(80);
 	*/
+
+	//try, expect succeed result
 	reply = nfa_rpc.AddReplicas(replicalist_request);
 
 	if(reply){
-		std::cout << "SetMigrationTarget: OK "<< std::endl;
+		std::cout << "AddReplicas: OK "<< std::endl;
 	}else{
-		std::cout << "SetMigrationTarget: Fail "<< std::endl;
+		std::cout << "AddReplicas: Fail "<< std::endl;
 	}
+	//try again, expect fail result
+	reply = nfa_rpc.AddReplicas(replicalist_request);
 
+	if(reply){
+		std::cout << "AddReplicas: OK "<< std::endl;
+	}else{
+		std::cout << "AddReplicas: Fail "<< std::endl;
+	}
 
 	return 0;
 }
