@@ -153,12 +153,6 @@ $(eval $(call BUILD, \
 	$$(CXX) -o $$@ -c $$< $$(CXXFLAGS) $$(DEPFLAGS)))
 	
 $(eval $(call BUILD, \
-	LD, \
-	$$(RUN_TEST_EXEC), \
-	$$(RUN_TEST_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-	
-$(eval $(call BUILD, \
 	TEST_CXX, \
 	%_test.o, \
 	%_test.cc $(DEPDIR)/$$@.d, \
@@ -175,6 +169,12 @@ $(eval $(call BUILD, \
 	gtest-all.o, \
 	$$(GTEST_DIR)/src/gtest-all.cc, \
 	$$(CXX) -o $$@ -c $$< -I$$(GTEST_DIR) $$(CXXFLAGS) $$(DEPFLAGS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(RUN_TEST_EXEC), \
+	$$(RUN_TEST_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 CORE_OBJS = $(OBJS)
 
