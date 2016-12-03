@@ -97,12 +97,9 @@ OBJS = $(SRCS:.cc=.o)
 
 GTEST_DIR = /usr/src/gtest
 
-RUN_TEST_EXEC = packet_test
-RUN_TEST_OBJS = $(filter-out main.o, $(OBJS))
-
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(RUN_TEST_EXEC)
+all: $(OBJS)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -169,12 +166,6 @@ $(eval $(call BUILD, \
 	gtest-all.o, \
 	$$(GTEST_DIR)/src/gtest-all.cc, \
 	$$(CXX) -o $$@ -c $$< -I$$(GTEST_DIR) $$(CXXFLAGS) $$(DEPFLAGS)))
-	
-$(eval $(call BUILD, \
-	LD, \
-	$$(RUN_TEST_EXEC), \
-	$$(RUN_TEST_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 CORE_OBJS = $(OBJS)
 
