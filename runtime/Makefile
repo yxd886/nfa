@@ -85,7 +85,7 @@ PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
 PROTOCFLAGS += --proto_path=$(PROTO_DIR) --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
-ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc) gtest_main.cc run_test/main.cc
+ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc run_test/*.cc) gtest_main.cc
 HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h)
 
 TEST_SRCS = $(filter %_test.cc gtest_main.cc, $(ALL_SRCS))
@@ -97,7 +97,7 @@ OBJS = $(SRCS:.cc=.o)
 
 GTEST_DIR = /usr/src/gtest
 
-RUN_TEST_EXEC = run_test
+RUN_TEST_EXEC = packet_test
 RUN_TEST_OBJS = $(filter-out main.o, $(OBJS))
 
 .PHONY: all clean tests protobuf
