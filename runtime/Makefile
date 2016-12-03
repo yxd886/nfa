@@ -97,6 +97,9 @@ OBJS = $(SRCS:.cc=.o)
 
 GTEST_DIR = /usr/src/gtest
 
+RUN_TEST_EXEC = run_test
+RUN_TEST_OBJS = $(filter-out main.o, $(OBJS))
+
 .PHONY: all clean tests protobuf
 
 all: $(OBJS)
@@ -148,6 +151,12 @@ $(eval $(call BUILD, \
 	%.o, \
 	%.cc $(PROTO_HEADERS) $(DEPDIR)/$$@.d, \
 	$$(CXX) -o $$@ -c $$< $$(CXXFLAGS) $$(DEPFLAGS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(RUN_TEST_EXEC), \
+	$$(RUN_TEST_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 	
 $(eval $(call BUILD, \
 	TEST_CXX, \
