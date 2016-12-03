@@ -102,7 +102,7 @@ RUN_TEST_OBJS = $(filter-out main.o, $(OBJS))
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS)
+all: $(OBJS) $(RUN_TEST_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
