@@ -99,7 +99,7 @@ GTEST_DIR = /usr/src/gtest
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS)
+all: $(OBJS) $(PROCESS_PACKET_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -174,6 +174,14 @@ $(eval $(call BUILD, \
 	bess.a, \
 	$(CORE_OBJS), \
 	$$(AR) rcs $$@ $$^))
+	
+PROCESS_PACKET_EXEC = process_packet
+PROCESS_PACKET_OBJS = $(filter-out main.o,$(OBJS))
+$(eval $(call BUILD, \
+	LD, \
+	$$(PROCESS_PACKET_EXEC), \
+	$$(PROCESS_PACKET_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
 
