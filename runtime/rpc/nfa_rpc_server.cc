@@ -1273,7 +1273,7 @@ private:
 							if(deque){
 								std::cout<<"find reply"<<std::endl;
 								if(rep_msg.reply){
-									reply_.CopyFrom(*(rep_msg.runtime_info_msg_));
+									reply_.CopyFrom(*(rep_msg.runtime_stat_msg_));
 									ok_flag=true;
 									std::cout<<"Runtime query succeed:"<<std::endl;
 								}else{
