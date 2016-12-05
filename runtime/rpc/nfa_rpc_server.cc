@@ -898,7 +898,7 @@ private:
 			} else if (status_ == PROCESS) {
 				new DeleteReplicas(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id,replicalist);
 				std::map<int, struct Local_view>::iterator it;
-				std::cout<<"received a delete replica request"<<std::endl;
+				
 				//compare received view with local view
 				bool ok_flag=false;
 				int i,j;
@@ -1035,7 +1035,7 @@ private:
 			} else if (status_ == PROCESS) {
 				new Recover(service_, cq_,rte_ring_request,rte_ring_reply,worker_id,replicalist);
 				std::map<int, struct Local_view>::iterator it;
-				std::cout<<"received a delete replica request"<<std::endl;
+				
 				//compare received view with local view
 				bool ok_flag=false;
 				int i;
@@ -1142,7 +1142,7 @@ private:
 			} else if (status_ == PROCESS) {
 				new QueryRuntimeInfo(service_, cq_,rte_ring_request,rte_ring_reply,worker_id);
 				std::map<int, struct Local_view>::iterator it;
-				std::cout<<"received a delete replica request"<<std::endl;
+				
 				//compare received view with local view
 				bool ok_flag=false;
 				int i;
@@ -1241,7 +1241,7 @@ private:
 			} else if (status_ == PROCESS) {
 				new QueryRuntimeStat(service_, cq_,rte_ring_request,rte_ring_reply,worker_id);
 				std::map<int, struct Local_view>::iterator it;
-				std::cout<<"received a delete replica request"<<std::endl;
+				
 				//compare received view with local view
 				bool ok_flag=false;
 				int i;
