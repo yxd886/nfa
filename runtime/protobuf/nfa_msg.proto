@@ -207,10 +207,10 @@ message RuntimeStat{
     uint64 index = 1; // the index, added by 1 after the migration source get a qouta.
     uint64 migration_target_runtime_id = 2; // the runtime id of the migration target.
     uint64 migration_qouta = 3; // the qouta of the current migration 
-    uint64 average_flow_migration_completion_time = 1; // the average flow migraiton completion time
-    uint64 total_flow_migration_completion_time = 2; // the total time that the qouta is exhausted
-    uint64 successful_migration = 3; // number of successful migration
-    uint64 failed_migration = 4; // number of failed migration
+    uint64 average_flow_migration_completion_time = 4; // the average flow migraiton completion time
+    uint64 total_flow_migration_completion_time =5; // the total time that the qouta is exhausted
+    uint64 successful_migration = 6; // number of successful migration
+    uint64 failed_migration = 7; // number of failed migration
   }
 
 
