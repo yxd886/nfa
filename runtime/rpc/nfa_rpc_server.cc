@@ -102,12 +102,9 @@ void LivenessCheck::Proceed() {
 
 
 
-class AddInputView {
-public:
-	// Take in the "service" instance (in this case representing an asynchronous
-	// server) and the completion queue "cq" used for asynchronous communication
-	// with the gRPC runtime.
-	    AddInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
+
+
+AddInputView::AddInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
 		: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
 	    		// Invoke the serving logic right away.
 	    		tags.index=ADDINPUTVIEW;
@@ -115,508 +112,43 @@ public:
 	    		Proceed();
 	    }
 
-     void Proceed() {
-  	   	   if (status_ == CREATE) {
-  	   		   status_ = PROCESS;
-  	   		   service_->RequestAddInputView(&ctx_, &request_, &responder_, cq_, cq_,
-                                   (void*)&tags);
-  	   	   } else if (status_ == PROCESS) {
-  	   		   new AddInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-  	   		   std::map<int, struct Local_view>::iterator it;
-  	   		   std::cout<<"received a addinput view request"<<std::endl;
-
-  	   		   int i;
-
-  	   		   for(i=0;i<request_.view_size();i++){
-  	   			   const View& outview=request_.view(i);
-  	   			   if(viewlist_input->find(outview.worker_id())!=viewlist_input->end()){
-  	   				   continue;
-  	   			   }else{
-  	   				   bool deque=false;
-  	   				   struct request_msg msg;
-  	   				   struct reply_msg rep_msg;
-  	   				   msg.action=ADDINPUTVIEW;
-  	   				   msg.change_view_msg_.worker_id=outview.worker_id();
-  	   				   strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
-  	   				   strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
-  	   				   std::cout<<"throw the request to the ring"<<std::endl;
-  	   				   rte_ring_request->enqueue(msg);
-  	   				   std::cout<<"throw completed, waiting to read"<<std::endl;
-  	   				   while(1){
-  	   					   sleep(2);
-  	   					   std::cout<<"get the lock to find reply"<<std::endl;
-  	   					   deque=rte_ring_reply->try_dequeue(rep_msg);
-  	   					   if(deque){
-  	   						   struct Local_view tmp;
-  	   						   std::cout<<"find reply"<<std::endl;
-  	   						   if(rep_msg.reply){
-  	   							   view_rpc2local(&tmp,outview);
-  	   							   viewlist_input->insert(std::make_pair(tmp.worker_id,tmp));
-  	   						   }
-  	   						   break;
-  	   					   }else{
-  	   						   std::cout<<"empty reply queue"<<std::endl;
-  	   					   }
-
-  	   				   }
-
-
-  	   			   }
-
-  	   		   }
-  	   		   std::map<int , struct Local_view>::iterator view_it;
-  	   		   //prepare CurrentView data to send back
-  	   		   View * view_tmp=NULL;
-  	   		   for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
-
-  	   			   view_tmp=reply_.add_output_views();
-  	   			   view_local2rpc(view_tmp,view_it->second);
-
-  	   		   }
-  	   		   for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
-
-  	   			   view_tmp=reply_.add_input_views();
-  	   			   view_local2rpc(view_tmp,view_it->second);
-
-  	   		   }
-  	   		   status_ = FINISH;
-  	   		   responder_.Finish(reply_, Status::OK, (void*)&tags);
-
-  	   	   } else {
-  	   		   GPR_ASSERT(status_ == FINISH);
-  	   		   delete this;
-  	   	   }
-     }
-
-private:
-
-     Runtime_RPC::AsyncService* service_;
-     ServerCompletionQueue* cq_;
-     ServerContext ctx_;
-     ViewList request_;
-     CurrentView reply_;
-
-     // The means to get back to the client.
-     ServerAsyncResponseWriter<CurrentView> responder_;
-
-     // Let's implement a tiny state machine with the following states.
-     enum CallStatus { CREATE, PROCESS, FINISH };
-     CallStatus status_;  // The current serving state.
-     struct tag tags;
-   std::map< int, struct Local_view> *viewlist_input;
-   std::map< int, struct Local_view> *viewlist_output;
-   moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
-   moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
-     int worker_id;
-};
-
-class AddOutputView {
-  	public:
-	// Take in the "service" instance (in this case representing an asynchronous
-	// server) and the completion queue "cq" used for asynchronous communication
-	// with the gRPC runtime.
-	AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
-  			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
-		// Invoke the serving logic right away.
-           tags.index=ADDOUTPUTVIEW;
-           tags.tags=this;
-           Proceed();
-	}
-
-	void Proceed() {
-		if (status_ == CREATE) {
-			status_ = PROCESS;
-			service_->RequestAddOutputView(&ctx_, &request_, &responder_, cq_, cq_,
-                                     (void*)&tags);
-		} else if (status_ == PROCESS) {
-			new AddOutputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-			std::map<int, struct Local_view>::iterator it;
-			std::cout<<"received a addoutput view request"<<std::endl;
-
-			int i;
-
-			for(i=0;i<request_.view_size();i++){
-				const View& outview=request_.view(i);
-				if(viewlist_output->find(outview.worker_id())!=viewlist_output->end()){
-					continue;
-				}else{
-					bool deque=false;
-					struct request_msg msg;
-					struct reply_msg rep_msg;
-					msg.action=ADDOUTPUTVIEW;
-					msg.change_view_msg_.worker_id=outview.worker_id();
-					strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
-					strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
-					std::cout<<"throw the request to the ring"<<std::endl;
-					rte_ring_request->enqueue(msg);
-					std::cout<<"throw completed, waiting to read"<<std::endl;
-					while(1){
-						sleep(2);
-						std::cout<<"get the lock to find reply"<<std::endl;
-						deque=rte_ring_reply->try_dequeue(rep_msg);
-						if(deque){
-							struct Local_view tmp;
-							std::cout<<"find reply"<<std::endl;
-							if(rep_msg.reply){
-								view_rpc2local(&tmp,outview);
-								viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
-							}
-							break;
-						}else{
-							std::cout<<"empty reply queue"<<std::endl;
-						}
-
-					}
-
-
-				}
-
-			}
-			std::map<int , struct Local_view>::iterator view_it;
-
-			char str_tmp[20];
-			   	View * view_tmp=NULL;
-			   	for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
-
-			   		view_tmp=reply_.add_output_views();
-			   		view_local2rpc(view_tmp,view_it->second);
-
-			   	}
-			   	for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
-
-			   		view_tmp=reply_.add_input_views();
-			   		view_local2rpc(view_tmp,view_it->second);
-
-			   	}
-			   	status_ = FINISH;
-			   	responder_.Finish(reply_, Status::OK, (void*)&tags);
-
-		} else {
-			GPR_ASSERT(status_ == FINISH);
-			delete this;
-		}
-	}
-
-  	private:
-
-	Runtime_RPC::AsyncService* service_;
-	ServerCompletionQueue* cq_;
-	ServerContext ctx_;
-	ViewList request_;
-	CurrentView reply_;
-
-	// The means to get back to the client.
-	ServerAsyncResponseWriter<CurrentView> responder_;
-
-	// Let's implement a tiny state machine with the following states.
-	enum CallStatus { CREATE, PROCESS, FINISH };
-	CallStatus status_;  // The current serving state.
-	struct tag tags;
-	std::map< int, struct Local_view> *viewlist_input;
-	std::map< int, struct Local_view> *viewlist_output;
-	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
-	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
-	int worker_id;
-};
-
-class DeleteOutputView {
-  	public:
-	// Take in the "service" instance (in this case representing an asynchronous
-	// server) and the completion queue "cq" used for asynchronous communication
-	// with the gRPC runtime.
-	DeleteOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
-  			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
-		// Invoke the serving logic right away.
-		tags.index=DELETEOUTPUTVIEW;
-		tags.tags=this;
-        	Proceed();
-	}
-
-	void Proceed() {
-		if (status_ == CREATE) {
-			status_ = PROCESS;
-			service_->RequestDeleteOutputView(&ctx_, &request_, &responder_, cq_, cq_,
-                                      (void*)&tags);
-		} else if (status_ == PROCESS) {
-			new DeleteOutputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-			std::map<int, struct Local_view>::iterator it;
-			std::cout<<"received a deleteoutput view request"<<std::endl;
-
-			int i;
-
-			for(i=0;i<request_.view_size();i++){
-				const View& outview=request_.view(i);
-				if((it=viewlist_output->find(outview.worker_id()))==viewlist_output->end()){
-					continue;
-				}else{
-					bool deque=false;
-					struct request_msg msg;
-					struct reply_msg rep_msg;
-					msg.action=DELETEOUTPUTVIEW;
-					msg.change_view_msg_.worker_id=outview.worker_id();
-					strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
-					strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
-					std::cout<<"throw the request to the ring"<<std::endl;
-					rte_ring_request->enqueue(msg);
-					std::cout<<"throw completed, waiting to read"<<std::endl;
-					while(1){
-						sleep(2);
-						std::cout<<"get the lock to find reply"<<std::endl;
-						deque=rte_ring_reply->try_dequeue(rep_msg);
-						if(deque){
-							std::cout<<"find reply"<<std::endl;
-							if(rep_msg.reply){
-								viewlist_output->erase(it);
-							}
-							break;
-						}else{
-							std::cout<<"empty reply queue"<<std::endl;
-						}
-
-					}
-
-
-				}
-
-			}
-			std::map<int , struct Local_view>::iterator view_it;
-
-			char str_tmp[20];
-			View * view_tmp=NULL;
-			for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
-
-				view_tmp=reply_.add_output_views();
-				view_local2rpc(view_tmp,view_it->second);
-
-			}
-			for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
-
-				view_tmp=reply_.add_input_views();
-				view_local2rpc(view_tmp,view_it->second);
-
-			}
-			status_ = FINISH;
-			responder_.Finish(reply_, Status::OK, (void*)&tags);
-
-		} else {
-			GPR_ASSERT(status_ == FINISH);
-			delete this;
-		}
-	}
-
-  	private:
-
-	Runtime_RPC::AsyncService* service_;
-	ServerCompletionQueue* cq_;
-	ServerContext ctx_;
-	ViewList request_;
-	CurrentView reply_;
-
-	// The means to get back to the client.
-	ServerAsyncResponseWriter<CurrentView> responder_;
-
-	// Let's implement a tiny state machine with the following states.
-	enum CallStatus { CREATE, PROCESS, FINISH };
-	CallStatus status_;  // The current serving state.
-	struct tag tags;
-	std::map< int, struct Local_view> *viewlist_input;
-	std::map< int, struct Local_view> *viewlist_output;
-	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
-	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
-	int worker_id;
-};
-
-class DeleteInputView {
- 	public:
-	// Take in the "service" instance (in this case representing an asynchronous
-	// server) and the completion queue "cq" used for asynchronous communication
-	// with the gRPC runtime.
-		DeleteInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
- 			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
-			// Invoke the serving logic right away.
-			tags.index=DELETEINPUTVIEW;
-			tags.tags=this;
-			Proceed();
-		}
-
-		void Proceed() {
-			if (status_ == CREATE) {
-				status_ = PROCESS;
-				service_->RequestDeleteInputView(&ctx_, &request_, &responder_, cq_, cq_,
-                                        (void*)&tags);
-			} else if (status_ == PROCESS) {
-				new DeleteInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-				std::map<int, struct Local_view>::iterator it;
-				std::cout<<"received a deleteinput view request"<<std::endl;
-
-				int i;
-
-				for(i=0;i<request_.view_size();i++){
-					const View& outview=request_.view(i);
-					if((it=viewlist_input->find(outview.worker_id()))==viewlist_input->end()){
-						continue;
-					}else{
-						bool deque=false;
-						struct request_msg msg;
-						struct reply_msg rep_msg;
-						msg.action=DELETEINPUTVIEW;
-						msg.change_view_msg_.worker_id=outview.worker_id();
-						strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
-						strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
-						std::cout<<"throw the request to the ring"<<std::endl;
-						rte_ring_request->enqueue(msg);
-						std::cout<<"throw completed, waiting to read"<<std::endl;
-						while(1){
-							sleep(2);
-							std::cout<<"get the lock to find reply"<<std::endl;
-							deque=rte_ring_reply->try_dequeue(rep_msg);
-							if(deque){
-								std::cout<<"find reply"<<std::endl;
-								if(rep_msg.reply){
-									viewlist_input->erase(it);
-								}
-								break;
-							}else{
-								std::cout<<"empty reply queue"<<std::endl;
-							}
-
-						}
-
-
-					}
-
-				}
-				std::map<int , struct Local_view>::iterator view_it;
-
-				char str_tmp[20];
-				View * view_tmp=NULL;
-				for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
-
-					view_tmp=reply_.add_output_views();
-					view_local2rpc(view_tmp,view_it->second);
-
-				}
-				for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
-
-					view_tmp=reply_.add_input_views();
-					view_local2rpc(view_tmp,view_it->second);
-
-				}
-				status_ = FINISH;
-				responder_.Finish(reply_, Status::OK, (void*)&tags);
-
-			} else {
-				GPR_ASSERT(status_ == FINISH);
-				delete this;
-			}
-		}
-
- 	private:
-
-		Runtime_RPC::AsyncService* service_;
-		ServerCompletionQueue* cq_;
-		ServerContext ctx_;
-		ViewList request_;
-		CurrentView reply_;
-
-		// The means to get back to the client.
-		ServerAsyncResponseWriter<CurrentView> responder_;
-
-		// Let's implement a tiny state machine with the following states.
-		enum CallStatus { CREATE, PROCESS, FINISH };
-		CallStatus status_;  // The current serving state.
-		struct tag tags;
-		std::map< int, struct Local_view> *viewlist_input;
-		std::map< int, struct Local_view> *viewlist_output;
-		moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
-		moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
-		int worker_id;
-};
-
-class SetMigrationTarget {
-public:
-	// Take in the "service" instance (in this case representing an asynchronous
-	// server) and the completion queue "cq" used for asynchronous communication
-	// with the gRPC runtime.
-	SetMigrationTarget(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
-		: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
-		// Invoke the serving logic right away.
-		tags.index=SETMIGRATIONTARGET;
-		tags.tags=this;
-		Proceed();
-	}
-
-	void Proceed() {
-		if (status_ == CREATE) {
-			status_ = PROCESS;
-			service_->RequestSetMigrationTarget(&ctx_, &request_, &responder_, cq_, cq_,
-                                     (void*)&tags);
-		} else if (status_ == PROCESS) {
-			new SetMigrationTarget(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-			std::map<int, struct Local_view>::iterator it;
-			std::cout<<"received a setmigrationtarget view request"<<std::endl;
-
-			//compare received view with local view
-			bool flag=true;
-			int i;
-			if(worker_id!=request_.migration_target_info().worker_id()){
-				flag=false;
-				reply_.set_fail_reason("Here is not the target you specified!");
-			}else if(viewlist_input->size()!=request_.input_views_size()||viewlist_output->size()!=request_.output_views_size()){	 	 //check input and output size
-				flag=false;
-				std::cout<<"local inputsize:"<<viewlist_input->size()<<std::endl<<"request inputsize:"<<request_.input_views_size()<<std::endl<<"local outputsize:"<<viewlist_output->size()<<std::endl<<"local inputsize:"<<request_.output_views_size()<<std::endl;
-				reply_.set_fail_reason("Input size or output size does not match!");
+void AddInputView::Proceed() {
+	if (status_ == CREATE) {
+		status_ = PROCESS;
+		service_->RequestAddInputView(&ctx_, &request_, &responder_, cq_, cq_,
+				(void*)&tags);
+	} else if (status_ == PROCESS) {
+		new AddInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+		std::map<int, struct Local_view>::iterator it;
+		std::cout<<"received a addinput view request"<<std::endl;
+
+		int i;
+
+		for(i=0;i<request_.view_size();i++){
+			const View& outview=request_.view(i);
+			if(viewlist_input->find(outview.worker_id())!=viewlist_input->end()){
+				continue;
 			}else{
-				for(i=0;i<request_.input_views_size();i++){     //compare input
-					if(viewlist_input->find(request_.input_views(i).worker_id())==viewlist_input->end()){
-						flag=false;
-						reply_.set_fail_reason("Input contents do not match!");
-						break;
-					}
-				}
-				for(i=0;i<request_.output_views_size();i++){     //compare output
-					if(viewlist_output->find(request_.output_views(i).worker_id())==viewlist_output->end()){
-						flag=false;
-						reply_.set_fail_reason("Output contents do not match!");
-						break;
-					}
-				}
-			}
-			if(flag==false){
-				reply_.set_succeed(false);
-				reply_.set_quota(0);
-			}else{
-				std::cout<<"setmigration target match succeed!"<<std::endl;
-				reply_.set_succeed(true);
-				reply_.set_quota(request_.quota());
-				Local_view local_view;
-				request_msg msg;
-				std::map<int,Local_view> inputview;
-				std::map<int,Local_view> outputview;
-				msg.change_migration_msg_.input_views=&inputview;
-				msg.change_migration_msg_.output_views=&outputview;
-				reply_msg rep_msg;
-				bool deque;
-				msg.action=SETMIGRATIONTARGET;
-				view_rpc2local(&msg.change_migration_msg_.migration_target_info,request_.migration_target_info());
-				msg.change_migration_msg_.quota=request_.quota();
-				for(i=0;i<request_.input_views_size();i++){     //add input to msg
-					view_rpc2local(&local_view,request_.input_views(i));
-					msg.change_migration_msg_.input_views->insert(std::make_pair(local_view.worker_id,local_view));
-				}
-				for(i=0;i<request_.output_views_size();i++){     //add output msg
-					view_rpc2local(&local_view,request_.output_views(i));
-					msg.change_migration_msg_.output_views->insert(std::make_pair(local_view.worker_id,local_view));
-				}
-				rte_ring_request->enqueue(msg); //throw the msg to the ring
+				bool deque=false;
+				struct request_msg msg;
+				struct reply_msg rep_msg;
+				msg.action=ADDINPUTVIEW;
+				msg.change_view_msg_.worker_id=outview.worker_id();
+				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
+				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
+				std::cout<<"throw the request to the ring"<<std::endl;
+				rte_ring_request->enqueue(msg);
+				std::cout<<"throw completed, waiting to read"<<std::endl;
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
 					deque=rte_ring_reply->try_dequeue(rep_msg);
 					if(deque){
+						struct Local_view tmp;
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg.reply){
-							std::cout<<"Set migration target succeed!"<<std::endl;
+							view_rpc2local(&tmp,outview);
+							viewlist_input->insert(std::make_pair(tmp.worker_id,tmp));
 						}
 						break;
 					}else{
@@ -628,194 +160,513 @@ public:
 
 			}
 
-			status_ = FINISH;
-			responder_.Finish(reply_, Status::OK, (void*)&tags);
-
-		} else {
-			GPR_ASSERT(status_ == FINISH);
-			delete this;
 		}
+		std::map<int , struct Local_view>::iterator view_it;
+		//prepare CurrentView data to send back
+		View * view_tmp=NULL;
+		for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
+
+			view_tmp=reply_.add_output_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
+
+			view_tmp=reply_.add_input_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		status_ = FINISH;
+		responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+	} else {
+		GPR_ASSERT(status_ == FINISH);
+		delete this;
 	}
-
-private:
-
-	Runtime_RPC::AsyncService* service_;
-	ServerCompletionQueue* cq_;
-	ServerContext ctx_;
-	MigrationTarget request_;
-	MigrationNegotiationResult reply_;
-
-	// The means to get back to the client.
-	ServerAsyncResponseWriter<MigrationNegotiationResult> responder_;
-
-	// Let's implement a tiny state machine with the following states.
-	enum CallStatus { CREATE, PROCESS, FINISH };
-	CallStatus status_;  // The current serving state.
-	struct tag tags;
-	std::map< int, struct Local_view> *viewlist_input;
-	std::map< int, struct Local_view> *viewlist_output;
-	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
-	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
-	int worker_id;
-};
+}
 
 
-class AddReplicas {
-public:
-	// Take in the "service" instance (in this case representing an asynchronous
-	// server) and the completion queue "cq" used for asynchronous communication
-	// with the gRPC runtime.
-	AddReplicas(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id,
-			std::map< int, struct Local_view> * replicalist)
-		: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply),replicalist(replicalist){
-		// Invoke the serving logic right away.
-		tags.index=ADDREPLICAS;
-		tags.tags=this;
-		Proceed();
-	}
 
-	void Proceed() {
-		if (status_ == CREATE) {
-			status_ = PROCESS;
-			service_->RequestAddReplicas(&ctx_, &request_, &responder_, cq_, cq_,
-                                     (void*)&tags);
-		} else if (status_ == PROCESS) {
-			new AddReplicas(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id,replicalist);
-			std::map<int, struct Local_view>::iterator it;
-			std::cout<<"received a add replica request"<<std::endl;
-			//compare received view with local view
-			bool ok_flag=false;
-			int i,j;
-			for(j=0;j<request_.replicas_size();j++){
-				bool flag=true;
-				const ReplicaInfo& rpc_replica=request_.replicas(j);
-				if(worker_id==rpc_replica.replica().worker_id()){
-					//can not replica itself
-					flag=false;
-					reply_.set_fail_reason("The replica you want to add is myself!");
-				}else if(replicalist->find(rpc_replica.replica().worker_id())!=replicalist->end()){
-					//the replica already exists
-					flag=false;
-					reply_.set_fail_reason("the replica already exists!");
 
-				}else if(viewlist_input->size()!=rpc_replica.input_views_size()||viewlist_output->size()!=rpc_replica.output_views_size()){	 	 //check input and output size
-					flag=false;
-					std::cout<<"local inputsize:"<<viewlist_input->size()<<std::endl<<"request inputsize:"<<rpc_replica.input_views_size()<<std::endl<<"local outputsize:"<<viewlist_output->size()<<std::endl<<"local inputsize:"<<rpc_replica.output_views_size()<<std::endl;
-					reply_.set_fail_reason("Input size or output size does not match!");
-				}else{
-					for(i=0;i<rpc_replica.input_views_size();i++){     //compare input
-						if(viewlist_input->find(rpc_replica.input_views(i).worker_id())==viewlist_input->end()){
-							flag=false;
-							reply_.set_fail_reason("Input contents do not match!");
-							break;
+
+
+AddOutputView::AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
+			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
+	// Invoke the serving logic right away.
+				 tags.index=ADDOUTPUTVIEW;
+				 tags.tags=this;
+				 Proceed();
+}
+
+void AddOutputView::Proceed() {
+	if (status_ == CREATE) {
+		status_ = PROCESS;
+		service_->RequestAddOutputView(&ctx_, &request_, &responder_, cq_, cq_,
+																	 (void*)&tags);
+	} else if (status_ == PROCESS) {
+		new AddOutputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+		std::map<int, struct Local_view>::iterator it;
+		std::cout<<"received a addoutput view request"<<std::endl;
+
+		int i;
+
+		for(i=0;i<request_.view_size();i++){
+			const View& outview=request_.view(i);
+			if(viewlist_output->find(outview.worker_id())!=viewlist_output->end()){
+				continue;
+			}else{
+				bool deque=false;
+				struct request_msg msg;
+				struct reply_msg rep_msg;
+				msg.action=ADDOUTPUTVIEW;
+				msg.change_view_msg_.worker_id=outview.worker_id();
+				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
+				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
+				std::cout<<"throw the request to the ring"<<std::endl;
+				rte_ring_request->enqueue(msg);
+				std::cout<<"throw completed, waiting to read"<<std::endl;
+				while(1){
+					sleep(2);
+					std::cout<<"get the lock to find reply"<<std::endl;
+					deque=rte_ring_reply->try_dequeue(rep_msg);
+					if(deque){
+						struct Local_view tmp;
+						std::cout<<"find reply"<<std::endl;
+						if(rep_msg.reply){
+							view_rpc2local(&tmp,outview);
+							viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
 						}
+						break;
+					}else{
+						std::cout<<"empty reply queue"<<std::endl;
 					}
-					for(i=0;i<rpc_replica.output_views_size();i++){     //compare output
-						if(viewlist_output->find(rpc_replica.output_views(i).worker_id())==viewlist_output->end()){
-							flag=false;
-							reply_.set_fail_reason("Output contents do not match!");
-							break;
-						}
-					}
+
 				}
 
 
-				if(flag==false){
-					std::cout<<reply_.fail_reason()<<std::endl;
-					continue;
+			}
 
-				}else{
+		}
+		std::map<int , struct Local_view>::iterator view_it;
 
-					Local_view local_view;
-					request_msg msg;
-					std::map<int,Local_view> inputview;
-					std::map<int,Local_view> outputview;
-					msg.change_replica_msg_.input_views=&inputview;
-					msg.change_replica_msg_.output_views=&outputview;
-					reply_msg rep_msg;
-					bool deque;
+		char str_tmp[20];
+		View * view_tmp=NULL;
+		for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
 
-					msg.action=ADDREPLICAS;
+			view_tmp=reply_.add_output_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
+
+			view_tmp=reply_.add_input_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		status_ = FINISH;
+		responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+	} else {
+		GPR_ASSERT(status_ == FINISH);
+		delete this;
+	}
+}
 
 
-					view_rpc2local(&msg.change_replica_msg_.replica,rpc_replica.replica());
-					for(i=0;i<rpc_replica.input_views_size();i++){     //add input to msg
-						view_rpc2local(&local_view,rpc_replica.input_views(i));
-						msg.change_replica_msg_.input_views->insert(std::make_pair(local_view.worker_id,local_view));
-					}
-					for(i=0;i<rpc_replica.output_views_size();i++){     //add output msg
-						view_rpc2local(&local_view,rpc_replica.output_views(i));
-						msg.change_replica_msg_.output_views->insert(std::make_pair(local_view.worker_id,local_view));
-					}
-					rte_ring_request->enqueue(msg); //throw the msg to the ring
-					while(1){
-						sleep(2);
-						std::cout<<"get the lock to find reply"<<std::endl;
-						deque=rte_ring_reply->try_dequeue(rep_msg);
-						if(deque){
-							std::cout<<"find reply"<<std::endl;
-							if(rep_msg.reply){
-								ok_flag=true;
-								std::cout<<"add replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
-								replicalist->insert(std::make_pair(msg.change_replica_msg_.replica.worker_id,msg.change_replica_msg_.replica));
-							}else{
-								printf("%s\n",rep_msg.fail_reason);
-							}
-							break;
-						}else{
-							std::cout<<"empty reply queue"<<std::endl;
+
+DeleteOutputView::DeleteOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
+			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
+	// Invoke the serving logic right away.
+	tags.index=DELETEOUTPUTVIEW;
+	tags.tags=this;
+				Proceed();
+}
+
+void DeleteOutputView::Proceed() {
+	if (status_ == CREATE) {
+		status_ = PROCESS;
+		service_->RequestDeleteOutputView(&ctx_, &request_, &responder_, cq_, cq_,
+																		(void*)&tags);
+	} else if (status_ == PROCESS) {
+		new DeleteOutputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+		std::map<int, struct Local_view>::iterator it;
+		std::cout<<"received a deleteoutput view request"<<std::endl;
+
+		int i;
+
+		for(i=0;i<request_.view_size();i++){
+			const View& outview=request_.view(i);
+			if((it=viewlist_output->find(outview.worker_id()))==viewlist_output->end()){
+				continue;
+			}else{
+				bool deque=false;
+				struct request_msg msg;
+				struct reply_msg rep_msg;
+				msg.action=DELETEOUTPUTVIEW;
+				msg.change_view_msg_.worker_id=outview.worker_id();
+				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
+				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
+				std::cout<<"throw the request to the ring"<<std::endl;
+				rte_ring_request->enqueue(msg);
+				std::cout<<"throw completed, waiting to read"<<std::endl;
+				while(1){
+					sleep(2);
+					std::cout<<"get the lock to find reply"<<std::endl;
+					deque=rte_ring_reply->try_dequeue(rep_msg);
+					if(deque){
+						std::cout<<"find reply"<<std::endl;
+						if(rep_msg.reply){
+							viewlist_output->erase(it);
 						}
+						break;
+					}else{
+						std::cout<<"empty reply queue"<<std::endl;
+					}
 
+				}
+
+
+			}
+
+		}
+		std::map<int , struct Local_view>::iterator view_it;
+
+		char str_tmp[20];
+		View * view_tmp=NULL;
+		for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
+
+			view_tmp=reply_.add_output_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
+
+			view_tmp=reply_.add_input_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		status_ = FINISH;
+		responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+	} else {
+		GPR_ASSERT(status_ == FINISH);
+		delete this;
+	}
+}
+
+
+DeleteInputView::DeleteInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
+	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
+	// Invoke the serving logic right away.
+	tags.index=DELETEINPUTVIEW;
+	tags.tags=this;
+	Proceed();
+}
+
+void DeleteInputView::Proceed() {
+	if (status_ == CREATE) {
+		status_ = PROCESS;
+		service_->RequestDeleteInputView(&ctx_, &request_, &responder_, cq_, cq_,
+				(void*)&tags);
+	} else if (status_ == PROCESS) {
+		new DeleteInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+		std::map<int, struct Local_view>::iterator it;
+		std::cout<<"received a deleteinput view request"<<std::endl;
+
+		int i;
+
+		for(i=0;i<request_.view_size();i++){
+			const View& outview=request_.view(i);
+			if((it=viewlist_input->find(outview.worker_id()))==viewlist_input->end()){
+				continue;
+			}else{
+				bool deque=false;
+				struct request_msg msg;
+				struct reply_msg rep_msg;
+				msg.action=DELETEINPUTVIEW;
+				msg.change_view_msg_.worker_id=outview.worker_id();
+				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
+				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
+				std::cout<<"throw the request to the ring"<<std::endl;
+				rte_ring_request->enqueue(msg);
+				std::cout<<"throw completed, waiting to read"<<std::endl;
+				while(1){
+					sleep(2);
+					std::cout<<"get the lock to find reply"<<std::endl;
+					deque=rte_ring_reply->try_dequeue(rep_msg);
+					if(deque){
+						std::cout<<"find reply"<<std::endl;
+						if(rep_msg.reply){
+							viewlist_input->erase(it);
+						}
+						break;
+					}else{
+						std::cout<<"empty reply queue"<<std::endl;
+					}
+
+				}
+
+
+			}
+
+		}
+		std::map<int , struct Local_view>::iterator view_it;
+
+		char str_tmp[20];
+		View * view_tmp=NULL;
+		for(view_it=viewlist_output->begin();view_it!=viewlist_output->end();view_it++){
+
+			view_tmp=reply_.add_output_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		for(view_it=viewlist_input->begin();view_it!=viewlist_input->end();view_it++){
+
+			view_tmp=reply_.add_input_views();
+			view_local2rpc(view_tmp,view_it->second);
+
+		}
+		status_ = FINISH;
+		responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+	} else {
+		GPR_ASSERT(status_ == FINISH);
+		delete this;
+	}
+}
+
+
+SetMigrationTarget::SetMigrationTarget(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id)
+	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
+	// Invoke the serving logic right away.
+	tags.index=SETMIGRATIONTARGET;
+	tags.tags=this;
+	Proceed();
+}
+
+void SetMigrationTarget::Proceed() {
+	if (status_ == CREATE) {
+		status_ = PROCESS;
+		service_->RequestSetMigrationTarget(&ctx_, &request_, &responder_, cq_, cq_,
+																	 (void*)&tags);
+	} else if (status_ == PROCESS) {
+		new SetMigrationTarget(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+		std::map<int, struct Local_view>::iterator it;
+		std::cout<<"received a setmigrationtarget view request"<<std::endl;
+
+		//compare received view with local view
+		bool flag=true;
+		int i;
+		if(worker_id!=request_.migration_target_info().worker_id()){
+			flag=false;
+			reply_.set_fail_reason("Here is not the target you specified!");
+		}else if(viewlist_input->size()!=request_.input_views_size()||viewlist_output->size()!=request_.output_views_size()){	 	 //check input and output size
+			flag=false;
+			std::cout<<"local inputsize:"<<viewlist_input->size()<<std::endl<<"request inputsize:"<<request_.input_views_size()<<std::endl<<"local outputsize:"<<viewlist_output->size()<<std::endl<<"local inputsize:"<<request_.output_views_size()<<std::endl;
+			reply_.set_fail_reason("Input size or output size does not match!");
+		}else{
+			for(i=0;i<request_.input_views_size();i++){     //compare input
+				if(viewlist_input->find(request_.input_views(i).worker_id())==viewlist_input->end()){
+					flag=false;
+					reply_.set_fail_reason("Input contents do not match!");
+					break;
+				}
+			}
+			for(i=0;i<request_.output_views_size();i++){     //compare output
+				if(viewlist_output->find(request_.output_views(i).worker_id())==viewlist_output->end()){
+					flag=false;
+					reply_.set_fail_reason("Output contents do not match!");
+					break;
+				}
+			}
+		}
+		if(flag==false){
+			reply_.set_succeed(false);
+			reply_.set_quota(0);
+		}else{
+			std::cout<<"setmigration target match succeed!"<<std::endl;
+			reply_.set_succeed(true);
+			reply_.set_quota(request_.quota());
+			Local_view local_view;
+			request_msg msg;
+			std::map<int,Local_view> inputview;
+			std::map<int,Local_view> outputview;
+			msg.change_migration_msg_.input_views=&inputview;
+			msg.change_migration_msg_.output_views=&outputview;
+			reply_msg rep_msg;
+			bool deque;
+			msg.action=SETMIGRATIONTARGET;
+			view_rpc2local(&msg.change_migration_msg_.migration_target_info,request_.migration_target_info());
+			msg.change_migration_msg_.quota=request_.quota();
+			for(i=0;i<request_.input_views_size();i++){     //add input to msg
+				view_rpc2local(&local_view,request_.input_views(i));
+				msg.change_migration_msg_.input_views->insert(std::make_pair(local_view.worker_id,local_view));
+			}
+			for(i=0;i<request_.output_views_size();i++){     //add output msg
+				view_rpc2local(&local_view,request_.output_views(i));
+				msg.change_migration_msg_.output_views->insert(std::make_pair(local_view.worker_id,local_view));
+			}
+			rte_ring_request->enqueue(msg); //throw the msg to the ring
+			while(1){
+				sleep(2);
+				std::cout<<"get the lock to find reply"<<std::endl;
+				deque=rte_ring_reply->try_dequeue(rep_msg);
+				if(deque){
+					std::cout<<"find reply"<<std::endl;
+					if(rep_msg.reply){
+						std::cout<<"Set migration target succeed!"<<std::endl;
+					}
+					break;
+				}else{
+					std::cout<<"empty reply queue"<<std::endl;
+				}
+
+			}
+
+
+		}
+
+		status_ = FINISH;
+		responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+	} else {
+		GPR_ASSERT(status_ == FINISH);
+		delete this;
+	}
+}
+
+
+
+
+AddReplicas::AddReplicas(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id,
+		std::map< int, struct Local_view> * replicalist)
+	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply),replicalist(replicalist){
+	// Invoke the serving logic right away.
+	tags.index=ADDREPLICAS;
+	tags.tags=this;
+	Proceed();
+}
+
+void AddReplicas::Proceed() {
+	if (status_ == CREATE) {
+		status_ = PROCESS;
+		service_->RequestAddReplicas(&ctx_, &request_, &responder_, cq_, cq_,
+																	 (void*)&tags);
+	} else if (status_ == PROCESS) {
+		new AddReplicas(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id,replicalist);
+		std::map<int, struct Local_view>::iterator it;
+		std::cout<<"received a add replica request"<<std::endl;
+		//compare received view with local view
+		bool ok_flag=false;
+		int i,j;
+		for(j=0;j<request_.replicas_size();j++){
+			bool flag=true;
+			const ReplicaInfo& rpc_replica=request_.replicas(j);
+			if(worker_id==rpc_replica.replica().worker_id()){
+				//can not replica itself
+				flag=false;
+				reply_.set_fail_reason("The replica you want to add is myself!");
+			}else if(replicalist->find(rpc_replica.replica().worker_id())!=replicalist->end()){
+				//the replica already exists
+				flag=false;
+				reply_.set_fail_reason("the replica already exists!");
+
+			}else if(viewlist_input->size()!=rpc_replica.input_views_size()||viewlist_output->size()!=rpc_replica.output_views_size()){	 	 //check input and output size
+				flag=false;
+				std::cout<<"local inputsize:"<<viewlist_input->size()<<std::endl<<"request inputsize:"<<rpc_replica.input_views_size()<<std::endl<<"local outputsize:"<<viewlist_output->size()<<std::endl<<"local inputsize:"<<rpc_replica.output_views_size()<<std::endl;
+				reply_.set_fail_reason("Input size or output size does not match!");
+			}else{
+				for(i=0;i<rpc_replica.input_views_size();i++){     //compare input
+					if(viewlist_input->find(rpc_replica.input_views(i).worker_id())==viewlist_input->end()){
+						flag=false;
+						reply_.set_fail_reason("Input contents do not match!");
+						break;
+					}
+				}
+				for(i=0;i<rpc_replica.output_views_size();i++){     //compare output
+					if(viewlist_output->find(rpc_replica.output_views(i).worker_id())==viewlist_output->end()){
+						flag=false;
+						reply_.set_fail_reason("Output contents do not match!");
+						break;
 					}
 				}
 			}
-			if(ok_flag==false){
-				reply_.set_succeed(false);
+
+
+			if(flag==false){
+				std::cout<<reply_.fail_reason()<<std::endl;
+				continue;
 
 			}else{
-				reply_.set_succeed(true);
+
+				Local_view local_view;
+				request_msg msg;
+				std::map<int,Local_view> inputview;
+				std::map<int,Local_view> outputview;
+				msg.change_replica_msg_.input_views=&inputview;
+				msg.change_replica_msg_.output_views=&outputview;
+				reply_msg rep_msg;
+				bool deque;
+
+				msg.action=ADDREPLICAS;
+
+
+				view_rpc2local(&msg.change_replica_msg_.replica,rpc_replica.replica());
+				for(i=0;i<rpc_replica.input_views_size();i++){     //add input to msg
+					view_rpc2local(&local_view,rpc_replica.input_views(i));
+					msg.change_replica_msg_.input_views->insert(std::make_pair(local_view.worker_id,local_view));
+				}
+				for(i=0;i<rpc_replica.output_views_size();i++){     //add output msg
+					view_rpc2local(&local_view,rpc_replica.output_views(i));
+					msg.change_replica_msg_.output_views->insert(std::make_pair(local_view.worker_id,local_view));
+				}
+				rte_ring_request->enqueue(msg); //throw the msg to the ring
+				while(1){
+					sleep(2);
+					std::cout<<"get the lock to find reply"<<std::endl;
+					deque=rte_ring_reply->try_dequeue(rep_msg);
+					if(deque){
+						std::cout<<"find reply"<<std::endl;
+						if(rep_msg.reply){
+							ok_flag=true;
+							std::cout<<"add replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
+							replicalist->insert(std::make_pair(msg.change_replica_msg_.replica.worker_id,msg.change_replica_msg_.replica));
+						}else{
+							printf("%s\n",rep_msg.fail_reason);
+						}
+						break;
+					}else{
+						std::cout<<"empty reply queue"<<std::endl;
+					}
+
+				}
 			}
-			std::map<int , struct Local_view>::iterator local_replica_it;
-			//prepare replicalist data to send back
-			View * view_tmp=NULL;
-			for(local_replica_it=replicalist->begin();local_replica_it!=replicalist->end();local_replica_it++){
-
-				view_tmp=reply_.add_current_replicas();
-				view_local2rpc(view_tmp,local_replica_it->second);
-
-			}
-
-			status_ = FINISH;
-			responder_.Finish(reply_, Status::OK, (void*)&tags);
-
-		} else {
-			GPR_ASSERT(status_ == FINISH);
-			delete this;
 		}
+		if(ok_flag==false){
+			reply_.set_succeed(false);
+
+		}else{
+			reply_.set_succeed(true);
+		}
+		std::map<int , struct Local_view>::iterator local_replica_it;
+		//prepare replicalist data to send back
+		View * view_tmp=NULL;
+		for(local_replica_it=replicalist->begin();local_replica_it!=replicalist->end();local_replica_it++){
+
+			view_tmp=reply_.add_current_replicas();
+			view_local2rpc(view_tmp,local_replica_it->second);
+
+		}
+
+		status_ = FINISH;
+		responder_.Finish(reply_, Status::OK, (void*)&tags);
+
+	} else {
+		GPR_ASSERT(status_ == FINISH);
+		delete this;
 	}
+}
 
-private:
-
-	Runtime_RPC::AsyncService* service_;
-	ServerCompletionQueue* cq_;
-	ServerContext ctx_;
-	ReplicaList request_;
-	ReplicaNegotiationResult reply_;
-
-	// The means to get back to the client.
-	ServerAsyncResponseWriter<ReplicaNegotiationResult> responder_;
-
-	// Let's implement a tiny state machine with the following states.
-	enum CallStatus { CREATE, PROCESS, FINISH };
-	CallStatus status_;  // The current serving state.
-	struct tag tags;
-	std::map< int, struct Local_view> *viewlist_input;
-	std::map< int, struct Local_view> *viewlist_output;
-	std::map< int, struct Local_view> * replicalist;
-	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
-	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
-	int worker_id;
-};
 
 class DeleteReplicas {
 public:
@@ -1423,7 +1274,7 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 				case RECOVER:
 					//process of recover
 					reply.worker_id=request.set_recover_msg_.runtime_id;
-					std::cout<<"recover runtime worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
+					std::cout<<"recover runtime worker_id: "<<request.set_recover_msg_.runtime_id<<std::endl;
 					break;
 				case QUERYRUNTIMEINFO:
 					//process of QueryRuntimeInfo

@@ -153,6 +153,191 @@ private:
 	int worker_id;
 };
 
+class AddInputView {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	AddInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id);
+
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	ViewList request_;
+	CurrentView reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<CurrentView> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class AddOutputView {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id);
+
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	ViewList request_;
+	CurrentView reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<CurrentView> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class DeleteOutputView {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	DeleteOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id);
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	ViewList request_;
+	CurrentView reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<CurrentView> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class DeleteInputView {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	DeleteInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id);
+	void Proceed();
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	ViewList request_;
+	CurrentView reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<CurrentView> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class SetMigrationTarget {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	SetMigrationTarget(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id);
+
+
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	MigrationTarget request_;
+	MigrationNegotiationResult reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<MigrationNegotiationResult> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class AddReplicas {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	AddReplicas(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id,
+			std::map< int, struct Local_view> * replicalist);
+
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	ReplicaList request_;
+	ReplicaNegotiationResult reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<ReplicaNegotiationResult> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	std::map< int, struct Local_view> * replicalist;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
 
 
 
