@@ -1194,7 +1194,7 @@ void child(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 					break;
 			}
 
-			reply.tag=request.action;
+			reply.tag=request->action;
 
 			reply.reply=true;
 			std::cout<<"find request"<<std::endl;
