@@ -3,3 +3,13 @@
 value=`cat ./flowgen_arg`
 
 sudo ../../deps/bess/bessctl/bessctl $value
+sudo ../../deps/bess/bessctl/bessctl add module Sink s
+
+sudo ../../deps/bess/bessctl/bessctl add port ZeroCopyVPort pi
+sudo ../../deps/bess/bessctl/bessctl add module PortOut pi_out {'port':'pi'}
+
+sudo ../../deps/bess/bessctl/bessctl add port ZeroCopyVPort po
+sudo ../../deps/bess/bessctl/bessctl add module PortInc po_inc {'port':'po'}
+
+sudo add connection fg pi_out
+sudo add connection po_inc s
