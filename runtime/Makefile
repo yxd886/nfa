@@ -85,14 +85,8 @@ PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
 PROTOCFLAGS += --proto_path=$(PROTO_DIR) --proto_path=protobuf --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
-# The following defines variables for our own protobuf messages
-OUR_PROTOS=$(wildcard protobuf/*.proto)
-PROTO_SRCS += $(patsubst %.proto,%.pb.cc, $(OUR_PROTOS))
-PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(OUR_PROTOS))
-PROTO_HEADERS += $(patsubst %.cc,%.h, $(OUR_PROTO_SRCS))
-
-ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc samples/*.cc protobuf/*.cc) gtest_main.cc
-HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h protobuf/*.h)
+ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc samples/*.cc ) gtest_main.cc
+HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h )
 
 TEST_SRCS = $(filter %_test.cc gtest_main.cc, $(ALL_SRCS))
 TEST_OBJS = $(TEST_SRCS:.cc=.o)
