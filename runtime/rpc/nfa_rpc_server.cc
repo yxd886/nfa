@@ -1283,7 +1283,7 @@ void view_local2rpc(View* rpc_view_ptr, Local_view local_view ){
 	rpc_view_ptr->set_rpc_port(local_view.rpc_port);
 }
 
-int main(int argc, char** argv) {
+int main() {
 	moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request;
 	moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply;
 	ServerImpl server(1,&rte_ring_request,&rte_ring_reply);
