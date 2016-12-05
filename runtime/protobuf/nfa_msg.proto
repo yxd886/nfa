@@ -239,4 +239,6 @@ message RuntimeStat{
 
 
   ReplicationStat replication_stat = 4;
+  bool succeed=6;
+  string fail_reason=7;
 }
