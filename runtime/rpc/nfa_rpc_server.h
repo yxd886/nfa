@@ -339,6 +339,130 @@ private:
 	int worker_id;
 };
 
+class DeleteReplicas {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	DeleteReplicas(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id,
+			std::map< int, struct Local_view> * replicalist);
 
 
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	ReplicaList request_;
+	ReplicaNegotiationResult reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<ReplicaNegotiationResult> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	std::map< int, struct Local_view> * replicalist;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class Recover {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	Recover(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id,
+			std::map< int, struct Local_view> * replicalist);
+
+
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	RecoverRuntime request_;
+	RecoverRuntimeResult reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<RecoverRuntimeResult> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> * replicalist;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class QueryRuntimeInfo {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	QueryRuntimeInfo(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id);
+
+
+	void Proceed();
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	RuntimeInfoRequest request_;
+	RuntimeInfo reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<RuntimeInfo> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> * replicalist;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+class QueryRuntimeStat {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	QueryRuntimeStat(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply,int worker_id);
+
+
+	void Proceed();
+
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	RuntimeStatRequest request_;
+	RuntimeStat reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<RuntimeStat> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> * replicalist;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
 #endif
