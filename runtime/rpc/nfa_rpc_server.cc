@@ -1140,41 +1140,41 @@ void child(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 		ok=rte_ring_dequeue(rte_ring_request,&request_ptr);
 		request=static_cast<struct request_msg*>(request_ptr);
 		if(ok==0){
-			switch(request.action){
+			switch(request->action){
 				case ADDOUTPUTVIEW:
 					//process of addoutputview
-					reply.worker_id=request.change_view_msg_.worker_id;
+					reply.worker_id=request->change_view_msg_.worker_id;
 					break;
 				case ADDINPUTVIEW:
 					//process of addinputview
-					reply.worker_id=request.change_view_msg_.worker_id;
+					reply.worker_id=request->change_view_msg_.worker_id;
 					break;
 				case DELETEOUTPUTVIEW:
 					//process of deleteoutputview
-					reply.worker_id=request.change_view_msg_.worker_id;
+					reply.worker_id=request->change_view_msg_.worker_id;
 					break;
 				case DELETEINPUTVIEW:
 					//process of deleteinputview
-					reply.worker_id=request.change_view_msg_.worker_id;
+					reply.worker_id=request->change_view_msg_.worker_id;
 					break;
 				case SETMIGRATIONTARGET:
 					//process of setmigrationtarget
-					reply.worker_id=request.change_migration_msg_.migration_target_info.worker_id;
+					reply.worker_id=request->change_migration_msg_.migration_target_info.worker_id;
 					break;
 				case ADDREPLICAS:
 					//process of add replicas
-					reply.worker_id=request.change_replica_msg_.replica.worker_id;
-					std::cout<<"add replica worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
+					reply.worker_id=request->change_replica_msg_.replica.worker_id;
+					std::cout<<"add replica worker_id: "<<request->change_replica_msg_.replica.worker_id<<std::endl;
 					break;
 				case DELETEREPLICAS:
 					//process of delete replicas
-					reply.worker_id=request.change_replica_msg_.replica.worker_id;
-					std::cout<<"delete replica worker_id: "<<request.change_replica_msg_.replica.worker_id<<std::endl;
+					reply.worker_id=request->change_replica_msg_.replica.worker_id;
+					std::cout<<"delete replica worker_id: "<<request->change_replica_msg_.replica.worker_id<<std::endl;
 					break;
 				case RECOVER:
 					//process of recover
-					reply.worker_id=request.set_recover_msg_.runtime_id;
-					std::cout<<"recover runtime worker_id: "<<request.set_recover_msg_.runtime_id<<std::endl;
+					reply.worker_id=request->set_recover_msg_.runtime_id;
+					std::cout<<"recover runtime worker_id: "<<request->set_recover_msg_.runtime_id<<std::endl;
 					break;
 				case QUERYRUNTIMEINFO:
 					//process of QueryRuntimeInfo
