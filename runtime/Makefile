@@ -83,7 +83,7 @@ PROTOS = $(wildcard $(PROTO_DIR)/*.proto)
 PROTO_SRCS = $(patsubst %.proto,%.pb.cc, $(PROTOS))
 PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
-PROTOCFLAGS += --proto_path=$(PROTO_DIR) --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
+PROTOCFLAGS += --proto_path=$(PROTO_DIR) --proto_path=protobuf --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
 # The following defines variables for our own protobuf messages
 OUR_PROTOS=$(wildcard protobuf/*.proto)
