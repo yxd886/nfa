@@ -1405,7 +1405,9 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 	struct request_msg request;
 	struct reply_msg reply;
 	RuntimeInfo runtimeinfo;
+	RuntimeStat runtimestat;
 	reply.runtime_info_msg_=&runtimeinfo;
+	reply.runtime_stat_msg_=&runtimestat;
 	bool ok;
 	while(1){
 
