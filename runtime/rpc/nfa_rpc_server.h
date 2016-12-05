@@ -54,9 +54,9 @@ struct Local_view{
 
 typedef struct {
 	int worker_id;
-	char iport_mac[6];
-	char oport_mac[6];
-	char cport_mac[6];
+	char iport_mac[30];
+	char oport_mac[30];
+	char cport_mac[30];
 	char rpc_ip[20];
 	int rpc_port;
 } cluster_view_msg;
