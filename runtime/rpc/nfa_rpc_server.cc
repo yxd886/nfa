@@ -976,6 +976,7 @@ private:
 	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
 	int worker_id;
 };
+
 class Recover {
 public:
 	// Take in the "service" instance (in this case representing an asynchronous
@@ -1477,6 +1478,24 @@ void child(moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moo
 	}
 }
 
+int parse_mac_addr(char *addr, const char *str ){
+	if (str != NULL && addr != NULL) {
+		int r = sscanf(str,
+				"%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx",
+			       addr,
+			       addr+1,
+			       addr+2,
+			       addr+3,
+			       addr+4,
+			       addr+5);
+
+		if (r != 6)
+			return -EINVAL;
+	}
+
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	moodycamel::ConcurrentQueue<struct request_msg> rte_ring_request;
 	moodycamel::ConcurrentQueue<struct reply_msg> rte_ring_reply;
@@ -1486,3 +1505,7 @@ int main(int argc, char** argv) {
 	server.Run();
 	return 0;
 }
+
+
+
+

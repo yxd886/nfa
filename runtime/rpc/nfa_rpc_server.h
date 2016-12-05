@@ -113,24 +113,7 @@ struct tag{
 };
 
 
-
-static int parse_mac_addr(char *addr, const char *str ){
-	if (str != NULL && addr != NULL) {
-		int r = sscanf(str,
-				"%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx",
-			       addr,
-			       addr+1,
-			       addr+2,
-			       addr+3,
-			       addr+4,
-			       addr+5);
-
-		if (r != 6)
-			return -EINVAL;
-	}
-
-	return 0;
-}
+int parse_mac_addr(char *addr, const char *str );
 static int encode_mac_addr(char *str, char *addr  )
 {
 	if (str != NULL && addr != NULL) {
