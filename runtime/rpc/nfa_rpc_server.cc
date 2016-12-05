@@ -132,7 +132,7 @@ void AddInputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				msg.action=ADDINPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -143,11 +143,11 @@ void AddInputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						struct Local_view tmp;
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							view_rpc2local(&tmp,outview);
 							viewlist_input->insert(std::make_pair(tmp.worker_id,tmp));
 						}
@@ -218,7 +218,7 @@ void AddOutputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				msg.action=ADDOUTPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -229,11 +229,11 @@ void AddOutputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						struct Local_view tmp;
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							view_rpc2local(&tmp,outview);
 							viewlist_output->insert(std::make_pair(tmp.worker_id,tmp));
 						}
@@ -302,7 +302,7 @@ void DeleteOutputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				msg.action=DELETEOUTPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -313,10 +313,10 @@ void DeleteOutputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							viewlist_output->erase(it);
 						}
 						break;
@@ -383,7 +383,7 @@ void DeleteInputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				msg.action=DELETEINPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -394,10 +394,10 @@ void DeleteInputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							viewlist_input->erase(it);
 						}
 						break;
@@ -494,7 +494,7 @@ void SetMigrationTarget::Proceed() {
 			std::map<int,Local_view> outputview;
 			msg.change_migration_msg_.input_views=&inputview;
 			msg.change_migration_msg_.output_views=&outputview;
-			reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+			reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 			int deque=1;
 			msg.action=SETMIGRATIONTARGET;
 			view_rpc2local(&msg.change_migration_msg_.migration_target_info,request_.migration_target_info());
@@ -511,10 +511,10 @@ void SetMigrationTarget::Proceed() {
 			while(1){
 				sleep(2);
 				std::cout<<"get the lock to find reply"<<std::endl;
-				deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+				deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 				if(deque==0){
 					std::cout<<"find reply"<<std::endl;
-					if(rep_msg.reply){
+					if(rep_msg->reply){
 						std::cout<<"Set migration target succeed!"<<std::endl;
 					}
 					break;
@@ -605,7 +605,7 @@ void AddReplicas::Proceed() {
 				std::map<int,Local_view> outputview;
 				msg.change_replica_msg_.input_views=&inputview;
 				msg.change_replica_msg_.output_views=&outputview;
-				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				int deque=1;
 
 				msg.action=ADDREPLICAS;
@@ -624,10 +624,10 @@ void AddReplicas::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							ok_flag=true;
 							std::cout<<"add replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
 							replicalist->insert(std::make_pair(msg.change_replica_msg_.replica.worker_id,msg.change_replica_msg_.replica));
@@ -716,7 +716,7 @@ void DeleteReplicas::Proceed() {
 				std::map<int,Local_view> outputview;
 				msg.change_replica_msg_.input_views=&inputview;
 				msg.change_replica_msg_.output_views=&outputview;
-				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				int deque=1;
 
 				msg.action=DELETEREPLICAS;
@@ -735,10 +735,10 @@ void DeleteReplicas::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							ok_flag=true;
 							std::cout<<"delete replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
 							replicalist->erase(replicalist->find(msg.change_replica_msg_.replica.worker_id));
@@ -818,7 +818,7 @@ void Recover::Proceed() {
 			}else{
 
 				request_msg msg;
-				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				int deque=1;
 				msg.action=RECOVER;
 				msg.set_recover_msg_.runtime_id=request_.runtime_id();
@@ -826,10 +826,10 @@ void Recover::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							ok_flag=true;
 							std::cout<<"recover succeed, start to replay runtime:"<<rep_msg.worker_id<<"'s function"<<std::endl;
 							replicalist->erase(replicalist->find(msg.change_replica_msg_.replica.worker_id));
@@ -895,7 +895,7 @@ void QueryRuntimeInfo::Proceed() {
 			}else{
 
 				request_msg msg;
-				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				int deque=1;
 				msg.action=QUERYRUNTIMEINFO;
 				RuntimeInfoRequest query_runtimeinfo;
@@ -905,10 +905,10 @@ void QueryRuntimeInfo::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							reply_.CopyFrom(*(rep_msg.runtime_info_msg_));
 							ok_flag=true;
 							std::cout<<"Runtime query succeed:"<<std::endl;
@@ -969,7 +969,7 @@ void QueryRuntimeStat::Proceed() {
 			}else{
 
 				request_msg msg;
-				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg *rep_msg=NULL;void* rep_msg_ptr;
 				int deque=1;
 				msg.action=QUERYRUNTIMESTAT;
 				RuntimeStatRequest query_runtimestat;
@@ -979,10 +979,10 @@ void QueryRuntimeStat::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); reply_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
-						if(rep_msg.reply){
+						if(rep_msg->reply){
 							reply_.CopyFrom(*(rep_msg.runtime_stat_msg_));
 							ok_flag=true;
 							std::cout<<"Runtime query succeed:"<<std::endl;
@@ -1126,7 +1126,8 @@ public:
 
 void child(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 	std::cout<<"father process ok"<<std::endl;
-	struct request_msg request;
+	struct request_msg* request=NULL;
+	void *request_ptr;
 	struct reply_msg reply;
 	RuntimeInfo runtimeinfo;
 	RuntimeStat runtimestat;
@@ -1136,7 +1137,8 @@ void child(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 	while(1){
 
 		sleep(2);
-		ok=rte_ring_dequeue(rte_ring_request,&request);
+		ok=rte_ring_dequeue(rte_ring_request,&request_ptr);
+		request=static_cast<struct request_msg*>(request_ptr);
 		if(ok==0){
 			switch(request.action){
 				case ADDOUTPUTVIEW:
@@ -1196,7 +1198,7 @@ void child(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 
 			reply.reply=true;
 			std::cout<<"find request"<<std::endl;
-			ret_ring_enqueue(rte_ring_reply,&reply);
+			rte_ring_enqueue(rte_ring_reply,&reply);
 		}else{
 			std::cout<<"empty request queue"<<std::endl;
 		}
