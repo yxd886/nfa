@@ -223,7 +223,7 @@ message RuntimeStat{
     } 
 
 
-    repeated StorageStat storage_stat;
+    repeated StorageStat storage_stat=4;
   }
 
 
