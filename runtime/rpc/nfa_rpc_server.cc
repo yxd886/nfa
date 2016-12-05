@@ -1290,12 +1290,12 @@ void view_local2rpc(View* rpc_view_ptr, Local_view local_view ){
 int main() {
 
 	struct rte_ring * rte_ring_request,*rte_ring_reply;
-	rte_ring_request = rte_ring_create("rte_ring_request", sizeof(struct *request_msg), SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
+	rte_ring_request = rte_ring_create("rte_ring_request", sizeof(struct request_msg*), SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
 	if (NULL == rte_ring_request){
 		std::cout<<"Rte ring create fail"<<std::endl;
 		return -1;
 	}
-	rte_ring_reply = rte_ring_create("rte_ring_reply", sizeof(struct* reply_msg), SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
+	rte_ring_reply = rte_ring_create("rte_ring_reply", sizeof(struct reply_msg*), SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
 	if (NULL == rte_ring_reply){
 		std::cout<<"Rte ring create fail"<<std::endl;
 		return -1;
