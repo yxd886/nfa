@@ -629,10 +629,10 @@ void AddReplicas::Proceed() {
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
 							ok_flag=true;
-							std::cout<<"add replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
+							std::cout<<"add replica "<<rep_msg->worker_id<<" succeed!"<<std::endl;
 							replicalist->insert(std::make_pair(msg.change_replica_msg_.replica.worker_id,msg.change_replica_msg_.replica));
 						}else{
-							printf("%s\n",rep_msg.fail_reason);
+							printf("%s\\n",rep_msg->fail_reason);
 						}
 						break;
 					}else{
@@ -740,10 +740,10 @@ void DeleteReplicas::Proceed() {
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
 							ok_flag=true;
-							std::cout<<"delete replica "<<rep_msg.worker_id<<" succeed!"<<std::endl;
+							std::cout<<"delete replica "<<rep_msg->worker_id<<" succeed!"<<std::endl;
 							replicalist->erase(replicalist->find(msg.change_replica_msg_.replica.worker_id));
 						}else{
-							printf("%s\n",rep_msg.fail_reason);
+							printf("%s\\n",rep_msg->fail_reason);
 						}
 						break;
 					}else{
@@ -831,10 +831,10 @@ void Recover::Proceed() {
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
 							ok_flag=true;
-							std::cout<<"recover succeed, start to replay runtime:"<<rep_msg.worker_id<<"'s function"<<std::endl;
+							std::cout<<"recover succeed, start to replay runtime:"<<rep_msg->worker_id<<"'s function"<<std::endl;
 							replicalist->erase(replicalist->find(msg.change_replica_msg_.replica.worker_id));
 						}else{
-							printf("%s\n",rep_msg.fail_reason);
+							printf("%s\\n",rep_msg->fail_reason);
 						}
 						break;
 					}else{
@@ -909,11 +909,11 @@ void QueryRuntimeInfo::Proceed() {
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
-							reply_.CopyFrom(*(rep_msg.runtime_info_msg_));
+							reply_.CopyFrom(*(rep_msg->runtime_info_msg_));
 							ok_flag=true;
 							std::cout<<"Runtime query succeed:"<<std::endl;
 						}else{
-							printf("%s\n",rep_msg.fail_reason);
+							printf("%s\\n",rep_msg->fail_reason);
 						}
 						break;
 					}else{
@@ -983,11 +983,11 @@ void QueryRuntimeStat::Proceed() {
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
-							reply_.CopyFrom(*(rep_msg.runtime_stat_msg_));
+							reply_.CopyFrom(*(rep_msg->runtime_stat_msg_));
 							ok_flag=true;
 							std::cout<<"Runtime query succeed:"<<std::endl;
 						}else{
-							printf("%s\n",rep_msg.fail_reason);
+							printf("%s\\n",rep_msg->fail_reason);
 						}
 						break;
 					}else{
