@@ -43,7 +43,7 @@
 
 #include <grpc++/grpc++.h>
 
-#include "nfa_msg.grpc.pb.h"
+#include "../bessport/nfa_msg.grpc.pb.h"
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;

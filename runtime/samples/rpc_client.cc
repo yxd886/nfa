@@ -37,7 +37,7 @@
 
 #include <grpc++/grpc++.h>
 
-#include "nfa_msg.grpc.pb.h"
+#include "../bessport/nfa_msg.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientAsyncResponseReader;
