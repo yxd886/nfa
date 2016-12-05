@@ -132,7 +132,7 @@ void AddInputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				msg.action=ADDINPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -218,7 +218,7 @@ void AddOutputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				msg.action=ADDOUTPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -302,7 +302,7 @@ void DeleteOutputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				msg.action=DELETEOUTPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -383,7 +383,7 @@ void DeleteInputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				struct reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				msg.action=DELETEINPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -494,7 +494,7 @@ void SetMigrationTarget::Proceed() {
 			std::map<int,Local_view> outputview;
 			msg.change_migration_msg_.input_views=&inputview;
 			msg.change_migration_msg_.output_views=&outputview;
-			reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+			reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 			int deque=1;
 			msg.action=SETMIGRATIONTARGET;
 			view_rpc2local(&msg.change_migration_msg_.migration_target_info,request_.migration_target_info());
@@ -605,7 +605,7 @@ void AddReplicas::Proceed() {
 				std::map<int,Local_view> outputview;
 				msg.change_replica_msg_.input_views=&inputview;
 				msg.change_replica_msg_.output_views=&outputview;
-				reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				int deque=1;
 
 				msg.action=ADDREPLICAS;
@@ -716,7 +716,7 @@ void DeleteReplicas::Proceed() {
 				std::map<int,Local_view> outputview;
 				msg.change_replica_msg_.input_views=&inputview;
 				msg.change_replica_msg_.output_views=&outputview;
-				reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				int deque=1;
 
 				msg.action=DELETEREPLICAS;
@@ -818,7 +818,7 @@ void Recover::Proceed() {
 			}else{
 
 				request_msg msg;
-				reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				int deque=1;
 				msg.action=RECOVER;
 				msg.set_recover_msg_.runtime_id=request_.runtime_id();
@@ -895,7 +895,7 @@ void QueryRuntimeInfo::Proceed() {
 			}else{
 
 				request_msg msg;
-				reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				int deque=1;
 				msg.action=QUERYRUNTIMEINFO;
 				RuntimeInfoRequest query_runtimeinfo;
@@ -969,7 +969,7 @@ void QueryRuntimeStat::Proceed() {
 			}else{
 
 				request_msg msg;
-				reply_msg rep_msg, reply_msg* rep_msg_ptr=&rep_msg;
+				reply_msg rep_msg;reply_msg* rep_msg_ptr=&rep_msg;
 				int deque=1;
 				msg.action=QUERYRUNTIMESTAT;
 				RuntimeStatRequest query_runtimestat;
