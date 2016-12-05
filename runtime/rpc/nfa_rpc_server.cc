@@ -42,6 +42,7 @@
 #include <sys/shm.h>
 #include <rte_config.h>
 #include <rte_ring.h>
+#include <rte_malloc.h>
 
 
 #include <grpc++/grpc++.h>
