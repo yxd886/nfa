@@ -132,7 +132,7 @@ void AddInputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct void* rep_msg_ptr;
+				 void* rep_msg_ptr;
 				msg.action=ADDINPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -143,7 +143,7 @@ void AddInputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						struct Local_view tmp;
 						std::cout<<"find reply"<<std::endl;
@@ -218,7 +218,7 @@ void AddOutputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct void* rep_msg_ptr;
+				void* rep_msg_ptr;
 				msg.action=ADDOUTPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -229,7 +229,7 @@ void AddOutputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						struct Local_view tmp;
 						std::cout<<"find reply"<<std::endl;
@@ -302,7 +302,7 @@ void DeleteOutputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct void* rep_msg_ptr;
+				void* rep_msg_ptr;
 				msg.action=DELETEOUTPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -313,7 +313,7 @@ void DeleteOutputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -383,7 +383,7 @@ void DeleteInputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				struct void* rep_msg_ptr;
+				void* rep_msg_ptr;
 				msg.action=DELETEINPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
@@ -394,7 +394,7 @@ void DeleteInputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -511,7 +511,7 @@ void SetMigrationTarget::Proceed() {
 			while(1){
 				sleep(2);
 				std::cout<<"get the lock to find reply"<<std::endl;
-				deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+				deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 				if(deque==0){
 					std::cout<<"find reply"<<std::endl;
 					if(rep_msg->reply){
@@ -624,7 +624,7 @@ void AddReplicas::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -735,7 +735,7 @@ void DeleteReplicas::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -826,7 +826,7 @@ void Recover::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -905,7 +905,7 @@ void QueryRuntimeInfo::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -979,7 +979,7 @@ void QueryRuntimeStat::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg\*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
