@@ -1292,15 +1292,13 @@ int main() {
 
 	struct rte_ring * rte_ring_request,*rte_ring_reply;
 	std::cout<<"try to create rte_ring"<<std::endl;
-	rte_calloc("test_ring_basic_ex_malloc", sizeof(void *), sizeof(void *), 0);
-	std::cout<<"calloc succeed"<<std::endl;
-	rte_ring_request = rte_ring_create("rte_ring_request", sizeof(struct request_msg*), SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
+	rte_ring_request = rte_ring_create("rte_ring_request", 4096, SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
 	if (NULL == rte_ring_request){
 		std::cout<<"Rte ring create fail"<<std::endl;
 		return -1;
 	}
 	std::cout<<"Rte ring create succeed"<<std::endl;
-	rte_ring_reply = rte_ring_create("rte_ring_reply", sizeof(struct reply_msg*), SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
+	rte_ring_reply = rte_ring_create("rte_ring_reply", 4096, SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
 	if (NULL == rte_ring_reply){
 		std::cout<<"Rte ring create fail"<<std::endl;
 		return -1;
