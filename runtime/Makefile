@@ -97,6 +97,7 @@ OBJS = $(SRCS:.cc=.o)
 
 GTEST_DIR = /usr/src/gtest
 
+# The following variables are defined for sample examples.
 PROCESS_PACKET_EXEC = process_packet
 PROCESS_PACKET_OBJS = $(filter-out main.o,$(OBJS))
 
@@ -177,7 +178,8 @@ $(eval $(call BUILD, \
 	bess.a, \
 	$(CORE_OBJS), \
 	$$(AR) rcs $$@ $$^))
-	
+
+# The rule for linking samples are added below here.
 $(eval $(call BUILD, \
 	LD, \
 	$$(PROCESS_PACKET_EXEC), \
