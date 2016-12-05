@@ -199,6 +199,12 @@ $(eval $(call BUILD, \
 	$$(RPC_TEST_CLIENT_EXEC), \
 	$$(RPC_TEST_CLIENT_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(RPC_TEST_SERVER_EXEC), \
+	$$(RPC_TEST_SERVER_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
 
