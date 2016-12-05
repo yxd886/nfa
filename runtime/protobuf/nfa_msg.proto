@@ -167,6 +167,15 @@ message RuntimeInfo{
 
 
 //message for query runtimestat
+
+  message RuntimeStatRequest{
+  uint64 runtime_id=1;
+}
+  
+  
+  
+
+
 message RuntimeStat{
 
 
@@ -207,13 +216,7 @@ message RuntimeStat{
 
   // ReplicationStat
   
-  
-  message RuntimeStatRequest{
-  uint64 runtime_id=1;
-}
-  
-  
-  
+ 
   
   message ReplicationStat{
     message StorageStat{
