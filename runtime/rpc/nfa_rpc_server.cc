@@ -40,8 +40,9 @@
 #include <queue>
 #include <unistd.h>
 #include <sys/shm.h>
-#include <rte_ring.h>
 #include <rte_config.h>
+#include <rte_ring.h>
+
 
 #include <grpc++/grpc++.h>
 
@@ -71,7 +72,6 @@ using nfa_msg::RuntimeInfoRequest;
 using nfa_msg::RuntimeStat;
 using nfa_msg::RuntimeStatRequest;
 
-#include "concurrentqueue.h"
 #include "nfa_rpc_server.h"
 
 
