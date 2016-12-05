@@ -99,7 +99,11 @@ GTEST_DIR = /usr/src/gtest
 
 # The following variables are defined for sample examples.
 PROCESS_PACKET_EXEC = process_packet
-PROCESS_PACKET_OBJS = $(filter-out main.o,$(OBJS))
+PROCESS_PACKET_OBJS = $(filter-out main.o rpc_client.o,$(OBJS))
+
+RPC_TEST_CLIENT_EXEC = rpc_client
+RPC_TEST_CLIENT_OBJS = $(filter-out main.o process_packet.o,$(OBJS))
+
 
 .PHONY: all clean tests protobuf
 
@@ -184,6 +188,12 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(PROCESS_PACKET_EXEC), \
 	$$(PROCESS_PACKET_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(RPC_TEST_CLIENT_EXEC), \
+	$$(RPC_TEST_CLIENT_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
