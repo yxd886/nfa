@@ -1,1 +1,244 @@
-// Implement all the messages that I defined in the new design document.
+// Define all the RPC calls that I defined in the new design document
+syntax = "proto3";
+
+package nfa_msg;
+
+// The greeting service definition.
+service Runtime_RPC {
+  // Sends a greeting
+  rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
+  
+  rpc AddOutputView (ViewList) returns (CurrentView){}
+  
+  rpc AddInputView (ViewList) returns (CurrentView){}
+  
+  rpc DeleteOutputView (ViewList) returns (CurrentView){}
+  
+  rpc DeleteInputView (ViewList) returns (CurrentView){}
+  
+  rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult) {}
+  
+  rpc AddReplicas (ReplicaList) returns (ReplicaNegotiationResult){}
+  
+  rpc DeleteReplicas (ReplicaList) returns (ReplicaNegotiationResult){}  
+  
+  rpc Recover (RecoverRuntime) returns (RecoverRuntimeResult){}  
+  
+  rpc QueryRuntimeInfo (RuntimeInfoRequest) returns (RuntimeInfo){} 
+  
+  rpc QueryRuntimeStat (RuntimeStatRequest) returns (RuntimeStat){} 
+  
+  
+  
+}
+
+
+
+
+
+
+// The request message containing the user's name.
+message LivenessRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message LivenessReply {
+  bool reply = 1;
+}
+
+//message for view
+message View{
+  uint64 worker_id=1;
+  string input_port_mac=2;
+  string output_port_mac=3;
+  string control_port_mac=4;
+  string rpc_ip=5;
+  uint64 rpc_port=6;
+}
+
+message ViewList{
+  repeated View view=1;
+}
+
+message CurrentView{
+  repeated View input_views = 2;
+  repeated View output_views=3;
+  
+}
+
+//message for migration
+message MigrationTarget{
+  View Migration_target_info=1;
+  repeated View input_views=2;
+  repeated View output_views=3;
+  uint64 quota = 4;
+}
+
+
+message MigrationNegotiationResult{
+  bool succeed=1;
+  string fail_reason=3;
+  uint64 quota=2;
+}
+
+//message for replication
+
+message ReplicaInfo{
+  View replica = 1;
+  repeated View input_views = 3;
+  repeated View output_views = 4;
+}
+
+message ReplicaList{
+
+  repeated ReplicaInfo replicas = 2;
+}
+
+
+message ReplicaNegotiationResult{
+  repeated View current_replicas=1;
+  bool succeed=2;
+  string fail_reason=3;
+}
+//message for recover
+message RecoverRuntime{
+  uint64 runtime_id = 1;
+}
+
+
+message RecoverRuntimeResult{
+  bool ack = 1;
+  string fail_reason=3;
+}
+
+//message for query
+
+
+
+
+message RuntimeInfoRequest{
+  uint64 runtime_id=1;
+}
+
+message RuntimeInfo{
+  message BasicInfo{
+    uint64 worker_id = 1;
+    string input_port_mac = 2;
+    string output_port_mac = 3;
+    string control_port_mac = 4;
+    string rpc_ip = 5;
+    uint32 rpc_port = 6;
+  }
+
+
+  message ViewInfo{
+    repeated View input_views = 7;
+    repeated View output_views = 8;
+  }
+
+
+  message MigrationInfo{
+    View migration_target = 9;
+    uint64 migration_quota = 10;
+  }
+
+
+  message ReplicationInfo{
+    repeated View replica_list = 11;
+    repeated View storage_list = 12;
+  }
+
+
+  message NFModuleInfo{
+    repeated uint32 loaded_nf_modules = 13;
+    repeated uint32 service_chain_type = 14;
+  }
+
+
+  BasicInfo basic_info = 1;
+  ViewInfo view_info = 2;
+  MigrationInfo migration_info = 3;
+  ReplicationInfo replication_info = 4;
+  NFModuleInfo nf_module_info = 5;
+  bool succeed=6;
+  string fail_reason=7;
+}
+
+
+//message for query runtimestat
+
+  message RuntimeStatRequest{
+  uint64 runtime_id=1;
+}
+  
+  
+  
+
+
+message RuntimeStat{
+
+
+  message PortStat{
+    uint64 input_port_incoming_pkts = 1;
+    uint64 input_port_outgoing_pkts = 2;
+    uint64 input_port_dropped_pkts = 3;
+
+
+    uint64 output_port_incoming_pkts = 4;
+    uint64 output_port_outgoing_pkts = 5;
+    uint64 output_port_dropped_pkts = 6;
+
+
+    uint64 control_port_incoming_pkts = 7;
+    uint64 control_port_outgoing_pkts = 8;
+    uint64 control_port_dropped_pkts = 9;
+  }
+
+
+  message FlowStat{
+    uint64 active_flows = 10;
+    uint64 inactive_flows = 11;
+  }
+
+
+  // MigrationStat is reset after the migration source get a new qouta.
+  message MigrationStat{
+    uint64 index = 1; // the index, added by 1 after the migration source get a qouta.
+    uint64 migration_target_runtime_id = 2; // the runtime id of the migration target.
+    uint64 migration_qouta = 3; // the qouta of the current migration 
+    uint64 average_flow_migration_completion_time = 4; // the average flow migraiton completion time
+    uint64 total_flow_migration_completion_time =5; // the total time that the qouta is exhausted
+    uint64 successful_migration = 6; // number of successful migration
+    uint64 failed_migration = 7; // number of failed migration
+  }
+
+
+  // ReplicationStat
+  
+ 
+  
+  message ReplicationStat{
+    message StorageStat{
+      uint64 replication_source_runtime_id = 1;
+      uint64 num_of_flow_replicas = 2;
+      uint64 total_replay_time = 3;
+    } 
+
+
+    repeated StorageStat storage_stat=4;
+  }
+
+
+  PortStat port_stat = 1;
+  
+  FlowStat flow_stat = 2;
+
+
+  MigrationStat migration_stat = 3;
+
+
+  ReplicationStat replication_stat = 4;
+  bool succeed=6;
+  string fail_reason=7;
+}
