@@ -107,7 +107,7 @@ RPC_TEST_CLIENT_OBJS = $(filter-out main.o samples/process_packet.o,$(OBJS))
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(PROCESS_PACKET_EXEC)
+all: $(OBJS) $(PROCESS_PACKET_EXEC) $(RPC_TEST_CLIENT_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
