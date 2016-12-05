@@ -83,7 +83,7 @@ LivenessCheck::LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletio
 		Proceed();
 	}
 
-LivenessCheck::Proceed() {
+void LivenessCheck::Proceed() {
 		if (status_ == CREATE) {
 			status_ = PROCESS;
 			service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
