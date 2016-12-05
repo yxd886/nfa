@@ -16,19 +16,20 @@
 #define NFACTOR_WORKER_LEAVE   3
 
 
-#define 	NUL 0
-#define  	SAYHELLO 1
-#define 	SAYHELLOAGAIN 2
-#define 	LIVENESSCHECK 3
-#define 	ADDOUTPUTVIEW 4
-#define 	ADDINPUTVIEW 5
-#define 	DELETEOUTPUTVIEW 6
-#define 	DELETEINPUTVIEW 7
-#define 	SETMIGRATIONTARGET 8
-#define 	ADDREPLICAS 9
-#define		DELETEREPLICAS 10
-#define		RECOVER 11
-#define   QUERYRUNTIMEINFO 12
+#define	NUL 0
+#define	SAYHELLO 1
+#define	SAYHELLOAGAIN 2
+#define	LIVENESSCHECK 3
+#define	ADDOUTPUTVIEW 4
+#define	ADDINPUTVIEW 5
+#define	DELETEOUTPUTVIEW 6
+#define	DELETEINPUTVIEW 7
+#define	SETMIGRATIONTARGET 8
+#define	ADDREPLICAS 9
+#define	DELETEREPLICAS 10
+#define	RECOVER 11
+#define	QUERYRUNTIMEINFO 12
+#define	QUERYRUNTIMESTAT 13
 
 
 
@@ -70,10 +71,13 @@ typedef struct{
 
 }recover_msg;
 
-typedef  RuntimeInfoRequest runtime_info_request;
+typedef	RuntimeInfoRequest runtime_info_request;
 
-typedef RuntimeInfo runtime_info_msg;
+typedef	RuntimeInfo runtime_info_msg;
 
+typedef	RuntimeStatRequest runtime_stat_request;
+
+typedef	RuntimeStat runtime_stat_msg;
 
 
 
@@ -85,6 +89,7 @@ struct  request_msg{
 		replica_msg change_replica_msg_;
 		recover_msg set_recover_msg_;
 		runtime_info_request *runtime_info_request_;
+		runtime_stat_request *runtime_stat_request_;
 	};
 
 };
@@ -95,6 +100,7 @@ struct  reply_msg{
 	bool reply;
 	char fail_reason[80];
 	runtime_info_msg *runtime_info_msg_;
+	runtime_stat_msg *runtime_stat_msg_;
 };
 
 

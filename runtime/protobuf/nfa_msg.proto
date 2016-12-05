@@ -26,6 +26,8 @@ service Runtime_RPC {
   
   rpc QueryRuntimeInfo (RuntimeInfoRequest) returns (RuntimeInfo){} 
   
+  rpc QueryRuntimeStat (RuntimeStatRequest) returns (RuntimeStat){} 
+  
   
   
 }
@@ -164,4 +166,74 @@ message RuntimeInfo{
 }
 
 
+//message for query runtimestat
+message RuntimeStat{
 
+
+  message PortStat{
+    uint64 input_port_incoming_pkts = 1;
+    uint64 input_port_outgoing_pkts = 2;
+    uint64 input_port_dropped_pkts = 3;
+
+
+    uint64 output_port_incoming_pkts = 4;
+    uint64 output_port_outgoing_pkts = 5;
+    uint64 output_port_dropped_pkts = 6;
+
+
+    uint64 control_port_incoming_pkts = 7;
+    uint64 control_port_outgoing_pkts = 8;
+    uint64 control_port_dropped_pkts = 9;
+  }
+
+
+  message FlowStat{
+    uint64 active_flows = 10;
+    uint64 inactive_flows = 11;
+  }
+
+
+  // MigrationStat is reset after the migration source get a new qouta.
+  message MigrationStat{
+    uint64 index = 1; // the index, added by 1 after the migration source get a qouta.
+    uint64 migration_target_runtime_id = 2; // the runtime id of the migration target.
+    uint64 migration_qouta = 3; // the qouta of the current migration 
+    uint64 average_flow_migration_completion_time = 1; // the average flow migraiton completion time
+    uint64 total_flow_migration_completion_time = 2; // the total time that the qouta is exhausted
+    uint64 successful_migration = 3; // number of successful migration
+    uint64 failed_migration = 4; // number of failed migration
+  }
+
+
+  // ReplicationStat
+  
+  
+  message RuntimeStatRequest{
+  uint64 runtime_id=1;
+}
+  
+  
+  
+  
+  message ReplicationStat{
+    message StorageStat{
+      uint64 replication_source_runtime_id = 1;
+      uint64 num_of_flow_replicas = 2;
+      uint64 total_replay_time = 3;
+    } 
+
+
+    repeated StorageStat storage_stat;
+  }
+
+
+  PortStat port_stat = 1;
+  
+  FlowStat flow_stat = 2;
+
+
+  MigrationStat migration_stat = 3;
+
+
+  ReplicationStat replication_stat = 4;
+}

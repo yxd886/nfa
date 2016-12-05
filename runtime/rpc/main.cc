@@ -59,6 +59,9 @@ using nfa_msg::RecoverRuntimeResult;
 using nfa_msg::RecoverRuntime;
 using nfa_msg::RuntimeInfo;
 using nfa_msg::RuntimeInfoRequest;
+using nfa_msg::RuntimeStat;
+using nfa_msg::RuntimeStatRequest;
+
 
 class RuntimeClient {
 public:
@@ -383,6 +386,43 @@ public:
 		}
 	}
 
+
+
+	bool QueryRuntimeStat(RuntimeStatRequest request) {
+		RuntimeStat reply;
+		ClientContext context;
+		CompletionQueue cq;
+
+		Status status;
+
+		std::unique_ptr<ClientAsyncResponseReader<RuntimeStat> > rpc(
+				stub_->AsyncQueryRuntimeStat(&context, request, &cq));
+
+		rpc->Finish(&reply, &status, (void*)1);
+		void* got_tag;
+		bool ok = false;
+
+		GPR_ASSERT(cq.Next(&got_tag, &ok));
+
+		GPR_ASSERT(got_tag == (void*)1);
+
+		GPR_ASSERT(ok);
+
+		if (status.ok()) {
+			if(reply.succeed()){
+				return true;
+			}else{
+				std::cout<<reply.fail_reason()<<std::endl;
+				return false;
+			}
+
+
+		} else {
+			std::cout<<"RPC failed"<<std::endl;
+			return false;
+		}
+	}
+
 private:
 	// Out of the passed in Channel comes the stub, stored here, our view of the
 	// server's exposed services.
@@ -596,6 +636,27 @@ int main(int argc, char** argv) {
 		std::cout << "Query Runtime Info : OK "<< std::endl;
 	}else{
 		std::cout << "Query Runtime Info: Fail "<< std::endl;
+	}
+
+
+
+
+	RuntimeStatRequest query_runtime_stat;
+	query_runtime_stat.set_runtime_id(1);
+	reply = nfa_rpc.QueryRuntimeStat(query_runtime_stat);
+	if(reply){
+		std::cout << "Query Runtime Stat : OK "<< std::endl;
+	}else{
+		std::cout << "Query Runtime Stat: Fail "<< std::endl;
+	}
+
+
+	query_runtime_stat.set_runtime_id(2);
+	reply = nfa_rpc.QueryRuntimeStat(query_runtime_stat);
+	if(reply){
+		std::cout << "Query Runtime Stat : OK "<< std::endl;
+	}else{
+		std::cout << "Query Runtime Stat: Fail "<< std::endl;
 	}
 
 	return 0;
