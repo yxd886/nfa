@@ -72,6 +72,60 @@ using nfa_msg::RuntimeStatRequest;
 #include "concurrentqueue.h"
 #include "nfa_rpc_server.h"
 
+
+class LivenessCheck {
+public:
+	// Take in the "service" instance (in this case representing an asynchronous
+	// server) and the completion queue "cq" used for asynchronous communication
+	// with the gRPC runtime.
+	LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::map< int, struct Local_view> *viewlist_input,std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply,int worker_id)
+		: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
+		// Invoke the serving logic right away.
+		tags.index=LIVENESSCHECK;
+		tags.tags=this;
+		Proceed();
+	}
+
+	void Proceed() {
+		if (status_ == CREATE) {
+			status_ = PROCESS;
+			service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
+                                  (void*)&tags);
+		} else if (status_ == PROCESS) {
+			new LivenessCheck(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+			reply_.set_reply(true);
+
+			status_ = FINISH;
+			responder_.Finish(reply_, Status::OK, (void*)&tags);
+		} else {
+			GPR_ASSERT(status_ == FINISH);
+			delete this;
+		}
+	}
+private:
+
+	Runtime_RPC::AsyncService* service_;
+	ServerCompletionQueue* cq_;
+	ServerContext ctx_;
+	LivenessRequest request_;
+	LivenessReply reply_;
+
+	// The means to get back to the client.
+	ServerAsyncResponseWriter<LivenessReply> responder_;
+
+	// Let's implement a tiny state machine with the following states.
+	enum CallStatus { CREATE, PROCESS, FINISH };
+	CallStatus status_;  // The current serving state.
+	struct tag tags;
+	std::map< int, struct Local_view> *viewlist_input;
+	std::map< int, struct Local_view> *viewlist_output;
+	moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
+	moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
+	int worker_id;
+};
+
+
+
 class ServerImpl final {
 public:
 	ServerImpl(int worker_id,moodycamel::ConcurrentQueue<struct request_msg>* rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg>* rte_ring_reply)
@@ -107,57 +161,6 @@ public:
 
 private:
 	// Class encompasing the state and logic needed to serve a request.
-
-	class LivenessCheck {
-	public:
-		// Take in the "service" instance (in this case representing an asynchronous
-		// server) and the completion queue "cq" used for asynchronous communication
-		// with the gRPC runtime.
-		LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::map< int, struct Local_view> *viewlist_input,std::map< int, struct Local_view> *viewlist_output, moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request,moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply,int worker_id)
-			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
-			// Invoke the serving logic right away.
-			tags.index=LIVENESSCHECK;
-			tags.tags=this;
-			Proceed();
-		}
-
-		void Proceed() {
-			if (status_ == CREATE) {
-				status_ = PROCESS;
-				service_->RequestLivenessCheck(&ctx_, &request_, &responder_, cq_, cq_,
-                                    (void*)&tags);
-			} else if (status_ == PROCESS) {
-				new LivenessCheck(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-				reply_.set_reply(true);
-
-				status_ = FINISH;
-				responder_.Finish(reply_, Status::OK, (void*)&tags);
-			} else {
-				GPR_ASSERT(status_ == FINISH);
-				delete this;
-			}
-		}
-	private:
-
-		Runtime_RPC::AsyncService* service_;
-		ServerCompletionQueue* cq_;
-		ServerContext ctx_;
-		LivenessRequest request_;
-		LivenessReply reply_;
-
-		// The means to get back to the client.
-		ServerAsyncResponseWriter<LivenessReply> responder_;
-
-		// Let's implement a tiny state machine with the following states.
-		enum CallStatus { CREATE, PROCESS, FINISH };
-		CallStatus status_;  // The current serving state.
-		struct tag tags;
-		std::map< int, struct Local_view> *viewlist_input;
-		std::map< int, struct Local_view> *viewlist_output;
-		moodycamel::ConcurrentQueue<struct request_msg> *rte_ring_request;
-		moodycamel::ConcurrentQueue<struct reply_msg> *rte_ring_reply;
-		int worker_id;
-	};
 
 
 
