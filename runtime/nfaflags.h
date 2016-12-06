@@ -5,6 +5,5 @@
 
 DECLARE_bool(boolean_flag);
 DECLARE_string(string_flag);
-DECLARE_int32(port);
 
 #endif
