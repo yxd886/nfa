@@ -1235,9 +1235,9 @@ void runtime_thread(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_
 }
 
 
-void rpc_server_thread(ServerImpl server,struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
+void rpc_server_thread(ServerImpl* server,struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 	std::cout<<"rpc_server_thread ok"<<std::endl;
-	server.Run(2);
+	server->Run(2);
 
 }
 
@@ -1362,7 +1362,7 @@ int main(int argc, char **argv) {
 //	struct rte_ring rte_ring_reply;
 	ServerImpl server(1,rte_ring_request,rte_ring_reply);
 	std::thread t1(runtime_thread,rte_ring_request,rte_ring_reply);
-	std::thread t2(rpc_server_thread,server,rte_ring_request,rte_ring_reply);
+	std::thread t2(rpc_server_thread,&server,rte_ring_request,rte_ring_reply);
 
 
 	return 0;
