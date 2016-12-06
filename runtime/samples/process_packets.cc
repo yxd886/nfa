@@ -50,8 +50,6 @@ int main(int argc, char* argv[]){
   google::InitGoogleLogging(argv[0]);
 
   int ret;
-  int i;
-
   FILE *org_stdout;
 
   int rte_argc = 0;
