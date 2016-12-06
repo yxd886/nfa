@@ -25,4 +25,50 @@
 //        RPC worker thread. When the module gets a message, it calls the
 //        message handler of the coordinator to handle the messages. 
 
+#include "atom_definition.h"
+class actor{
+public:
+	virtual ~actor(){}
+	void local_send(actor& dst_actor,struct nf_ec_timer_quit* t){
+		dst_actor.handle_message(t);
+	}
+	void local_send(actor& dst_actor,struct prepare_to_get_replica*t ){
+		dst_actor.handle_message(t);
+	}
+
+	void local_send(actor& dst_actor,struct get_the_fking_replica*t){
+		dst_actor.handle_message(t);
+	}
+	void local_send(actor& dst_actor,struct rep_peer_fail*t){
+		dst_actor.handle_message(t);
+	}
+	void local_send(actor& dst_actor,struct rep_peer_back_to_alive*t,const actor& new_replication_target_a){
+		dst_actor.handle_message(t,new_replication_target_a);
+	}
+	void local_send(actor& dst_actor,struct clean_up_vswitch_table*t,int arg_to_rt_id){
+		dst_actor.handle_message(t,arg_to_rt_id);
+	}
+	void local_send(actor& dst_actor,struct change_route_atom*t){
+		dst_actor.handle_message(t);
+	}
+	void local_send(actor& dst_actor,struct get_vswitch_atom*t){
+		dst_actor.handle_message(t);
+	}
+
+	void remote_send(int runtime_id,int actor_id,char* msg,int size);
+
+
+  virtual void handle_message(struct nf_ec_timer_quit*){}
+  virtual void handle_message(struct prepare_to_get_replica*){}
+  virtual void handle_message(struct get_the_fking_replica*){}
+  virtual void handle_message(struct rep_peer_fail*){}
+  virtual void handle_message(struct rep_peer_back_to_alive*,const actor& new_replication_target_a){}
+  virtual void handle_message(struct clean_up_vswitch_table*,int arg_to_rt_id){}
+  virtual void handle_message(struct change_route_atom*){}
+  virtual void handle_message(struct get_vswitch_atom*){}
+
+private:
+	int actor_id;
+	int runtime_id;
+};
 
