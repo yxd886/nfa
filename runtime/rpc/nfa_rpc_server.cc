@@ -1361,8 +1361,13 @@ int main(int argc, char **argv) {
 //	struct rte_ring rte_ring_request;
 //	struct rte_ring rte_ring_reply;
 	ServerImpl server(1,rte_ring_request,rte_ring_reply);
+	std::cout<<"begin to create threads"<<std::endl;
 	std::thread t1(runtime_thread,rte_ring_request,rte_ring_reply);
 	std::thread t2(rpc_server_thread,&server,rte_ring_request,rte_ring_reply);
+
+	while(1){
+
+	}
 
 
 	return 0;
