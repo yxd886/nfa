@@ -55,10 +55,13 @@ static void nfa_init_eal(char* argv0){
   sprintf(opt_lcore_bitmap, "%d@%d", RTE_MAX_LCORE - 1, 0);
 
   rte_argv[rte_argc++] = argv0;
-  rte_argv[rte_argc++] = "--master-lcore";
+  //rte_argv[rte_argc++] = "--master-lcore";
+  //rte_argv[rte_argc++] = opt_master_lcore;
+  //rte_argv[rte_argc++] = "--lcore";
+  //rte_argv[rte_argc++] = opt_lcore_bitmap;
+  sprintf(opt_master_lcore, "%d", (int)FLAGS_temp_core);
+  rte_argv[rte_argc++] = "-c";
   rte_argv[rte_argc++] = opt_master_lcore;
-  rte_argv[rte_argc++] = "--lcore";
-  rte_argv[rte_argc++] = opt_lcore_bitmap;
   rte_argv[rte_argc++] = "-n";
   rte_argv[rte_argc++] = "4";
   rte_argv[rte_argc++] = "--proc-type";
@@ -124,7 +127,8 @@ static void nfa_load_mempool(){
       }
 
       if(j>END){
-        LOG(FATAL)<<"Fail to find a memory pool on lcore "<<sid;
+        LOG(ERROR)<<"Fail to find a memory pool on lcore "<<sid;
+        exit(EXIT_FAILURE);
       }
 
       initialized[sid] = 1;
@@ -146,4 +150,7 @@ int main(int argc, char* argv[]){
   nfa_init_eal(argv[0]);
 
   nfa_load_mempool();
+
+
+
 }
