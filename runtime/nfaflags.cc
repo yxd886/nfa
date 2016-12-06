@@ -7,12 +7,13 @@ using namespace std;
 
 DEFINE_bool(boolean_flag, true, "a test boolean flag");
 
-static bool ValidatePort(const char* flagname, const char* str_arg) {
-  string value(str_arg);
-  if (value == "wtf")   // value is ok
+DEFINE_string(string_flag, "a,b,c", "comma spearated string flag");
+
+static bool ValidatePort(const char* flagname, int32 value) {
+   if (value > 0 && value < 32768)   // value is ok
      return true;
-   printf("Invalid value for --%s: %s\n", flagname, value.c_str());
+   printf("Invalid value for --%s: %d\n", flagname, (int)value);
    return false;
 }
-DEFINE_string(string_flag, "a,b,c", "comma spearated string flag");
-DEFINE_validator(string_flag, &ValidatePort);
+DEFINE_int32(port, 0, "What port to listen on");
+DEFINE_validator(port, &ValidatePort);
