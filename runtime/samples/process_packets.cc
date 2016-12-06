@@ -12,4 +12,7 @@ int main(int argc, char* argv[]){
   google::InitGoogleLogging(argv[0]);
 
   LOG(INFO) << "Found " << 100 << " cookies";
+
+  cout<<FLAGS_boolean_flag<<endl;
+  cout<<FLAGS_string_flag<<endl;
 }
