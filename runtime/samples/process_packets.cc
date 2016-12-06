@@ -13,6 +13,7 @@
 #include <rte_cycles.h>
 #include <rte_eal.h>
 #include <rte_ethdev.h>
+#include <rte_mempool.h>
 
 #include <glog/logging.h>
 
@@ -94,6 +95,8 @@ static void nfa_init_eal(char* argv0){
   LOG(INFO) << "DPDK EAL finishes initialization";
 }
 
+static struct rte_mempool *nfa_pframe_pool[RTE_MAX_NUMA_NODES];
+
 int main(int argc, char* argv[]){
   google::ParseCommandLineFlags(&argc, &argv, true);
 
@@ -104,4 +107,34 @@ int main(int argc, char* argv[]){
   google::InitGoogleLogging(argv[0]);
 
   nfa_init_eal(argv[0]);
+
+  int i,j;
+  int BEGIN = 16384;
+  int END = 524288;
+  char name[256];
+
+  int initialized[RTE_MAX_NUMA_NODES];
+  for (i = 0; i < RTE_MAX_NUMA_NODES; i++) {
+    initialized[i] = 0;
+  }
+
+  for (i = 0; i < RTE_MAX_LCORE; i++) {
+    int sid = rte_lcore_to_socket_id(i);
+
+    if (!initialized[sid]) {
+
+      for (int j = BEGIN; j <= END; j *= 2) {
+        sprintf(name, "pframe%d_%dk", sid, (i + 1) / 1024);
+        nfa_pframe_pool[sid] = rte_mempool_lookup(name);
+
+        if (nfa_pframe_pool[sid]){
+          break;
+        }
+      }
+
+      initialized[sid] = 1;
+    }
+  }
+
+  LOG(INFO) << "Finish loading the memory pool";
 }
