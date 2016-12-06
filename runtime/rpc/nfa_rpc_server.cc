@@ -53,6 +53,10 @@
 
 #include "../bessport/nfa_msg.grpc.pb.h"
 
+#define MBUF_PER_POOL 65535
+#define MBUF_POOL_CACHE_SIZE 250
+
+
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
 using grpc::ServerBuilder;
