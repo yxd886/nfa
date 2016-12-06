@@ -1,5 +1,9 @@
 #include <iostream>
+#include <cassert>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
 
 #include <syslog.h>
 #include <unistd.h>
