@@ -151,6 +151,10 @@ int main(int argc, char* argv[]){
 
   nfa_load_mempool();
 
+  if((string(FLAGS_input_port)=="")||(String(FLAGS_output_port)=="")){
+    LOG(ERROR)<<"The name of intput/output port must be specified";
+    exit(EXIT_FAILURE);
+  }
 
 
 }

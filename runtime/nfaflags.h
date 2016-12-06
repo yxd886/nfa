@@ -6,5 +6,7 @@
 DECLARE_bool(boolean_flag);
 DECLARE_string(string_flag);
 DECLARE_int32(temp_core);
+DECLARE_string(input_port);
+DECLARE_string(output_port);
 
 #endif
