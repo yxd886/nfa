@@ -133,6 +133,10 @@ int main(int argc, char* argv[]){
         }
       }
 
+      if(j>END){
+        LOG(INFO)<<"Fail to find a memory pool on lcore "<<sid;
+      }
+
       initialized[sid] = 1;
     }
   }
