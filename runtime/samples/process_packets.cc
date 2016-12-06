@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
   cout<<FLAGS_boolean_flag<<endl;
   cout<<FLAGS_string_flag<<endl;
 
-  FLAGS_log_dir = "/some/log/directory";
+  FLAGS_log_dir = "./log";
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << "file";
 
