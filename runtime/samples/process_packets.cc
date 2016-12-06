@@ -35,8 +35,8 @@ int main(int argc, char* argv[]){
   rte_argv[rte_argc++] = opt_lcore_bitmap;
   rte_argv[rte_argc++] = "-n";
   rte_argv[rte_argc++] = "4";
-  rte_argv[rte_argc++] = "--proc-type";
-  rte_argv[rte_argc++] = "secondary";
+  // rte_argv[rte_argc++] = "--proc-type";
+  // rte_argv[rte_argc++] = "secondary";
   rte_argv[rte_argc] = nullptr;
 
   int ret = rte_eal_init(rte_argc, const_cast<char **>(rte_argv));
