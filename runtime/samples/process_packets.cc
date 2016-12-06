@@ -12,10 +12,8 @@ int main(int argc, char* argv[]){
   cout<<FLAGS_boolean_flag<<endl;
   cout<<FLAGS_string_flag<<endl;
 
-  FLAGS_log_dir = "./";
+  FLAGS_logtostderr = 1;
   google::InitGoogleLogging(argv[0]);
-  LOG(INFO) << "file";
 
-   LOG(INFO) << "stderr";
-   LOG(INFO) << "the same file";
+  DLOG(INFO) << "Found cookies";
 }
