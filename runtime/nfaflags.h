@@ -3,7 +3,7 @@
 
 #include <gflags/gflags.h>
 
-DECLARE_bool(boolean_flag, true, "a test boolean flag");
-DECLARE_string(string_flag, "a,b,c", "comma spearated string flag");
+DECLARE_bool(boolean_flag);
+DECLARE_string(string_flag);
 
 #endif
