@@ -128,6 +128,7 @@ int main(int argc, char* argv[]){
         nfa_pframe_pool[sid] = rte_mempool_lookup(name);
 
         if (nfa_pframe_pool[sid]){
+          LOG(INFO) << "Find a memory pool on lcore "<<sid<<" with name "<<string(name);
           break;
         }
       }
