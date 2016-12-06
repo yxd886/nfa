@@ -97,17 +97,7 @@ static void nfa_init_eal(char* argv0){
 
 static struct rte_mempool *nfa_pframe_pool[RTE_MAX_NUMA_NODES];
 
-int main(int argc, char* argv[]){
-  google::ParseCommandLineFlags(&argc, &argv, true);
-
-  cout<<FLAGS_boolean_flag<<endl;
-  cout<<FLAGS_string_flag<<endl;
-
-  FLAGS_logtostderr = 1;
-  google::InitGoogleLogging(argv[0]);
-
-  nfa_init_eal(argv[0]);
-
+static void nfa_load_mempool(){
   int i,j;
   int BEGIN = 16384;
   int END = 524288;
@@ -134,7 +124,7 @@ int main(int argc, char* argv[]){
       }
 
       if(j>END){
-        LOG(INFO)<<"Fail to find a memory pool on lcore "<<sid;
+        LOG(FATAL)<<"Fail to find a memory pool on lcore "<<sid;
       }
 
       initialized[sid] = 1;
@@ -142,4 +132,18 @@ int main(int argc, char* argv[]){
   }
 
   LOG(INFO) << "Finish loading the memory pool";
+}
+
+int main(int argc, char* argv[]){
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
+  cout<<FLAGS_boolean_flag<<endl;
+  cout<<FLAGS_string_flag<<endl;
+
+  FLAGS_logtostderr = 1;
+  google::InitGoogleLogging(argv[0]);
+
+  nfa_init_eal(argv[0]);
+
+  nfa_load_mempool();
 }
