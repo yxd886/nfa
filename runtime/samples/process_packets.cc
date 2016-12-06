@@ -18,6 +18,8 @@
 #include <glog/logging.h>
 
 #include "../nfaflags.h"
+#include "../port/sn_port.h"
+#include "../bessport/pktbatch.h"
 
 using namespace std;
 
@@ -59,7 +61,8 @@ static void nfa_init_eal(char* argv0){
   //rte_argv[rte_argc++] = opt_master_lcore;
   //rte_argv[rte_argc++] = "--lcore";
   //rte_argv[rte_argc++] = opt_lcore_bitmap;
-  sprintf(opt_master_lcore, "%d", (int)FLAGS_temp_core);
+  uint64_t cpumask = (1ull << (uint32_t)FLAGS_temp_core);
+  sprintf(opt_master_lcore, "0x%lx", cpumask);
   rte_argv[rte_argc++] = "-c";
   rte_argv[rte_argc++] = opt_master_lcore;
   rte_argv[rte_argc++] = "-n";
@@ -151,10 +154,44 @@ int main(int argc, char* argv[]){
 
   nfa_load_mempool();
 
-  if((string(FLAGS_input_port)=="")||(String(FLAGS_output_port)=="")){
+  if((string(FLAGS_input_port)=="")||(string(FLAGS_output_port)=="")){
     LOG(ERROR)<<"The name of intput/output port must be specified";
     exit(EXIT_FAILURE);
   }
 
+  sn_port input_port;
+  sn_port output_port;
+
+  if(input_port.init_port(FLAGS_input_port.c_str())==false){
+    LOG(ERROR)<<"Fails to open input port "<<FLAGS_input_port;
+    exit(EXIT_FAILURE);
+  }
+  else{
+    LOG(INFO)<<"Successfully open input port "<<FLAGS_input_port;
+  }
+
+  if(output_port.init_port(FLAGS_output_port.c_str())==false){
+    LOG(ERROR)<<"Fails to open output port "<<FLAGS_output_port;
+    exit(EXIT_FAILURE);
+  }
+  else{
+    LOG(INFO)<<"Successfully open output port "<<FLAGS_output_port;
+  }
+
+  bess::PacketBatch batch;
+  uint8_t qid = 0;
+  int sent = 0;
+
+  for(;;){
+    batch.set_cnt(input_port.RecvPackets(qid, batch.pkts(), batch.kMaxBurst));
+    if(unlikely(batch.cnt() == 0)){
+      continue;
+    }
+
+    sent = 0;//output_port.SendPackets(qid, batch.pkts(), batch.cnt());
+    if (sent < batch.cnt()) {
+      bess::Packet::Free(batch.pkts() + sent, batch.cnt() - sent);
+    }
+  }
 
 }

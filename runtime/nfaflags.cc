@@ -9,7 +9,7 @@ DEFINE_bool(boolean_flag, true, "a test boolean flag");
 
 DEFINE_string(string_flag, "a,b,c", "comma spearated string flag");
 
-DEFINE_int32(temp_core, 1, "Temporary lcore binding.");
+DEFINE_int32(temp_core, 5, "Temporary lcore binding.");
 
 DEFINE_string(input_port, "", "Name of the input port");
 
