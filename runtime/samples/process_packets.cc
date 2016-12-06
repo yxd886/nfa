@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "nfaflags.h"
+#include "../nfaflags.h"
 
 using namespace std;
 
