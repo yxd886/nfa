@@ -89,7 +89,6 @@ using nfa_msg::RuntimeStatRequest;
 
 LivenessCheck::LivenessCheck(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,std::map< int, struct Local_view> *viewlist_input,std::map< int, struct Local_view> *viewlist_output, struct rte_ring *rte_ring_request,struct rte_ring *rte_ring_reply,int worker_id)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
-	// Invoke the serving logic right away.
 	tags.index=LIVENESSCHECK;
 	tags.tags=this;
 	Proceed();
@@ -102,10 +101,10 @@ void LivenessCheck::Proceed() {
 				(void*)&tags);
 	} else if (status_ == PROCESS) {
 		new LivenessCheck(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-		reply_.set_reply(true);
+		reply_.set_reply(true);//reply to the client
 
 		status_ = FINISH;
-		responder_.Finish(reply_, Status::OK, (void*)&tags);
+		responder_.Finish(reply_, Status::OK, (void*)&tags);//check whether reply succeed
 	} else {
 		GPR_ASSERT(status_ == FINISH);
 		delete this;
@@ -118,7 +117,6 @@ void LivenessCheck::Proceed() {
 
 AddInputView::AddInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id)
 : service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
-	// Invoke the serving logic right away.
 	tags.index=ADDINPUTVIEW;
 	tags.tags=this;
 	Proceed();
@@ -130,7 +128,7 @@ void AddInputView::Proceed() {
 		service_->RequestAddInputView(&ctx_, &request_, &responder_, cq_, cq_,
 				(void*)&tags);
 	} else if (status_ == PROCESS) {
-		new AddInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+		new AddInputView(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);//spawn a new instance for other clients
 		std::map<int, struct Local_view>::iterator it;
 		std::cout<<"received a addinput view request"<<std::endl;
 
@@ -143,17 +141,19 @@ void AddInputView::Proceed() {
 			}else{
 				int deque=1;
 				struct request_msg msg;
-				 void* rep_msg_ptr;
+				void* rep_msg_ptr;
+				//fill information in to msg
 				msg.action=ADDINPUTVIEW;
 				msg.change_view_msg_.worker_id=outview.worker_id();
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
 				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
 				std::cout<<"throw the request to the ring"<<std::endl;
+				//send the message to the request rte_ring
 				rte_ring_enqueue(rte_ring_request,&msg);
 				std::cout<<"throw completed, waiting to read"<<std::endl;
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -205,7 +205,6 @@ void AddInputView::Proceed() {
 
 AddOutputView::AddOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
-	// Invoke the serving logic right away.
 	tags.index=ADDOUTPUTVIEW;
 	tags.tags=this;
 	Proceed();
@@ -236,11 +235,12 @@ void AddOutputView::Proceed() {
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
 				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
 				std::cout<<"throw the request to the ring"<<std::endl;
+				//send the message to the request rte_ring
 				rte_ring_enqueue(rte_ring_request,&msg);
 				std::cout<<"throw completed, waiting to read"<<std::endl;
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -290,7 +290,6 @@ void AddOutputView::Proceed() {
 
 DeleteOutputView::DeleteOutputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id)
 			: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
-	// Invoke the serving logic right away.
 	tags.index=DELETEOUTPUTVIEW;
 	tags.tags=this;
 				Proceed();
@@ -321,11 +320,12 @@ void DeleteOutputView::Proceed() {
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
 				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
 				std::cout<<"throw the request to the ring"<<std::endl;
+				//send the message to the request rte_ring
 				rte_ring_enqueue(rte_ring_request,&msg);
 				std::cout<<"throw completed, waiting to read"<<std::endl;
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -372,7 +372,6 @@ void DeleteOutputView::Proceed() {
 
 DeleteInputView::DeleteInputView(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output, struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply) {
-	// Invoke the serving logic right away.
 	tags.index=DELETEINPUTVIEW;
 	tags.tags=this;
 	Proceed();
@@ -403,11 +402,12 @@ void DeleteInputView::Proceed() {
 				strcpy(msg.change_view_msg_.iport_mac,outview.input_port_mac().c_str());
 				strcpy(msg.change_view_msg_.oport_mac,outview.output_port_mac().c_str());
 				std::cout<<"throw the request to the ring"<<std::endl;
+				//send the message to the request rte_ring
 				rte_ring_enqueue(rte_ring_request,&msg);
 				std::cout<<"throw completed, waiting to read"<<std::endl;
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -454,7 +454,6 @@ void DeleteInputView::Proceed() {
 
 SetMigrationTarget::SetMigrationTarget(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
-	// Invoke the serving logic right away.
 	tags.index=SETMIGRATIONTARGET;
 	tags.tags=this;
 	Proceed();
@@ -469,8 +468,6 @@ void SetMigrationTarget::Proceed() {
 		new SetMigrationTarget(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
 		std::map<int, struct Local_view>::iterator it;
 		std::cout<<"received a setmigrationtarget view request"<<std::endl;
-
-		//compare received view with local view
 		bool flag=true;
 		int i;
 		if(worker_id!=request_.migration_target_info().worker_id()){
@@ -525,7 +522,7 @@ void SetMigrationTarget::Proceed() {
 			rte_ring_enqueue(rte_ring_request,&msg); //throw the msg to the ring
 			while(1){
 				sleep(2);
-				std::cout<<"get the lock to find reply"<<std::endl;
+				//try to read the msg from the reply rte_ring
 				deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 				struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 				if(deque==0){
@@ -558,7 +555,6 @@ void SetMigrationTarget::Proceed() {
 AddReplicas::AddReplicas(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id,
 		std::map< int, struct Local_view> * replicalist)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply),replicalist(replicalist){
-	// Invoke the serving logic right away.
 	tags.index=ADDREPLICAS;
 	tags.tags=this;
 	Proceed();
@@ -639,7 +635,7 @@ void AddReplicas::Proceed() {
 				rte_ring_enqueue(rte_ring_request,&msg); //throw the msg to the ring
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -688,7 +684,6 @@ void AddReplicas::Proceed() {
 DeleteReplicas::DeleteReplicas(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq, std::map< int ,struct Local_view>* viewlist_input, std::map< int, struct Local_view> *viewlist_output,struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id,
 		std::map< int, struct Local_view> * replicalist)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),viewlist_input(viewlist_input),viewlist_output(viewlist_output),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply),replicalist(replicalist){
-	// Invoke the serving logic right away.
 	tags.index=DELETEREPLICAS;
 	tags.tags=this;
 	Proceed();
@@ -703,7 +698,6 @@ void DeleteReplicas::Proceed() {
 		new DeleteReplicas(service_, cq_,viewlist_input,viewlist_output,rte_ring_request,rte_ring_reply,worker_id,replicalist);
 		std::map<int, struct Local_view>::iterator it;
 
-		//compare received view with local view
 		bool ok_flag=false;
 		int i,j;
 		for(j=0;j<request_.replicas_size();j++){
@@ -751,7 +745,7 @@ void DeleteReplicas::Proceed() {
 				rte_ring_enqueue(rte_ring_request,&msg); //throw the msg to the ring
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -799,7 +793,6 @@ void DeleteReplicas::Proceed() {
 Recover::Recover(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id,
 		std::map< int, struct Local_view> * replicalist)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply),replicalist(replicalist){
-	// Invoke the serving logic right away.
 	tags.index=RECOVER;
 	tags.tags=this;
 	Proceed();
@@ -813,13 +806,10 @@ void Recover::Proceed() {
 	} else if (status_ == PROCESS) {
 		new Recover(service_, cq_,rte_ring_request,rte_ring_reply,worker_id,replicalist);
 		std::map<int, struct Local_view>::iterator it;
-
-		//compare received view with local view
 		bool ok_flag=false;
 		int i;
 			bool flag=true;
 			if(worker_id==request_.runtime_id()){
-				//can not replica itself
 				flag=false;
 				reply_.set_fail_reason("the runtime you want to recover is  myself!");
 			}else if(replicalist->find(request_.runtime_id())==replicalist->end()){
@@ -843,7 +833,7 @@ void Recover::Proceed() {
 				rte_ring_enqueue(rte_ring_request,&msg); //throw the msg to the ring
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -882,7 +872,6 @@ void Recover::Proceed() {
 
 QueryRuntimeInfo::QueryRuntimeInfo(Runtime_RPC::AsyncService* service, ServerCompletionQueue* cq,struct rte_ring *rte_ring_request,struct rte_ring* rte_ring_reply,int worker_id)
 	: service_(service), cq_(cq), responder_(&ctx_), status_(CREATE),worker_id(worker_id),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
-	// Invoke the serving logic right away.
 	tags.index=QUERYRUNTIMEINFO;
 	tags.tags=this;
 	Proceed();
@@ -896,13 +885,10 @@ void QueryRuntimeInfo::Proceed() {
 	} else if (status_ == PROCESS) {
 		new QueryRuntimeInfo(service_, cq_,rte_ring_request,rte_ring_reply,worker_id);
 		std::map<int, struct Local_view>::iterator it;
-
-		//compare received view with local view
 		bool ok_flag=false;
 		int i;
 			bool flag=true;
 			if(worker_id!=request_.runtime_id()){
-				//can not replica itself
 				reply_.set_fail_reason("this is not the runtime you are looking for");
 				flag=false;
 			}
@@ -923,7 +909,7 @@ void QueryRuntimeInfo::Proceed() {
 				rte_ring_enqueue(rte_ring_request,&msg); //throw the msg to the ring
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -933,7 +919,7 @@ void QueryRuntimeInfo::Proceed() {
 							ok_flag=true;
 							std::cout<<"Runtime query succeed:"<<std::endl;
 						}else{
-							printf("%s\\n",rep_msg->fail_reason);
+							printf("%s\n",rep_msg->fail_reason);
 						}
 						break;
 					}else{
@@ -972,12 +958,10 @@ void QueryRuntimeStat::Proceed() {
 		new QueryRuntimeStat(service_, cq_,rte_ring_request,rte_ring_reply,worker_id);
 		std::map<int, struct Local_view>::iterator it;
 
-		//compare received view with local view
 		bool ok_flag=false;
 		int i;
 			bool flag=true;
 			if(worker_id!=request_.runtime_id()){
-				//can not replica itself
 				reply_.set_fail_reason("this is not the runtime you are looking for");
 				flag=false;
 			}
@@ -998,7 +982,7 @@ void QueryRuntimeStat::Proceed() {
 				rte_ring_enqueue(rte_ring_request,&msg); //throw the msg to the ring
 				while(1){
 					sleep(2);
-					std::cout<<"get the lock to find reply"<<std::endl;
+					//try to read the msg from the reply rte_ring
 					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
 					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
@@ -1008,11 +992,9 @@ void QueryRuntimeStat::Proceed() {
 							ok_flag=true;
 							std::cout<<"Runtime query succeed:"<<std::endl;
 						}else{
-							printf("%s\\n",rep_msg->fail_reason);
+							printf("%s\n",rep_msg->fail_reason);
 						}
 						break;
-					}else{
-						std::cout<<"empty reply queue"<<std::endl;
 					}
 
 				}
@@ -1030,126 +1012,106 @@ void QueryRuntimeStat::Proceed() {
 
 
 
-class ServerImpl final {
-public:
-	ServerImpl(int worker_id,struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply)
-		:worker_id(worker_id),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
 
-	}
-	~ServerImpl() {
-		server_->Shutdown();
-		// Always shutdown the completion queue after the server.
-		cq_->Shutdown();
-	}
+ServerImpl::ServerImpl(int worker_id,struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply)
+	:worker_id(worker_id),rte_ring_request(rte_ring_request),rte_ring_reply(rte_ring_reply){
 
-	// There is no shutdown handling in this code.
-	void Run(int core) {
-		std::string server_address("0.0.0.0:50051");
+}
+ServerImpl::~ServerImpl() {
+	server_->Shutdown();
+	// Always shutdown the completion queue after the server.
+	cq_->Shutdown();
+}
 
-		ServerBuilder builder;
-		// Listen on the given address without any authentication mechanism.
-		builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-		// Register "service_" as the instance through which we'll communicate with
-		// clients. In this case it corresponds to an *asynchronous* service.
-		builder.RegisterService(&service_);
-		// Get hold of the completion queue used for the asynchronous communication
-		// with the gRPC runtime.
-		cq_ = builder.AddCompletionQueue();
-		// Finally assemble the server.
-		server_ = builder.BuildAndStart();
-		std::cout << "Server listening on " << server_address << std::endl;
+void ServerImpl::Run(int core) {
+	std::string server_address("0.0.0.0:50051");
 
-		// Proceed to the server's main loop.
+	ServerBuilder builder;
+	// Listen on the given address without any authentication mechanism.
+	builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+	// Register "service_" as the instance through which we'll communicate with
+	// clients. In this case it corresponds to an *asynchronous* service.
+	builder.RegisterService(&service_);
+	// Get hold of the completion queue used for the asynchronous communication
+	// with the gRPC runtime.
+	cq_ = builder.AddCompletionQueue();
+	// Finally assemble the server.
+	server_ = builder.BuildAndStart();
+	std::cout << "Server listening on " << server_address << std::endl;
 
-	  cpu_set_t set;
+	// bind the server to specified core
 
-	  CPU_ZERO(&set);
-	  CPU_SET(core, &set);
-	  rte_thread_set_affinity(&set);
-		HandleRpcs();
-  }
+	cpu_set_t set;
 
-private:
+	CPU_ZERO(&set);
+	CPU_SET(core, &set);
+	rte_thread_set_affinity(&set);
+	HandleRpcs();
+}
 
-	// This can be run in multiple threads if needed.
-	void HandleRpcs() {
-		// Spawn a new CallData instance to serve new clients.
-		// new CallData(&service_, cq_.get());
-		// new SayhelloAgain(&service_, cq_.get());
-		new LivenessCheck(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-		new AddOutputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-		new AddInputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-		new DeleteOutputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-		new DeleteInputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-		new SetMigrationTarget(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
-		new AddReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
-		new DeleteReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
-		new Recover(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id,&replicalist);
-		new QueryRuntimeInfo(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id);
-		new QueryRuntimeStat(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id);
 
-		void* tag;  // uniquely identifies a request.
-		bool ok;
-		while (true) {
-			// Block waiting to read the next event from the completion queue. The
-			// event is uniquely identified by its tag, which in this case is the
-			// memory address of a CallData instance.
-			// The return value of Next should always be checked. This return value
-			// tells us whether there is any kind of event or cq_ is shutting down.
-			GPR_ASSERT(cq_->Next(&tag, &ok));
-			GPR_ASSERT(ok);
-			switch (static_cast<struct tag*>(tag)->index){
-			case LIVENESSCHECK:
-				static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case ADDOUTPUTVIEW:
-				static_cast<AddOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case ADDINPUTVIEW:
-				static_cast<AddInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case DELETEOUTPUTVIEW:
-				static_cast<DeleteOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case DELETEINPUTVIEW:
-				static_cast<DeleteInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case SETMIGRATIONTARGET:
-				static_cast<SetMigrationTarget *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case ADDREPLICAS:
-				static_cast<AddReplicas *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case DELETEREPLICAS:
-				static_cast<DeleteReplicas *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case RECOVER:
-				static_cast<Recover *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case QUERYRUNTIMEINFO:
-				static_cast<QueryRuntimeInfo *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			case QUERYRUNTIMESTAT:
-				static_cast<QueryRuntimeStat *>(static_cast<struct tag*>(tag)->tags)->Proceed();
-				break;
-			default:
-				break;
+void ServerImpl::HandleRpcs() {
+	// Spawn rpc instances to serve new clients.
 
-			}
+	new LivenessCheck(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	new AddOutputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	new AddInputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	new DeleteOutputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	new DeleteInputView(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	new SetMigrationTarget(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id);
+	new AddReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
+	new DeleteReplicas(&service_, cq_.get(),&viewlist_input,&viewlist_output,rte_ring_request,rte_ring_reply,worker_id,&replicalist);
+	new Recover(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id,&replicalist);
+	new QueryRuntimeInfo(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id);
+	new QueryRuntimeStat(&service_, cq_.get(),rte_ring_request,rte_ring_reply,worker_id);
+
+	void* tag;  // uniquely identifies a request.
+	bool ok;
+	while (true) {
+
+		GPR_ASSERT(cq_->Next(&tag, &ok));
+		GPR_ASSERT(ok);
+		switch (static_cast<struct tag*>(tag)->index){
+		case LIVENESSCHECK:
+			static_cast<LivenessCheck *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case ADDOUTPUTVIEW:
+			static_cast<AddOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case ADDINPUTVIEW:
+			static_cast<AddInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case DELETEOUTPUTVIEW:
+			static_cast<DeleteOutputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case DELETEINPUTVIEW:
+			static_cast<DeleteInputView *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case SETMIGRATIONTARGET:
+			static_cast<SetMigrationTarget *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case ADDREPLICAS:
+			static_cast<AddReplicas *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case DELETEREPLICAS:
+			static_cast<DeleteReplicas *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case RECOVER:
+			static_cast<Recover *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case QUERYRUNTIMEINFO:
+			static_cast<QueryRuntimeInfo *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		case QUERYRUNTIMESTAT:
+			static_cast<QueryRuntimeStat *>(static_cast<struct tag*>(tag)->tags)->Proceed();
+			break;
+		default:
+			break;
+
 		}
 	}
+}
 
-	std::unique_ptr<ServerCompletionQueue> cq_;
-	Runtime_RPC::AsyncService service_;
-	std::unique_ptr<Server> server_;
-	std::map<int , struct Local_view> viewlist_input;
-	std::map< int, struct Local_view> viewlist_output;
-	std::map< int, struct Local_view>  replicalist;
-public:
-	struct rte_ring* rte_ring_request;
-	struct rte_ring* rte_ring_reply;
-	int worker_id;
-};
 
 void runtime_thread(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 	std::cout<<"runtime thread ok"<<std::endl;
@@ -1236,7 +1198,6 @@ void runtime_thread(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_
 
 
 void rpc_server_thread(ServerImpl* server,struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
-	std::cout<<"rpc_server_thread ok"<<std::endl;
 	server->Run(2);
 
 }
@@ -1325,14 +1286,14 @@ int main(int argc, char **argv) {
 	int ret;
 	static struct rte_mempool *mbuf_pool;
 
-
+	//eal init
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
 		return -1;
 
 
 
-
+	//init mempool
 	mbuf_pool = rte_pktmbuf_pool_create("mbuf_pool", MBUF_PER_POOL,
 			MBUF_POOL_CACHE_SIZE, 0, RTE_MBUF_DEFAULT_BUF_SIZE,
 			rte_socket_id());
@@ -1341,9 +1302,8 @@ int main(int argc, char **argv) {
 
 
 
-
+  //init request and reply ring
 	struct rte_ring * rte_ring_request,*rte_ring_reply;
-	std::cout<<"try to create rte_ring"<<std::endl;
 	rte_ring_request = rte_ring_create("rte_ring_request", 4096, SOCKET_ID_ANY, RING_F_SP_ENQ | RING_F_SC_DEQ);
 	if (NULL == rte_ring_request){
 		std::cout<<"Rte ring create fail"<<std::endl;
@@ -1355,19 +1315,16 @@ int main(int argc, char **argv) {
 		std::cout<<"Rte ring create fail"<<std::endl;
 		return -1;
 	}
-	std::cout<<"Rte ring create succeed"<<std::endl;
-
-
-//	struct rte_ring rte_ring_request;
-//	struct rte_ring rte_ring_reply;
+	//	struct rte_ring rte_ring_request;
+	//	struct rte_ring rte_ring_reply;
 	ServerImpl server(1,rte_ring_request,rte_ring_reply);
 	std::cout<<"begin to create threads"<<std::endl;
-	std::thread t1(runtime_thread,rte_ring_request,rte_ring_reply);
-	std::thread t2(rpc_server_thread,&server,rte_ring_request,rte_ring_reply);
+	std::thread t1(runtime_thread,rte_ring_request,rte_ring_reply);//create runtime thread
+	std::thread t2(rpc_server_thread,&server,rte_ring_request,rte_ring_reply);//create rpc_server thread
 
 	while(1){
 
-	}
+	}//main thread loop forever
 
 
 	return 0;

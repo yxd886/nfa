@@ -121,6 +121,7 @@ struct tag{
 
 };
 
+
 int parse_mac_addr(char *addr, const char *str );
 int encode_mac_addr(char *str, char *addr);
 int parse_ip_addr(char *addr, const char *str );
@@ -445,4 +446,32 @@ private:
 	struct rte_ring *rte_ring_reply;
 	int worker_id;
 };
+
+class ServerImpl final {
+public:
+	ServerImpl(int worker_id,struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply);
+
+	~ServerImpl();
+
+	void Run(int core);
+
+private:
+
+	// This can be run in multiple threads if needed.
+	void HandleRpcs();
+
+	std::unique_ptr<ServerCompletionQueue> cq_;
+	Runtime_RPC::AsyncService service_;
+	std::unique_ptr<Server> server_;
+	std::map<int , struct Local_view> viewlist_input;
+	std::map< int, struct Local_view> viewlist_output;
+	std::map< int, struct Local_view>  replicalist;
+public:
+	struct rte_ring* rte_ring_request;
+	struct rte_ring* rte_ring_reply;
+	int worker_id;
+};
+
+
+
 #endif
