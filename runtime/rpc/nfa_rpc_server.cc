@@ -43,7 +43,9 @@
 #include <rte_config.h>
 #include <rte_ring.h>
 #include <rte_malloc.h>
-
+#include <rte_eal.h>
+#include <rte_mbuf.h>
+#include <rte_mempool.h>
 
 #include <grpc++/grpc++.h>
 
@@ -1289,6 +1291,23 @@ void view_local2rpc(View* rpc_view_ptr, Local_view local_view ){
 }
 
 int main() {
+
+	int ret;
+	static struct rte_mempool *mbuf_pool;
+	ret = rte_eal_init(argc, argv);
+	if (ret < 0)
+		return -1;
+
+
+	mbuf_pool = rte_pktmbuf_pool_create("mbuf_pool", MBUF_PER_POOL,
+			MBUF_POOL_CACHE_SIZE, 0, RTE_MBUF_DEFAULT_BUF_SIZE,
+			rte_socket_id());
+	if (mbuf_pool == NULL)
+		rte_exit(EXIT_FAILURE, "%s\n", rte_strerror(rte_errno));
+
+
+
+
 
 	struct rte_ring * rte_ring_request,*rte_ring_reply;
 	std::cout<<"try to create rte_ring"<<std::endl;
