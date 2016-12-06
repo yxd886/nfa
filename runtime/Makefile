@@ -99,13 +99,13 @@ OBJS = $(SRCS:.cc=.o)
 GTEST_DIR = /usr/src/gtest
 
 # The following variables are defined for sample examples.
-PROCESS_PACKET_EXEC = process_packets
+PROCESS_PACKET_EXEC = samples/process_packets
 PROCESS_PACKET_OBJS = $(filter-out main.o samples/rpc_client.o rpc/nfa_rpc_server.o,$(OBJS))
 
-RPC_TEST_CLIENT_EXEC = rpc_client
+RPC_TEST_CLIENT_EXEC = samples/rpc_client
 RPC_TEST_CLIENT_OBJS = $(filter-out main.o samples/process_packets.o rpc/nfa_rpc_server.o,$(OBJS))
 
-RPC_TEST_SERVER_EXEC = nfa_rpc_server
+RPC_TEST_SERVER_EXEC = samples/nfa_rpc_server
 RPC_TEST_SERVER_OBJS = $(filter-out main.o samples/%.o,$(OBJS))
 
 
