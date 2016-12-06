@@ -40,6 +40,8 @@
 #include <queue>
 #include <unistd.h>
 #include <sys/shm.h>
+#include <rte_common.h>
+#include <rte_errno.h>
 #include <rte_config.h>
 #include <rte_ring.h>
 #include <rte_malloc.h>
