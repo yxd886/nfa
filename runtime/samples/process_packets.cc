@@ -124,7 +124,7 @@ int main(int argc, char* argv[]){
     if (!initialized[sid]) {
 
       for (j = BEGIN; j <= END; j *= 2) {
-        sprintf(name, "pframe%d_%dk", sid, (i + 1) / 1024);
+        sprintf(name, "pframe%d_%dk", sid, (j + 1) / 1024);
         nfa_pframe_pool[sid] = rte_mempool_lookup(name);
 
         if (nfa_pframe_pool[sid]){
