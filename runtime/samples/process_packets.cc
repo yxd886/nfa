@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <rte_config.h>
+
 #include <glog/logging.h>
 
 #include "../nfaflags.h"
@@ -15,5 +17,5 @@ int main(int argc, char* argv[]){
   FLAGS_logtostderr = 1;
   google::InitGoogleLogging(argv[0]);
 
-  DLOG(INFO) << "Found cookies";
+  DLOG(INFO) << RTE_MAX_LCORE;
 }
