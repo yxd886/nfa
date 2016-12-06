@@ -1,6 +1,9 @@
 #include <iostream>
 #include <cstdio>
 
+#include <syslog.h>
+#include <unistd.h>
+
 #include <rte_config.h>
 #include <rte_config.h>
 #include <rte_cycles.h>
