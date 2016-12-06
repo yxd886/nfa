@@ -153,7 +153,8 @@ void AddInputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						struct Local_view tmp;
 						std::cout<<"find reply"<<std::endl;
@@ -239,7 +240,8 @@ void AddOutputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						struct Local_view tmp;
 						std::cout<<"find reply"<<std::endl;
@@ -323,7 +325,8 @@ void DeleteOutputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -404,7 +407,8 @@ void DeleteInputView::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -521,7 +525,8 @@ void SetMigrationTarget::Proceed() {
 			while(1){
 				sleep(2);
 				std::cout<<"get the lock to find reply"<<std::endl;
-				deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+				deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+				struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 				if(deque==0){
 					std::cout<<"find reply"<<std::endl;
 					if(rep_msg->reply){
@@ -634,7 +639,8 @@ void AddReplicas::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -745,7 +751,8 @@ void DeleteReplicas::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -836,7 +843,8 @@ void Recover::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -915,7 +923,8 @@ void QueryRuntimeInfo::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -989,7 +998,8 @@ void QueryRuntimeStat::Proceed() {
 				while(1){
 					sleep(2);
 					std::cout<<"get the lock to find reply"<<std::endl;
-					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr); struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
+					deque=rte_ring_dequeue(rte_ring_reply,&rep_msg_ptr);
+					struct reply_msg* rep_msg=static_cast<reply_msg*>(rep_msg_ptr);
 					if(deque==0){
 						std::cout<<"find reply"<<std::endl;
 						if(rep_msg->reply){
@@ -1300,9 +1310,13 @@ int main(int argc, char **argv) {
 
 	int ret;
 	static struct rte_mempool *mbuf_pool;
+
+
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
 		return -1;
+
+
 
 
 	mbuf_pool = rte_pktmbuf_pool_create("mbuf_pool", MBUF_PER_POOL,
@@ -1310,7 +1324,6 @@ int main(int argc, char **argv) {
 			rte_socket_id());
 	if (mbuf_pool == NULL)
 		rte_exit(EXIT_FAILURE, "%s\n", rte_strerror(rte_errno));
-
 
 
 
