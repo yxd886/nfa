@@ -1290,7 +1290,7 @@ void view_local2rpc(View* rpc_view_ptr, Local_view local_view ){
 	rpc_view_ptr->set_rpc_port(local_view.rpc_port);
 }
 
-int main() {
+int main(int argc, char **argv) {
 
 	int ret;
 	static struct rte_mempool *mbuf_pool;
