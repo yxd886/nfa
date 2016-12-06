@@ -48,6 +48,7 @@
 #include <rte_eal.h>
 #include <rte_mbuf.h>
 #include <rte_mempool.h>
+#include <rte_lcore.h>
 
 #include <grpc++/grpc++.h>
 
@@ -1042,7 +1043,7 @@ public:
 	}
 
 	// There is no shutdown handling in this code.
-	void Run() {
+	void Run(int core) {
 		std::string server_address("0.0.0.0:50051");
 
 		ServerBuilder builder;
@@ -1059,6 +1060,12 @@ public:
 		std::cout << "Server listening on " << server_address << std::endl;
 
 		// Proceed to the server's main loop.
+
+	  cpu_set_t set;
+
+	  CPU_ZERO(&set);
+	  CPU_SET(core, &set);
+	  rte_thread_set_affinity(&set);
 		HandleRpcs();
   }
 
@@ -1144,8 +1151,8 @@ public:
 	int worker_id;
 };
 
-void child(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
-	std::cout<<"father process ok"<<std::endl;
+void runtime_thread(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
+	std::cout<<"runtime thread ok"<<std::endl;
 
 	void *request_ptr;
 	struct reply_msg reply;
@@ -1225,6 +1232,13 @@ void child(struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
 
 
 	}
+}
+
+
+void rpc_server_theread(ServerImpl server,struct rte_ring* rte_ring_request,struct rte_ring* rte_ring_reply){
+	std::cout<<"rpc_server_thread ok"<<std::endl;
+	server.Run(2);
+
 }
 
 int parse_mac_addr(char *addr, const char *str ){
@@ -1347,9 +1361,9 @@ int main(int argc, char **argv) {
 //	struct rte_ring rte_ring_request;
 //	struct rte_ring rte_ring_reply;
 	ServerImpl server(1,rte_ring_request,rte_ring_reply);
-	std::thread t1(child,rte_ring_request,rte_ring_reply);
-	std::cout<<"Children process ok"<<std::endl;
-	server.Run();
+	std::thread t1(runtime_thread,rte_ring_request,rte_ring_reply);
+
+
 	return 0;
 }
 
