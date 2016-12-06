@@ -2,6 +2,7 @@
 #include <cstdio>
 
 #include <rte_config.h>
+#include <rte_eal.h>
 
 #include <glog/logging.h>
 
