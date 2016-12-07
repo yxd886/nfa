@@ -31,8 +31,8 @@ void fillpacket(PacketBatch* batch,char* msg, int size){
 		  pkt->set_data_off(SNBUF_HEADROOM);
 		  pkt->set_total_len(SNBUF_DATA);
 		  pkt->set_data_len(SNBUF_DATA);
-
 		  memcpy_sloppy(p, msg, SNBUF_DATA);
+		  msg+=static_cast<size_t>(SNBUF_DATA);
 		  batch->add(pkt);
 		  size-=SNBUF_DATA;
 	  }
