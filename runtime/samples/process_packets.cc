@@ -188,7 +188,7 @@ int main(int argc, char* argv[]){
       continue;
     }
 
-    sent = 0;//output_port.SendPackets(qid, batch.pkts(), batch.cnt());
+    sent = output_port.SendPackets(qid, batch.pkts(), batch.cnt());
     if (sent < batch.cnt()) {
       bess::Packet::Free(batch.pkts() + sent, batch.cnt() - sent);
     }
