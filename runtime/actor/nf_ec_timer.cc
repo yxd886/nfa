@@ -14,7 +14,7 @@ nf_ec_timer::nf_ec_timer(
                          vector<char>& flow_identifier,
                          uint64_t service_chain_type_sig,
                          actor_id nf_ec_id) :
-                           event_based_actor(config),
+
                            internal_pkt_counter_val(0),
                            repeat(0),
                            nf_ec(nf_ec),
