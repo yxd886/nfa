@@ -1,6 +1,6 @@
 //
 #include "actor.h"
-#include "message_passing.h"
+#include "../module/message_passing.h"
 
 void fillpacket(PacketBatch* batch,char* msg, int size){
 
