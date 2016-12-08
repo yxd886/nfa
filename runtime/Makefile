@@ -101,19 +101,26 @@ OBJS = $(SRCS:.cc=.o)
 GTEST_DIR = /usr/src/gtest
 
 # The following variables are defined for sample examples.
+
+SAMPLES_SRCS = $(wildcard samples/*.cc)
+SAMPLES_OBJS = $(SAMPLES_SRCS:.cc=.o)
+
 PROCESS_PACKET_EXEC = samples/process_packets
-PROCESS_PACKET_OBJS = $(filter-out main.o samples/rpc_client.o rpc/nfa_rpc_server.o,$(OBJS))
+PROCESS_PACKET_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/process_packets.o,$(SAMPLES_OBJS)),$(OBJS))
 
-RPC_TEST_CLIENT_EXEC = samples/rpc_client
-RPC_TEST_CLIENT_OBJS = $(filter-out main.o samples/process_packets.o rpc/nfa_rpc_server.o,$(OBJS))
+RPC_TEST_CLIENT_EXEC = samples/simple_rpc_client
+RPC_TEST_CLIENT_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/simple_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
 
-RPC_TEST_SERVER_EXEC = samples/nfa_rpc_server
-RPC_TEST_SERVER_OBJS = $(filter-out main.o samples/%.o,$(OBJS))
+RPC_TEST_SERVER_EXEC = samples/simple_rpc_server
+RPC_TEST_SERVER_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/simple_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
+
+SIMPLE_RPC_RECURSIVE_EXEC = samples/simple_rpc_recursive_server
+SIMPLE_RPC_RECURSIVE_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/simple_rpc_recursive_server.o,$(SAMPLES_OBJS)),$(OBJS))
 
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(PROCESS_PACKET_EXEC) $(RPC_TEST_CLIENT_EXEC) $(RPC_TEST_SERVER_EXEC)
+all: $(OBJS) $(PROCESS_PACKET_EXEC) $(RPC_TEST_CLIENT_EXEC) $(RPC_TEST_SERVER_EXEC) $(SIMPLE_RPC_RECURSIVE_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -206,6 +213,12 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(RPC_TEST_SERVER_EXEC), \
 	$$(RPC_TEST_SERVER_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+
+$(eval $(call BUILD, \
+	LD, \
+	$$(SIMPLE_RPC_RECURSIVE_EXEC), \
+	$$(SIMPLE_RPC_RECURSIVE_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
