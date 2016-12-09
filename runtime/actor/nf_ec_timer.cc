@@ -39,14 +39,14 @@ void nf_ec_timer::handle_message(struct nf_ec_timer_quit*){
     if((replication_target_a != unsafe_actor_handle_init)&&(entry_setup == true)){
       // if we have a valid replica and we have already set up an entry on the
       // replica, just notify the replica to delete our entry.
-      send(replication_target_a, force_quit_atom::value, nf_ec_id);
+      remote_send(replication_target_a, force_quit_atom::value, nf_ec_id);
       destroy(replication_target_a);
     }
 
     if(bond_to_replication_target_rt == true){
       // if we are bond to a replication_target_runtime,
       // notify the worker to remove us from that runtime
-      send(worker_a, remove_from_replication_helpers::value, replication_target_rt_id, this->id());
+      local_send(worker_a, remove_from_replication_helpers::value, replication_target_rt_id, this->id());
     }
 
     destroy(worker_a);
@@ -56,54 +56,59 @@ void nf_ec_timer::handle_message(struct nf_ec_timer_quit*){
   }
   else{
     quitting = true;
-    delayed_send(this, std::chrono::milliseconds(500), nf_ec_timer_quit::value);
+    delayed_send(this, std::chrono::milliseconds(500), nf_ec_timer_quit* value);
   }
 
 }
+
+void nf_ec_timer::handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a){
+
+
+  pending_internal_transaction = false;
+
+  if(quitting == false){
+    // the quitting flag is not set, we care about the result.
+
+    if(new_replication_target_rt_id==-1){
+      // we are not bond to a specific replica,
+      // request replica to the worker again after 1s.
+
+      print("Fail to acquire replication target runtime");
+
+      delayed_send(this, std::chrono::milliseconds(3000+std::rand()%2000), prepare_to_get_replica::value);
+    }
+    else if(new_replication_target_a == unsafe_actor_handle_init){
+      // we are bond to a replica, but the replica is failed
+      // we only need to wait for notifications from the worker.
+
+      print("The replica is placed on runtime "+to_string(new_replication_target_rt_id));
+
+      bond_to_replication_target_rt = true;
+      replication_target_rt_id = new_replication_target_rt_id;
+    }
+    else{
+      print("The replica is placed on runtime "+to_string(new_replication_target_rt_id));
+
+      // we are bond to a replica, and we receive a valid replica.
+      // ask the replica to set up an entry for us.
+
+      bond_to_replication_target_rt = true;
+      replication_target_rt_id = new_replication_target_rt_id;
+      replication_target_a = new_replication_target_a;
+      struct get_the_fking_replica*get_the_fking_replica_value;
+      local_send(this, get_the_fking_replica_value);
+    }
+  }
+}
+
+
 
 
 void nf_ec_timer::handle_message(struct prepare_to_get_replica*){
   pending_internal_transaction = true;
 
   // ask the worker actor for replica
-  request(worker_a, infinite, request_replication_target::value, replication_target_rt_id, this->id()).then(
-    [=](int new_replication_target_rt_id, const actor& new_replication_target_a){
-      pending_internal_transaction = false;
-
-      if(quitting == false){
-        // the quitting flag is not set, we care about the result.
-
-        if(new_replication_target_rt_id==-1){
-          // we are not bond to a specific replica,
-          // request replica to the worker again after 1s.
-
-          print("Fail to acquire replication target runtime");
-
-          delayed_send(this, std::chrono::milliseconds(3000+std::rand()%2000), prepare_to_get_replica::value);
-        }
-        else if(new_replication_target_a == unsafe_actor_handle_init){
-          // we are bond to a replica, but the replica is failed
-          // we only need to wait for notifications from the worker.
-
-          print("The replica is placed on runtime "+to_string(new_replication_target_rt_id));
-
-          bond_to_replication_target_rt = true;
-          replication_target_rt_id = new_replication_target_rt_id;
-        }
-        else{
-          print("The replica is placed on runtime "+to_string(new_replication_target_rt_id));
-
-          // we are bond to a replica, and we receive a valid replica.
-          // ask the replica to set up an entry for us.
-
-          bond_to_replication_target_rt = true;
-          replication_target_rt_id = new_replication_target_rt_id;
-          replication_target_a = new_replication_target_a;
-          send(this, get_the_fking_replica::value);
-        }
-      }
-    }
-  );
+  local_send(worker_a, infinite, request_replication_target*value, replication_target_rt_id, this->id());
 
 }
 void nf_ec_timer::handle_message(struct get_the_fking_replica*){
@@ -119,7 +124,7 @@ void nf_ec_timer::handle_message(struct get_the_fking_replica*){
       receive_fail_msg_before_replica_getter_finish = false;
 
       request(replication_target_a, std::chrono::milliseconds(100), //100ms deadline
-              create_new_replica::value, nf_ec_id, flow_identifier, service_chain_type_sig, 10).then(
+              create_new_replica*value, nf_ec_id, flow_identifier, service_chain_type_sig, 10).then(
         [=](nfactor_ok_atom){
           pending_internal_transaction = false;
           if(quitting == false){
@@ -186,7 +191,8 @@ void nf_ec_timer::handle_message(struct rep_peer_back_to_alive*, const actor& ne
   replication_target_a = new_replication_target_a;
 
   if(quitting == false){
-    send(this, get_the_fking_replica::value);
+  	get_the_fking_replica*get_the_fking_replica_value;
+    local_send(this, get_the_fking_replica_value);
   }
 }
 void nf_ec_timer::handle_message(struct clean_up_vswitch_table*, int arg_to_rt_id){
@@ -245,11 +251,8 @@ void nf_ec_timer::handle_message(struct get_vswitch_atom*){
   );
 }
 
-}
-behavior nf_ec_timer::make_behavior(){
-  set_default_handler(print_and_drop);
 
-}
+
 
 inline void nf_ec_timer::print(string content){
   // aout(this)<<"INFO:[nf_ec_timer "<<local_rt_id<<":"<<this->id()<<"]: "<<content<<endl;

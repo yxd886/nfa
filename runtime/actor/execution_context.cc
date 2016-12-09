@@ -238,7 +238,8 @@ behavior nf_execution_context::make_behavior(){
                                              service_chain_type_sig,
                                              this->id());
     if(replication_strategy>0){
-      send(worker_a, request_replication_target::value, replication_target_rt_id, this->id());
+    	request_replication_target*request_replication_target_value;
+      local_send(worker_a, request_replication_target_value, replication_target_rt_id, this->id());
     }
     return normal_run();
   }

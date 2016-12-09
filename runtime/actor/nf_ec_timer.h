@@ -16,7 +16,7 @@ static constexpr int flow_timeout_time = 5; //5s flow timeout value.
 
 class nf_ec_timer : public actor{
 public:
-  nf_ec_timer(actor_config& config,
+  nf_ec_timer(
               actor nf_ec,
               actor worker_a,
               int replication_target_rt_id,
@@ -34,6 +34,7 @@ protected:
   void handle_message(struct clean_up_vswitch_table* t,int arg_to_rt_id);
   void handle_message(struct change_route_atom*);
   void handle_message(struct get_vswitch_atom*);
+  void nf_ec_timer::handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a);
 
 
 

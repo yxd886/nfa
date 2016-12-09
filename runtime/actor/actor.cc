@@ -2,6 +2,8 @@
 #include "actor.h"
 #include "../module/message_passing.h"
 
+
+//warp the message to packetbatch
 void fillpacket(PacketBatch* batch,char* msg, int size){
 
 	int i=0;
