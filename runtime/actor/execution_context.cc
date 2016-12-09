@@ -159,7 +159,7 @@ behavior nf_execution_context::make_behavior(){
                                              this->id());
     if(replication_strategy>0){
       // start the contacting replicas if enable_replication is set to true
-      send(worker_a, request_replication_target::value, replication_target_rt_id, this->id());
+      local_send(worker_a, request_replication_target::value, replication_target_rt_id, this->id());
     }
     print_normal("nf-ec is started normally, enter normal_run().");
     return normal_run();
@@ -365,246 +365,200 @@ void nf_execution_context::flow_finish_quit(migration_status status){
 }
 
 /********************************* the following functions are all behaviors ********************/
+void nf_execution_context::normal_run(){
 
-behavior nf_execution_context::normal_run(){
   cur_state = nf_ec_state::normal_run;
   if(is_registered == false){
     is_registered=true;
     // register itself with the worker, so that this
     // actor could be migrated.
-    send(worker_a, add_to_active_nf_ecs::value, this->id());
+    local_send(worker_a, add_to_active_nf_ecs::value, this->id());
   }
 
-  return{
-    [=](uint64_t pkt_ptr, bool from_p0){
-      struct rte_mbuf* pkt = reinterpret_cast<struct rte_mbuf*>(pkt_ptr);
-      process_pkt(pkt, from_p0);
-    },
-    [=](start_migration, int new_migration_target_rt_id, const actor& new_migration_target_rt_a,
-        const actor& vswitch_a){
-      if((pending_transaction==true) ||
-         (pending_clear_up_vswitch_table == true) ){
-        // the nf ec actively reject the migration request
-        // we should tells the worker to add the nf ec back to active list
-        print_normal("nf-ec refuses the migration request");
-        send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), new_migration_target_rt_id, true);
-      }
-      else{
-        // start the migration
-        print_normal("nf-ec accepts the migration request, become migration source, enter acquire_migration_target_actor()");
-        migration_target_rt_id = new_migration_target_rt_id;
-        become(acquire_migration_target_actor(new_migration_target_rt_a, vswitch_a));
-      }
-    },
-    [=](set_up_entry_ok_atom){
-      set_up_entry = true;
-    },
-    [=](int new_replication_target_rt_id, const actor& new_replication_target_a, bool is_replica_alive_){
-      if(new_replication_target_rt_id!=-1){
-        is_bond_to_replica = true;
-        replication_target_rt_id = new_replication_target_rt_id;
-
-        is_replica_alive = is_replica_alive_;
-        replication_target_a = new_replication_target_a;
-
-        if(is_replica_alive == true){
-          set_up_entry = false;
-        }
-      }
-      // else{
-      //   delayed_send(worker_a, std::chrono::milliseconds(3000+std::rand()%2000),
-      //                request_replication_target::value, replication_target_rt_id, this->id());
-      // }
-    },
-    [=](rep_peer_fail){
-      is_replica_alive = false;
-      destroy(replication_target_a);
-    },
-    [=](rep_peer_back_to_alive, const actor& new_replication_target_a){
-      is_replica_alive = true;
-      set_up_entry = false;
-      replication_target_a = new_replication_target_a;
-    },
-    [=](idle_kill){
-      // killed due to idleness.
-      print_normal("nf-ec is killed due to idleness");
-      flow_finish_quit(migration_status::in_normal_processing);
-    },
-    [=](clean_up_vswitch_table_finish){
-      pending_clear_up_vswitch_table = false;
-    },
-    [=](try_change_forwarding_path){
-    }
-  };
 }
 
-behavior nf_execution_context::acquire_migration_target_actor(const actor& new_migration_target_rt_a, const actor& vswitch_a){
+void nf_execution_context::acquire_migration_target_actor(const actor& new_migration_target_rt_a, const actor& vswitch_a){
   cur_state = nf_ec_state::acquire_migration_target_actor;
 
   // ask for the migration target runtime to create a migration target actor
   pending_transaction=true;
-  this->request(new_migration_target_rt_a, std::chrono::milliseconds(5*migration_timeout_ms), //50ms deadline
+  send(new_migration_target_rt_a, std::chrono::milliseconds(5*migration_timeout_ms), //50ms deadline
                 create_migration_target_actor::value, flow_identifier, service_chain_type_sig, local_rt_id,
-                replication_target_rt_id).then(
-    [=](nfactor_ok_atom, const actor& new_migration_target_a){
-      pending_transaction = false;
-      if(cur_state == nf_ec_state::acquire_migration_target_actor){
-        print_migration_source("nf-ec get the migration target actor, enter change_forwarding_path()");
-        migration_target_a = new_migration_target_a;
-        my_vswitch_a = vswitch_a;
-        become(change_forwarding_path());
-      }
-    },
-    [=](const error& err){
-      pending_transaction = false;
-      if(cur_state == nf_ec_state::acquire_migration_target_actor){
-        // the nf ec encouters error when acquring migration target actor
-        // we should tells the worker to add the nf ec back to active list
-        print_migration_source("nf-ec fails to get migration target actor, become normal");
-        send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
-        become(normal_run());
-      }
-    }
-  );
-  return{
-    [=](uint64_t pkt_ptr, bool from_p0){
-      struct rte_mbuf* pkt = reinterpret_cast<struct rte_mbuf*>(pkt_ptr);
-      process_pkt(pkt, from_p0);
-    },
-    [=](migration_fail){
-      // the nf ec is implicitly removed from the
-      // migration list and added to the active list
-      print_migration_source("nf-ec receives migraiton_fail message in acquire_migration_target_actor(), become normal");
-      become(normal_run());
-    },
-    [=](set_up_entry_ok_atom){
-      set_up_entry = true;
-    },
-    [=](int new_replication_target_rt_id, const actor& new_replication_target_a, bool is_replica_alive_){
-      if(new_replication_target_rt_id!=-1){
-        is_bond_to_replica = true;
-        replication_target_rt_id = new_replication_target_rt_id;
+                replication_target_rt_id);
 
-        is_replica_alive = is_replica_alive_;
-        replication_target_a = new_replication_target_a;
-
-        if(is_replica_alive == true){
-          set_up_entry = false;
-        }
-      }
-      // else{
-      //   delayed_send(worker_a, std::chrono::milliseconds(3000+std::rand()%2000),
-      //                request_replication_target::value, replication_target_rt_id, this->id());
-      // }
-    },
-    [=](rep_peer_fail){
-      is_replica_alive = false;
-      destroy(replication_target_a);
-    },
-    [=](rep_peer_back_to_alive, const actor& new_replication_target_a){
-      is_replica_alive = true;
-      set_up_entry = false;
-      replication_target_a = new_replication_target_a;
-    },
-    [=](idle_kill){
-      flow_finish_quit(migration_status::in_migration_source);
-    }
-  };
 }
 
-behavior nf_execution_context::change_forwarding_path(){
+void nf_execution_context::change_forwarding_path(){
   cur_state = nf_ec_state::change_forwarding_path;
-  send(this, try_change_forwarding_path::value);
+  local_send(this, try_change_forwarding_path::value);
   retry_counter = 0;
 
-  return{
-    [=](uint64_t pkt_ptr, bool from_p0){
-      struct rte_mbuf* pkt = reinterpret_cast<struct rte_mbuf*>(pkt_ptr);
-      // first we check whether the pkt contains the magic number,
-      // which is sent from the virtual switch to inform a success about
-      // the forwarding path change.
-      process_pkt(pkt, from_p0);
-    },
-    [=](try_change_forwarding_path){
-      pending_transaction=true;
-      this->request(my_vswitch_a, std::chrono::milliseconds(5*migration_timeout_ms), // 50ms deadline
-                    forward_to_migration_target_actor::value,
-                    flow_identifier,
-                    migration_target_rt_id).then(
-        [=](nfactor_ok_atom){
-          pending_transaction=false;
-          if(cur_state == nf_ec_state::change_forwarding_path){
-            // we still need my_vswitch_a
-            // in case that the there are failures in migrate_flow_state
-            // behavior
-            print_migration_source("nf-ec successfully changes the forwarding path, enter migrate_flow_state()");
-            become(migrate_flow_state());
-          }
-        },
-        [=](const error& err){
-          pending_transaction=false;
-          if(cur_state == nf_ec_state::change_forwarding_path){
-            // in case of failure, retry at most 2 times, then we exit.
-            retry_counter+=1;
-            if(retry_counter<2){
-              print_migration_source("nf-ec fails to receive error message in change_forwarding_path, retry");
-              send(this, try_change_forwarding_path::value);
-            }
-            else{
-              // nf ec fails to change the route
-              // we should tells the worker to add the nf ec back to active list
-              print_migration_source("nf-ec fails to change forwarding path, become normal");
-              send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
-              source_clean_up();
-            }
-          }
-        }
-      );
-    },
-    [=](migration_fail){
-      // the nf ec is implicitly removed from the
-      // migration list and added to the active list
-      print_migration_source("nf-ec receives migration_fail in change_forwarding_path, become normal");
-      source_clean_up();
-    },
-    [=](set_up_entry_ok_atom){
-      set_up_entry = true;
-    },
-    [=](int new_replication_target_rt_id, const actor& new_replication_target_a, bool is_replica_alive_){
-      if(new_replication_target_rt_id!=-1){
-        is_bond_to_replica = true;
-        replication_target_rt_id = new_replication_target_rt_id;
-
-        is_replica_alive = is_replica_alive_;
-        replication_target_a = new_replication_target_a;
-
-        if(is_replica_alive == true){
-          set_up_entry = false;
-        }
-      }
-      // else{
-      //   delayed_send(worker_a, std::chrono::milliseconds(3000+std::rand()%2000),
-      //                request_replication_target::value, replication_target_rt_id, this->id());
-      // }
-    },
-    [=](rep_peer_fail){
-      is_replica_alive = false;
-      destroy(replication_target_a);
-    },
-    [=](rep_peer_back_to_alive, const actor& new_replication_target_a){
-      is_replica_alive = true;
-      set_up_entry = false;
-      replication_target_a = new_replication_target_a;
-    },
-    [=](idle_kill){
-      // we have already saved the my_vswitch_a and migration_target_a in the previous
-      // behaivor, destroy them here.
-      destroy(my_vswitch_a);
-      destroy(migration_target_a);
-      flow_finish_quit(migration_status::in_migration_source);
-    }
-  };
 }
+
+
+void nf_execution_context::handle_message(uint64_t pkt_ptr, bool from_p0){
+  struct rte_mbuf* pkt = reinterpret_cast<struct rte_mbuf*>(pkt_ptr);
+  process_pkt(pkt, from_p0);
+
+}
+void nf_execution_context::handle_message(struct start_migration*, int new_migration_target_rt_id, const actor& new_migration_target_rt_a,
+    const actor& vswitch_a){
+
+  if((pending_transaction==true) ||
+     (pending_clear_up_vswitch_table == true) ){
+    // the nf ec actively reject the migration request
+    // we should tells the worker to add the nf ec back to active list
+    print_normal("nf-ec refuses the migration request");
+    send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), new_migration_target_rt_id, true);
+  }
+  else{
+    // start the migration
+    print_normal("nf-ec accepts the migration request, become migration source, enter acquire_migration_target_actor()");
+    migration_target_rt_id = new_migration_target_rt_id;
+    become(acquire_migration_target_actor(new_migration_target_rt_a, vswitch_a));
+  }
+
+}
+
+void nf_execution_context::handle_message(struct set_up_entry_ok_atom*){
+	set_up_entry = true;
+
+}
+void nf_execution_context::handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a, bool is_replica_alive_){
+  if(new_replication_target_rt_id!=-1){
+    is_bond_to_replica = true;
+    replication_target_rt_id = new_replication_target_rt_id;
+
+    is_replica_alive = is_replica_alive_;
+    replication_target_a = new_replication_target_a;
+
+    if(is_replica_alive == true){
+      set_up_entry = false;
+    }
+  }
+}
+void nf_execution_context::handle_message(struct rep_peer_fail*){
+  is_replica_alive = false;
+  destroy(replication_target_a);
+}
+void nf_execution_context::handle_message(struct ep_peer_back_to_alive*, const actor& new_replication_target_a){
+  is_replica_alive = true;
+  set_up_entry = false;
+  replication_target_a = new_replication_target_a;
+}
+void nf_execution_context::handle_message(struct normal_processing_idle_kill*){
+  // killed due to idleness.
+  print_normal("nf-ec is killed due to idleness");
+  flow_finish_quit(migration_status::in_normal_processing);
+
+}
+
+
+void nf_execution_context::handle_message(struct clean_up_vswitch_table_finish*){
+  pending_clear_up_vswitch_table = false;
+}
+
+void nf_execution_context::handle_message(struct try_change_forwarding_path*){
+
+}
+
+
+void nf_execution_context::handle_message(struct nfactor_ok_atom*, const actor& new_migration_target_a){
+
+  pending_transaction = false;
+  if(cur_state == nf_ec_state::acquire_migration_target_actor){
+    print_migration_source("nf-ec get the migration target actor, enter change_forwarding_path()");
+    migration_target_a = new_migration_target_a;
+    my_vswitch_a = vswitch_a;
+    become(change_forwarding_path());
+  }
+}
+
+void nf_execution_context::handle_message(struct acquire_migration_target_actor_migration_error*){
+
+  pending_transaction = false;
+  if(cur_state == nf_ec_state::acquire_migration_target_actor){
+    // the nf ec encouters error when acquring migration target actor
+    // we should tells the worker to add the nf ec back to active list
+    print_migration_source("nf-ec fails to get migration target actor, become normal");
+    send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
+    become(normal_run());
+  }
+}
+
+void nf_execution_context::handle_message(struct acquire_migration_target_actor_migration_fail*){
+  // the nf ec is implicitly removed from the
+  // migration list and added to the active list
+  print_migration_source("nf-ec receives migraiton_fail message in acquire_migration_target_actor(), become normal");
+  become(normal_run());
+
+}
+
+void nf_execution_context::handle_message(struct migration_source_idle_kill*){
+	flow_finish_quit(migration_status::in_migration_source);
+}
+
+void nf_execution_context::handle_message(struct try_change_forwarding_path*){
+  pending_transaction=true;
+  send(my_vswitch_a, std::chrono::milliseconds(5*migration_timeout_ms), // 50ms deadline
+                forward_to_migration_target_actor::value,
+                flow_identifier,
+                migration_target_rt_id);
+}
+
+void nf_execution_context::handle_message(struct change_forwarding_path_nfactor_ok_atom*){
+  pending_transaction=false;
+  if(cur_state == nf_ec_state::change_forwarding_path){
+    // we still need my_vswitch_a
+    // in case that the there are failures in migrate_flow_state
+    // behavior
+    print_migration_source("nf-ec successfully changes the forwarding path, enter migrate_flow_state()");
+    become(migrate_flow_state());
+  }
+}
+
+
+void nf_execution_context::handle_message(struct change_forwarding_path_error*){
+  pending_transaction=false;
+  if(cur_state == nf_ec_state::change_forwarding_path){
+    // in case of failure, retry at most 2 times, then we exit.
+    retry_counter+=1;
+    if(retry_counter<2){
+      print_migration_source("nf-ec fails to receive error message in change_forwarding_path, retry");
+      send(this, try_change_forwarding_path::value);
+    }
+    else{
+      // nf ec fails to change the route
+      // we should tells the worker to add the nf ec back to active list
+      print_migration_source("nf-ec fails to change forwarding path, become normal");
+      send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
+      source_clean_up();
+    }
+  }
+}
+
+void nf_execution_context::handle_message(struct change_forwarding_path_migration_fail*){
+
+  // the nf ec is implicitly removed from the
+  // migration list and added to the active list
+  print_migration_source("nf-ec receives migration_fail in change_forwarding_path, become normal");
+  source_clean_up();
+}
+
+void nf_execution_context::handle_message(struct change_forwarding_path_idle_kill*){
+  // we have already saved the my_vswitch_a and migration_target_a in the previous
+  // behaivor, destroy them here.
+  destroy(my_vswitch_a);
+  destroy(migration_target_a);
+  flow_finish_quit(migration_status::in_migration_source);
+
+}
+
+
+
+
+
+
 
 behavior nf_execution_context::migrate_flow_state(){
   cur_state = nf_ec_state::migrate_flow_state;
@@ -663,41 +617,8 @@ behavior nf_execution_context::migrate_flow_state(){
       print_migration_source("nf-ec receives migration_fail message in migrate_flow_state(), become normal");
       source_clean_up();
     },
-    [=](set_up_entry_ok_atom){
-      set_up_entry = true;
-    },
-    [=](int new_replication_target_rt_id, const actor& new_replication_target_a, bool is_replica_alive_){
-      if(new_replication_target_rt_id!=-1){
-        is_bond_to_replica = true;
-        replication_target_rt_id = new_replication_target_rt_id;
 
-        is_replica_alive = is_replica_alive_;
-        replication_target_a = new_replication_target_a;
 
-        if(is_replica_alive == true){
-          set_up_entry = false;
-        }
-      }
-      // else{
-      //   delayed_send(worker_a, std::chrono::milliseconds(3000+std::rand()%2000),
-      //                request_replication_target::value, replication_target_rt_id, this->id());
-      // }
-    },
-    [=](rep_peer_fail){
-      is_replica_alive = false;
-      destroy(replication_target_a);
-    },
-    [=](rep_peer_back_to_alive, const actor& new_replication_target_a){
-      is_replica_alive = true;
-      set_up_entry = false;
-      replication_target_a = new_replication_target_a;
-    },
-    [=](idle_kill){
-      // similar reason with the previous behavior.
-      destroy(my_vswitch_a);
-      destroy(migration_target_a);
-      flow_finish_quit(migration_status::in_migration_source);
-    }
   };
 }
 
