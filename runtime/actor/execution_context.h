@@ -50,7 +50,7 @@ public:
 
 
 protected:
-  behavior make_behavior();
+  void make_behavior();
 
 private:
   /*********************private variables***************************************/
@@ -129,15 +129,15 @@ private:
 
   /***************************useful internal atoms*******************************/
 
-  using nf_ec_internal_action = atom_constant<atom("fkdo")>;
+  struct nf_ec_internal_action {};
 
-  using replica_internal_check = atom_constant<atom("cr")>;
+  struct replica_internal_check {};
 
-  using try_acquire_migration_target_actor = atom_constant<atom("i0")>;
+  struct try_acquire_migration_target_actor{};
 
-  using try_change_forwarding_path = atom_constant<atom("i1")>;
+  struct try_change_forwarding_path {};
 
-  using try_migrate_flow_state = atom_constant<atom("i2")>;
+  struct try_migrate_flow_state {};
 
   /****************************flow finish quit function*************************/
 
@@ -145,13 +145,13 @@ private:
 
   /*************************behaviors*******************************/
   // behaviors when started as migration source.
-  behavior normal_run();
-  behavior acquire_migration_target_actor(const actor& new_migration_target_rt_a, const actor& vswitch_a);
-  behavior change_forwarding_path();
-  behavior migrate_flow_state();
+  void normal_run();
+  void acquire_migration_target_actor(const actor& new_migration_target_rt_a, const actor& vswitch_a);
+  void change_forwarding_path();
+  void migrate_flow_state();
 
   // behaviors when started as migration target
-  behavior wait_flow_states();
+  void wait_flow_states();
 
   /***********************helper functions****************************/
   // for replication
@@ -166,7 +166,7 @@ private:
     pending_clear_up_vswitch_table = true;
     destroy(my_vswitch_a);
     destroy(migration_target_a);
-    become(normal_run());
+    normal_run();
   }
 
   void target_clean_up(){

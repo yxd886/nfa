@@ -116,8 +116,7 @@ struct request_vswitch_actor {};
 struct try_migrate_flow_state {};
 
 struct migration_fail {};
-struct acquire_migration_target_actor_migration_fail{};
-struct change_forwarding_path_migration_fail{};
+
 
 struct rep_peer_fail {};
 
@@ -140,10 +139,6 @@ struct clean_up_vswitch_table_finish {};
 struct idle_checker {};
 
 struct idle_kill   {};
-struct normal_run_idle_kill {};
-struct acquire_migration_source_idle_kill	{};
-
-struct change_forwarding_path_idle_kill{};
 
 struct nf_ec_timer_resume {};
 
@@ -213,13 +208,16 @@ struct replica_quit {};
 struct set_up_entry_ok_atom {};
 
 struct nf_ec_timer_internal_atom {};
+
 struct change_route_atom {};
+
 struct get_vswitch_atom {};
+
+
+
 
 
 //
 
-struct acquire_migration_target_actor_migration_error{};
-struct change_forwarding_path_error{};
 
 #endif
