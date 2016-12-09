@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include <set>
+#include <atomic>
 
 #include <grpc++/grpc++.h>
 #include <grpc/support/log.h>
@@ -48,7 +49,7 @@ class ServerImpl final {
 
   bool Run(string rpc_ip, uint16_t rpc_port);
 
-  void HandleRpcs(set<int> cpu_set, int lcore_id);
+  void HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& rpc_server_thread_ready);
 
  private:
 

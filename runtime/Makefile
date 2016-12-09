@@ -86,7 +86,7 @@ PROTOS = $(wildcard $(PROTO_DIR)/*.proto)
 PROTO_SRCS = $(patsubst %.proto,%.pb.cc, $(PROTOS))
 PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
-PROTOCFLAGS += --proto_path=$(PROTO_DIR) --proto_path=protobuf --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
+PROTOCFLAGS += --proto_path=$(PROTO_DIR) --proto_path=$(PROTO_DIR) --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
 ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc samples/*.cc rpc/*.cc *.cc port/*.cc) 
 HEADERS =  $(wildcard bessport/*.h  bessport/hooks/*.h  bessport/utils/*.h               rpc/*.h  *.h  bessport/kmod/*.h port/*.h)
@@ -117,10 +117,16 @@ RPC_TEST_SERVER_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out sam
 SIMPLE_RPC_RECURSIVE_EXEC = samples/simple_rpc_recursive_server
 SIMPLE_RPC_RECURSIVE_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/simple_rpc_recursive_server.o,$(SAMPLES_OBJS)),$(OBJS))
 
+NFA_RPC_SERVER_EXEC = samples/nfa_rpc_server
+NFA_RPC_SERVER_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/nfa_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
+
+NFA_RPC_CLIENT_EXEC = samples/nfa_rpc_client
+NFA_RPC_CLIENT_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/nfa_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
+
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(PROCESS_PACKET_EXEC) $(RPC_TEST_CLIENT_EXEC) $(RPC_TEST_SERVER_EXEC) $(SIMPLE_RPC_RECURSIVE_EXEC)
+all: $(OBJS) $(PROCESS_PACKET_EXEC) $(RPC_TEST_CLIENT_EXEC) $(RPC_TEST_SERVER_EXEC) $(SIMPLE_RPC_RECURSIVE_EXEC) $(NFA_RPC_SERVER_EXEC) $(NFA_RPC_CLIENT_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -219,6 +225,18 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(SIMPLE_RPC_RECURSIVE_EXEC), \
 	$$(SIMPLE_RPC_RECURSIVE_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(NFA_RPC_SERVER_EXEC), \
+	$$(NFA_RPC_SERVER_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(NFA_RPC_CLIENT_EXEC), \
+	$$(NFA_RPC_CLIENT_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
