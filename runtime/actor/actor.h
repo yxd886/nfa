@@ -62,6 +62,21 @@ public:
   virtual void handle_message(struct get_vswitch_atom*){}
   virtual void handle_message(int , const actor& ){}
   virtual void handle_message(struct request_replication_target*, int , int){}
+  virtual void handle_message(uint64_t pkt_ptr, bool from_p0);
+  virtual	void handle_message(struct start_migration*, int new_migration_target_rt_id, const actor& new_migration_target_rt_a,
+			const actor& vswitch_a);
+  virtual	void handle_message(struct set_up_entry_ok_atom*);
+  virtual	void handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a, bool is_replica_alive_);
+  virtual	void handle_message(struct rep_peer_fail*);
+  virtual	void handle_message(struct ep_peer_back_to_alive*, const actor& new_replication_target_a);
+  virtual	void handle_message(struct idle_kill*);
+  virtual	void handle_message(struct clean_up_vswitch_table_finish*);
+  virtual	void handle_message(struct nfactor_ok_atom*, const actor& new_migration_target_a);
+  virtual	void handle_message(const error& err);
+  virtual	void handle_message(struct migration_fail*);
+  virtual	void handle_message(struct try_change_forwarding_path*);
+  virtual	void handle_message(struct nfactor_ok_atom*);
+  virtual	void handle_message(struct try_migrate_flow_state*, vector<char>& scs_buf);
 
 private:
 	int actor_id;

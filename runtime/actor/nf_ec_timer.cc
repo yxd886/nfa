@@ -32,8 +32,16 @@ nf_ec_timer::nf_ec_timer(
                            nf_ec_id(nf_ec_id),
                            quitting(false),
                            bond_to_replication_target_rt(false),
-                           entry_setup(false){}
+                           entry_setup(false){
+	make_behavior();
+}
+
+behavior nf_ec_timer::make_behavior(){
+  set_default_handler(print_and_drop);
+}
+
 void nf_ec_timer::handle_message(struct nf_ec_timer_quit*){
+	state=NF_ec_timer_quit;
   if((clean_up_finish==true)&&(pending_internal_transaction==false)){
 
     if((replication_target_a != unsafe_actor_handle_init)&&(entry_setup == true)){
@@ -63,7 +71,7 @@ void nf_ec_timer::handle_message(struct nf_ec_timer_quit*){
 
 void nf_ec_timer::handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a){
 
-
+	state=NEW_replication_target_rt_id;
   pending_internal_transaction = false;
 
   if(quitting == false){
@@ -105,13 +113,93 @@ void nf_ec_timer::handle_message(int new_replication_target_rt_id, const actor& 
 
 
 void nf_ec_timer::handle_message(struct prepare_to_get_replica*){
+	state=PREPARE_to_get_replica;
   pending_internal_transaction = true;
 
   // ask the worker actor for replica
   local_send(worker_a, infinite, request_replication_target*value, replication_target_rt_id, this->id());
 
 }
+
+
+void nf_ec_timer::handle_message(struct nfactor_ok_atom*){
+	switch(state){
+	case GET_the_fking_replica:
+    pending_internal_transaction = false;
+    if(quitting == false){
+      if(receive_fail_msg_before_replica_getter_finish == false){
+        print("Correctly acquire replication target actor.");
+
+        // we successfully set up an entry on the replica, notify the
+        // nf_execution_context.
+        entry_setup = true;
+        send(nf_ec, replication_target_rt_id, replication_target_a);
+      }
+      else{
+        // The replica fails during the transaction, we can't trust the
+        // received replica any more, just wait for an notification from
+        // the worker to set up the entry again.
+
+        print("Replication target runtime fails during transaction");
+      }
+    }
+    break;
+	case CHANGE_route_atom:
+    destroy(vswitch_a);
+    clean_up_finish = true;
+    send(nf_ec, clean_up_vswitch_table_finish::value);
+    break;
+
+	}
+}
+
+void nf_ec_timer::handle_message(const error& err ){
+	switch(state){
+	case GET_the_fking_replica:
+    print("Fail to acquire replication target actor.");
+    if(quitting == false){
+      pending_internal_transaction = false;
+
+      // we encounter errors when setting up the entry on the replica
+      if(receive_fail_msg_before_replica_getter_finish == false){
+
+        // if the replica is not failed during this time, we need to try again by
+        // sending the get_the_fking_replica atom after 500ms.
+        delayed_send(this, std::chrono::milliseconds(500), get_the_fking_replica::value);
+      }
+    }
+    break;
+	case CHANGE_route_atom:
+    bool processed = false;
+    auto m = err.context();
+
+    message_handler mh;
+    mh.assign(
+      [&](nfactor_fail_atom){
+        processed = true;
+        destroy(vswitch_a);
+        clean_up_finish = true;
+        send(nf_ec, clean_up_vswitch_table_finish::value);
+      }
+    );
+    m.apply(mh);
+
+    if(processed==false){
+      send(this, get_vswitch_atom::value);
+    }
+    break;
+	case GET_vswitch_atom:
+		delayed_send(this, std::chrono::milliseconds(1000), get_vswitch_atom::value);
+		break;
+
+
+	}
+
+}
+
 void nf_ec_timer::handle_message(struct get_the_fking_replica*){
+
+	state=GET_the_fking_replica;
   if(pending_internal_transaction == true){
     // if there's ongoing transaction, retry after 500ms
     delayed_send(this, std::chrono::milliseconds(500), get_the_fking_replica::value);
@@ -123,48 +211,14 @@ void nf_ec_timer::handle_message(struct get_the_fking_replica*){
       pending_internal_transaction = true;
       receive_fail_msg_before_replica_getter_finish = false;
 
-      request(replication_target_a, std::chrono::milliseconds(100), //100ms deadline
-              create_new_replica*value, nf_ec_id, flow_identifier, service_chain_type_sig, 10).then(
-        [=](nfactor_ok_atom){
-          pending_internal_transaction = false;
-          if(quitting == false){
-            if(receive_fail_msg_before_replica_getter_finish == false){
-              print("Correctly acquire replication target actor.");
-
-              // we successfully set up an entry on the replica, notify the
-              // nf_execution_context.
-              entry_setup = true;
-              send(nf_ec, replication_target_rt_id, replication_target_a);
-            }
-            else{
-              // The replica fails during the transaction, we can't trust the
-              // received replica any more, just wait for an notification from
-              // the worker to set up the entry again.
-
-              print("Replication target runtime fails during transaction");
-            }
-          }
-        },
-        [=](const error& err){
-          print("Fail to acquire replication target actor.");
-          if(quitting == false){
-            pending_internal_transaction = false;
-
-            // we encounter errors when setting up the entry on the replica
-            if(receive_fail_msg_before_replica_getter_finish == false){
-
-              // if the replica is not failed during this time, we need to try again by
-              // sending the get_the_fking_replica atom after 500ms.
-              delayed_send(this, std::chrono::milliseconds(500), get_the_fking_replica::value);
-            }
-          }
-        }
-      );
+      send(replication_target_a, std::chrono::milliseconds(100), //100ms deadline
+              create_new_replica*value, nf_ec_id, flow_identifier, service_chain_type_sig, 10);
     }
   }
 
 }
 void nf_ec_timer::handle_message(struct rep_peer_fail*){
+	state=REP_peer_fail;
   print("the replication target runtime "+to_string(replication_target_rt_id)+" is failed");
   // the replica is failed
 
@@ -185,6 +239,8 @@ void nf_ec_timer::handle_message(struct rep_peer_fail*){
   }
 }
 void nf_ec_timer::handle_message(struct rep_peer_back_to_alive*, const actor& new_replication_target_a){
+
+	state=REP_peer_back_to_alive;
   print("the replication target runtime "+to_string(replication_target_rt_id)+" is back to alive");
   // the replica is alive, set the replica, and retry setting up entry on replica
 
@@ -196,6 +252,7 @@ void nf_ec_timer::handle_message(struct rep_peer_back_to_alive*, const actor& ne
   }
 }
 void nf_ec_timer::handle_message(struct clean_up_vswitch_table*, int arg_to_rt_id){
+	state=CLEAN_up_vswitch_table;
   if(clean_up_finish == true){
     to_rt_id = arg_to_rt_id;
     clean_up_finish=false;
@@ -203,52 +260,27 @@ void nf_ec_timer::handle_message(struct clean_up_vswitch_table*, int arg_to_rt_i
   }
 }
 void nf_ec_timer::handle_message(struct change_route_atom*){
-	this->request(vswitch_a, std::chrono::milliseconds(50),
+	state=CHANGE_route_atom;
+	send(vswitch_a, std::chrono::milliseconds(50),
 	                   forward_to_migration_target_actor::value,
 	                   flow_identifier,
-	                   to_rt_id).then(
-	        [=](nfactor_ok_atom){
-	          destroy(vswitch_a);
-	          clean_up_finish = true;
-	          send(nf_ec, clean_up_vswitch_table_finish::value);
-	        },
-	        [=](const error& err){
-	          bool processed = false;
-	          auto m = err.context();
+	                   to_rt_id);
 
-	          message_handler mh;
-	          mh.assign(
-	            [&](nfactor_fail_atom){
-	              processed = true;
-	              destroy(vswitch_a);
-	              clean_up_finish = true;
-	              send(nf_ec, clean_up_vswitch_table_finish::value);
-	            }
-	          );
-	          m.apply(mh);
-
-	          if(processed==false){
-	            send(this, get_vswitch_atom::value);
-	          }
-	        }
-	      );
 
 }
+void nf_ec_timer::handle_message(const actor& new_vswitch_a){
+  if(new_vswitch_a == unsafe_actor_handle_init){
+    delayed_send(this, std::chrono::milliseconds(1000), get_vswitch_atom::value);
+  }
+  else{
+    vswitch_a = new_vswitch_a;
+    send(this, change_route_atom::value);
+  }
+}
+
 void nf_ec_timer::handle_message(struct get_vswitch_atom*){
-  request(worker_a, infinite, request_vswitch_actor::value).then(
-    [=](const actor& new_vswitch_a){
-      if(new_vswitch_a == unsafe_actor_handle_init){
-        delayed_send(this, std::chrono::milliseconds(1000), get_vswitch_atom::value);
-      }
-      else{
-        vswitch_a = new_vswitch_a;
-        send(this, change_route_atom::value);
-      }
-    },
-    [=](const error& err){
-      delayed_send(this, std::chrono::milliseconds(1000), get_vswitch_atom::value);
-    }
-  );
+	state=GET_vswitch_atom;
+  send(worker_a, infinite, request_vswitch_actor::value);
 }
 
 

@@ -1,6 +1,17 @@
 #ifndef NF_EC_TIMER
 #define NF_EC_TIMER
 
+#define NF_ec_timer_quit 1
+#define PREPARE_to_get_replica 2
+#define	GET_the_fking_replica	3
+#define	REP_peer_fail 4
+#define	REP_peer_back_to_alive 5
+#define	CLEAN_up_vswitch_table 6
+#define CHANGE_route_atom 7
+#define GET_vswitch_atom 8
+#define	NEW_replication_target_rt_id 9
+
+
 #include "atom_definition.h"
 #include "actor.h"
 #include <chrono>
@@ -26,6 +37,7 @@ public:
               actor_id nf_ec_id);
 
 protected:
+  void make_behavior();
   void handle_message(struct nf_ec_timer_quit*);
   void handle_message(struct prepare_to_get_replica*);
   void handle_message(struct get_the_fking_replica*);
@@ -34,7 +46,10 @@ protected:
   void handle_message(struct clean_up_vswitch_table* t,int arg_to_rt_id);
   void handle_message(struct change_route_atom*);
   void handle_message(struct get_vswitch_atom*);
-  void nf_ec_timer::handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a);
+  void handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a);
+  void handle_message(struct nfactor_ok_atom*);
+  void handle_message(const error&);
+  void handle_message(const actor& new_vswitch_a);
 
 
 
@@ -62,7 +77,7 @@ private:
   bool quitting;
   bool bond_to_replication_target_rt;
   bool entry_setup;
-
+  int state;
   inline void print(string content);
 };
 

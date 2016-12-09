@@ -43,6 +43,7 @@ nf_execution_context::nf_execution_context(actor_config& cfg,
                                              is_bond_to_replica(false),
                                              is_replica_alive(false),
                                              set_up_entry(false){
+	make_behavior();
 }
 
 nf_execution_context::nf_execution_context(actor_config& cfg,
@@ -87,6 +88,7 @@ nf_execution_context::nf_execution_context(actor_config& cfg,
                                              is_bond_to_replica(false),
                                              is_replica_alive(false),
                                              set_up_entry(false){
+	make_behavior();
 
 }
 
@@ -134,10 +136,11 @@ nf_execution_context::nf_execution_context(actor_config& cfg,
                                              is_bond_to_replica(false),
                                              is_replica_alive(false),
                                              set_up_entry(false){
+	make_behavior();
 
 }
 
-behavior nf_execution_context::make_behavior(){
+void nf_execution_context::make_behavior(){
   set_default_handler(print_and_drop);
   if(s==starting_status::normal_start){
     // normal start
@@ -531,11 +534,6 @@ void nf_execution_context::handle_message(struct idle_kill*){
 void nf_execution_context::handle_message(struct clean_up_vswitch_table_finish*){
   pending_clear_up_vswitch_table = false;
 }
-
-void nf_execution_context::handle_message(struct try_change_forwarding_path*){
-
-}
-
 
 void nf_execution_context::handle_message(struct nfactor_ok_atom*, const actor& new_migration_target_a){
 
