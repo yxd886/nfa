@@ -630,4 +630,103 @@ void derived_call_data<DeleteStorageReq, DeleteStorageRep>::Proceed(){
   }
 }
 
+
+// RPC implementation for GetRuntimeState
+template<>
+void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestGetRuntimeState(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string delete_storage_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                   std::to_string(request_.addrs().rpc_port()));
+
+
+
+
+		llring_item item(rpc_operation::get_stats, local_runtime_, 0, replicas_.size());
+
+		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+		poll_worker2rpc_ring();
+
+
+		reply_.mutable_port_state()->set_input_port_incoming_pkts(item.stat.input_port_incoming_pkts);
+		reply_.mutable_port_state()->set_input_port_outgoing_pkts(item.stat.input_port_outgoing_pkts);
+		reply_.mutable_port_state()->set_input_port_dropped_pkts(item.stat.input_port_dropped_pkts);
+		reply_.mutable_port_state()->set_output_port_incoming_pkts(item.stat.output_port_incoming_pkts);
+		reply_.mutable_port_state()->set_output_port_outgoing_pkts(item.stat.output_port_outgoing_pkts);
+		reply_.mutable_port_state()->set_output_port_dropped_pkts(item.stat.output_port_dropped_pkts);
+		reply_.mutable_port_state()->set_control_port_incoming_pkts(item.stat.control_port_incoming_pkts);
+		reply_.mutable_port_state()->set_control_port_outgoing_pkts(item.stat.control_port_outgoing_pkts);
+		reply_.mutable_port_state()->set_control_port_dropped_pkts(item.stat.control_port_dropped_pkts);
+
+	  reply_.mutable_flow_state()->set_active_flows(item.stat.active_flows);
+	  reply_.mutable_flow_state()->set_inactive_flows(item.stat.inactive_flows);
+
+
+	  reply_.mutable_migration_state()->set_migration_index(item.stat.migration_index);
+	  reply_.mutable_migration_state()->set_migration_target_runtime_id(item.stat.migration_target_runtime_id);
+	  reply_.mutable_migration_state()->set_migration_qouta(item.stat.migration_qouta);
+	  reply_.mutable_migration_state()->set_average_flow_migration_completion_time(item.stat.average_flow_migration_completion_time);
+	  reply_.mutable_migration_state()->set_toal_flow_migration_completion_time(item.stat.toal_flow_migration_completion_time);
+	  reply_.mutable_migration_state()->set_successful_migration(item.stat.successful_migration);
+
+
+	  for(int i=0; i<item.stat.array_size; i++){
+	  	StorageState * storage_state_ptr= reply_.add_storage_states();
+	  	storage_state_ptr->set_replication_source_runtime_id(item.stat.array[i].replication_source_runtime_id);
+	  	storage_state_ptr->set_num_of_flow_replicas(item.stat.array[i].num_of_flow_replicas);
+	  	storage_state_ptr->set_total_replay_time(item.stat.array[i].total_replay_time);
+	  }
+
+		for(unordered_map<string, runtime_config>::iterator it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
+
+	    RuntimeConfig input_runtime =  local2protobuf(it->second);
+			reply_.add_input_runtimes()->CopyFrom(input_runtime);
+
+		}
+
+		for(unordered_map<string, runtime_config>::iterator it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
+
+	    RuntimeConfig output_runtime =  local2protobuf(it->second);
+			reply_.add_output_runtimes()->CopyFrom(output_runtime);
+
+		}
+
+		for(unordered_map<string, runtime_config>::iterator it=replicas_.begin();it!=replicas_.end();it++){
+
+	    RuntimeConfig replicas_runtime =  local2protobuf(it->second);
+			reply_.add_replicas()->CopyFrom(replicas_runtime);
+
+		}
+
+		for(unordered_map<string, runtime_config>::iterator it=storages_.begin();it!=storages_.end();it++){
+
+	    RuntimeConfig storages_runtime =  local2protobuf(it->second);
+			reply_.add_storages()->CopyFrom(storages_runtime);
+
+		}
+
+    RuntimeConfig migration_runtime =  local2protobuf(migration_target_);
+		reply_.mutable_migration_target()->CopyFrom(migration_runtime);
+
+    RuntimeConfig proto_local_runtime =  local2protobuf(local_runtime_);
+		reply_.mutable_local_runtime()->CopyFrom(proto_local_runtime);
+
+
+
+
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+
 #endif
