@@ -383,26 +383,26 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
 
     string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
                                                    std::to_string(request_.addrs().rpc_port()));
-    if(input_runtimes_.size()!=request_.input_runtimes_addrs_size()||output_runtimes_.size()!=request_.output_runtimes_addrs_size()){
+    if(input_runtimes_.size()!=request_.input_runtime_addrs_size()||output_runtimes_.size()!=request_.output_runtime_addrs_size()){
 
     	status_ = FINISH;
       responder_.Finish(reply_, Status::OK, this);
       return;
     }
 
-    for(int i=0;i<request_.input_runtimes_addrs_size();i++){
-      string compare_addr = concat_with_colon(request_.input_runtimes_addrs(i).rpc_ip(),
-                                                     std::to_string(request_.input_runtimes_addrs(i).rpc_port()));
-    	if(input_runtimes_.find(compare_addr)==input_runtimes_.end()){
+    for(int i=0;i<request_.input_runtime_addrs_size();i++){
+      string compare_addr = concat_with_colon(request_.input_runtime_addrs(i).rpc_ip(),
+                                                     std::to_string(request_.input_runtime_addrs(i).rpc_port()));
+    	if(input_runtimes_.find(compare_addr)==input_runtime_.end()){
       	status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
     	}
     }
-    for(int i=0;i<request_.output_runtimes_addrs_size();i++){
-      string compare_addr = concat_with_colon(request_.output_runtimes_addrs(i).rpc_ip(),
-                                                     std::to_string(request_.output_runtimes_addrs(i).rpc_port()));
-    	if(output_runtimes_.find(compare_addr)==output_runtimes_.end()){
+    for(int i=0;i<request_.output_runtime_addrs_size();i++){
+      string compare_addr = concat_with_colon(request_.output_runtime_addrs(i).rpc_ip(),
+                                                     std::to_string(request_.output_runtime_addrs(i).rpc_port()));
+    	if(output_runtimes_.find(compare_addr)==output_runtime_.end()){
       	status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
