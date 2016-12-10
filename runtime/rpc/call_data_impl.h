@@ -354,7 +354,9 @@ void derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>::Proceed(){
 		if(status.ok()){
 	    reply_.set_succeed(true);
 
-			llring_item item(rpc_operation::set_migration_target, 0, rep.quota(), 0);
+	    runtime_config runtime;
+
+			llring_item item(rpc_operation::set_migration_target, runtime, rep.quota(), 0);
 
 			llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
@@ -409,7 +411,9 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
     	}
     }
 
-		llring_item item(rpc_operation::migration_negotiate, 0, request_.quota(), 0);
+    runtime_config runtime;
+
+		llring_item item(rpc_operation::migration_negotiate, runtime, request_.quota(), 0);
 
 		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
