@@ -7,6 +7,8 @@ service Runtime_RPC {
   rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
   rpc AddOutputRts (AddOutputRtsReq) returns (AddOutputRtsRes) {} 
   rpc AddInputRt (AddInputRtReq) returns (AddInputRtRep) {}
+  rpc DeleteOutputRts (DeleteOutputRtsReq) returns (DeleteOutputRtsRes) {} 
+  rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
 }
 
 message LivenessRequest {
