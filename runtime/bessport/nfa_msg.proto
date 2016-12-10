@@ -10,7 +10,7 @@ service Runtime_RPC {
   rpc DeleteOutputRt (DeleteOutputRtReq) returns (DeleteOutputRtRep) {}
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
   rpc SetMigrationTarget (SetMigrationTargetReq) returns (SetMigrationTargetRep){}
-  rpc MigrationNegotiate (MigrationNegotiationReq) returns (MigrationNegotiateRep){}
+  rpc MigrationNegotiate (MigrationNegotiateReq) returns (MigrationNegotiateRep){}
 }
 
 message Address{
@@ -81,13 +81,13 @@ message SetMigrationTargetRep{
   bool succeed = 1;
 }
 
-message MigrationNegotiationReq{
+message MigrationNegotiateReq{
   repeated Address input_runtime_addrs = 1;
   repeated Address output_runtimes_addrs = 2;
   uint64 quota = 3;
 }
 
-message MigrationNegotiationRep{
+message MigrationNegotiateRep{
   bool succeed = 1;
   uint64 quota = 2;
 }

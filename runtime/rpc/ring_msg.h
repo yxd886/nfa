@@ -187,6 +187,7 @@ enum class rpc_operation{
   delete_input_runtime,
   delete_output_runtime,
   set_migration_target,
+	migration_negotiate,
   add_replica,
   add_storage,
   remove_replica,
