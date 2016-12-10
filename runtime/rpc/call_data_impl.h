@@ -565,4 +565,69 @@ void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>::Proceed(){
   }
 }
 
+
+
+
+// RPC implementation for DeleteReplica
+
+template<>
+void derived_call_data<DeleteReplicaReq, DeleteReplicaRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteReplica(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string delete_replica_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                   std::to_string(request_.addrs().rpc_port()));
+    if((replicas_.find(delete_replica_addr)!=replicas_.end())){
+
+      llring_item item(rpc_operation::delete_relica, replicas_[delete_replica_addr], 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+
+      replicas_.erase(delete_replica_addr);
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+
+// RPC implementation for DeleteStorage
+template<>
+void derived_call_data<DeleteStorageReq, DeleteStorageRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteApplica(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string delete_storage_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                   std::to_string(request_.addrs().rpc_port()));
+    if((storages_.find(delete_storage_addr)!=storages_.end())){
+
+      llring_item item(rpc_operation::delete_storage, storages_[delete_storage_addr], 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+
+      storages_.erase(delete_storage_addr);
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
 #endif

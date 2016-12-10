@@ -190,8 +190,8 @@ enum class rpc_operation{
 	migration_negotiate,
   add_replica,
   add_storage,
-  remove_replica,
-  remove_storage,
+  delete_replica,
+  delete_storage,
   get_stats
 };
 
