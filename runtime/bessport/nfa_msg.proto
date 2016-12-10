@@ -9,6 +9,14 @@ service Runtime_RPC {
   rpc AddInputRt (AddInputRtReq) returns (AddInputRtRep) {}
   rpc DeleteOutputRt (DeleteOutputRtReq) returns (DeleteOutputRtRep) {}
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
+  rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult){}
+  rpc MigrationNegotiate (MigrationNegotiation) returns (MigrationNegotiationResult){}
+}
+
+
+message Address{
+  string rpc_ip = 1;
+  int32 rpc_port = 2;
 }
 
 message LivenessRequest {
@@ -48,10 +56,7 @@ message AddInputRtRep{
 }
 
 message DeleteOutputRtReq{
-  message Address{
-    string rpc_ip = 1;
-    int32 rpc_port = 2;
-  }
+
   Address addrs = 1;
 }
 
@@ -60,13 +65,35 @@ message DeleteOutputRtRep{
 }
 
 message DeleteInputRtReq{
-    message Address{
-    string rpc_ip = 1;
-    int32 rpc_port = 2;
-  }
+
   Address addrs = 1;
 }
 
 message DeleteInputRtRep{
 
 }
+
+
+//message for set_migration_target
+
+
+
+message MigrationTarget{
+
+  Address migration_target_addr = 1;
+  uint64 quota = 2;
+}
+
+message MigrationNegotiation{
+  Address migration_source_addr = 1;
+  repeated RuntimeConfig input_runtimes = 2;
+  repeated RuntimeConfig output_runtimes = 3;
+  uint64 qouta = 4;
+}
+
+
+message MigrationNegotiationResult{
+  bool succeed = 1;
+  uint64 qouta = 2;
+}
+
