@@ -9,10 +9,9 @@ service Runtime_RPC {
   rpc AddInputRt (AddInputRtReq) returns (AddInputRtRep) {}
   rpc DeleteOutputRt (DeleteOutputRtReq) returns (DeleteOutputRtRep) {}
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
-  rpc SetMigrationTarget (MigrationTarget) returns (MigrationNegotiationResult){}
-  rpc MigrationNegotiate (MigrationNegotiation) returns (MigrationNegotiationResult){}
+  rpc SetMigrationTarget (SetMigrationTargetReq) returns (SetMigrationTargetRep){}
+  rpc MigrationNegotiate (MigrationNegotiationReq) returns (MigrationNegotiateRep){}
 }
-
 
 message Address{
   string rpc_ip = 1;
@@ -73,27 +72,22 @@ message DeleteInputRtRep{
 
 }
 
-
-//message for set_migration_target
-
-
-
-message MigrationTarget{
-
-  Address migration_target_addr = 1;
+message SetMigrationTargetReq{
+  Address addr = 1;
   uint64 quota = 2;
 }
 
-message MigrationNegotiation{
-  Address migration_source_addr = 1;
-  repeated RuntimeConfig input_runtimes = 2;
-  repeated RuntimeConfig output_runtimes = 3;
-  uint64 qouta = 4;
-}
-
-
-message MigrationNegotiationResult{
+message SetMigrationTargetRep{
   bool succeed = 1;
-  uint64 qouta = 2;
 }
 
+message MigrationNegotiationReq{
+  repeated Address input_runtime_addrs = 1;
+  repeated Address output_runtimes_addrs = 2;
+  uint64 quota = 3;
+}
+
+message MigrationNegotiationRep{
+  bool succeed = 1;
+  uint64 quota = 2;
+}
