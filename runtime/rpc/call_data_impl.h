@@ -433,7 +433,7 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
 
 //RPC implementation for AddReplicas
 template<>
-void derived_call_data<AddReplicasReq, SAddReplicasRep>::Proceed(){
+void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
   if (status_ == CREATE) {
     status_ = PROCESS;
     service_->RequestAddReplicas(&ctx_, &request_, &responder_, cq_, cq_, this);
@@ -507,7 +507,7 @@ void derived_call_data<AddReplicasReq, SAddReplicasRep>::Proceed(){
 // RPC implementation for ReplicaNegotiation
 
 template<>
-void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateNegotiateRep>::Proceed(){
+void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>::Proceed(){
   if (status_ == CREATE) {
     status_ = PROCESS;
     service_->RequestReplicaNegotiate(&ctx_, &request_, &responder_, cq_, cq_, this);
