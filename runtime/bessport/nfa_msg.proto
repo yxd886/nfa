@@ -11,6 +11,8 @@ service Runtime_RPC {
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
   rpc SetMigrationTarget (SetMigrationTargetReq) returns (SetMigrationTargetRep){}
   rpc MigrationNegotiate (MigrationNegotiateReq) returns (MigrationNegotiateRep){}
+  rpc AddReplicas (AddReplicasReq) returns (AddReplicasRep){}
+  rpc ReplicaNegotiate(ReplicaNegotiateReq) returns (ReplicaNegotiateRep){}
 }
 
 message Address{
@@ -90,4 +92,33 @@ message MigrationNegotiateReq{
 message MigrationNegotiateRep{
   bool succeed = 1;
   uint64 quota = 2;
+}
+
+
+message AddReplicasReq{
+  message ReplicaInfo{
+    RuntimeConfig replica = 1;
+    repeated RuntimeConfig input_runtimes = 3;
+    repeated RuntimeConfig output_runtimes = 4;
+  }
+  repeated ReplicaInfo replicas = 1;
+}
+
+
+message AddReplicasRep{
+  repeated RuntimeConfig replicas = 1;
+}
+
+
+message ReplicaNegotiateReq{
+
+  RuntimeConfig replication_source_info = 2;
+  repeated RuntimeConfig input_runtimes = 3;
+  repeated RuntimeConfig output_runtimes = 4;
+  repeated uint8 loaded_nf_modules = 5;
+}
+
+
+message ReplicationNegotiateRep{
+  bool succeed = 1;
 }
