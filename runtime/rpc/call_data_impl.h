@@ -252,8 +252,8 @@ void derived_call_data<DeleteOutputRtReq, DeleteOutputRtRep>::Proceed(){
     service_->RequestDeleteOutputRt(&ctx_, &request_, &responder_, cq_, cq_, this);
   } else if (status_ == PROCESS) {
     create_itself();
-    string output_runtime_addr = concat_with_colon(request_.rpc_ip(),
-                                                  std::to_string(request_.rpc_port()));
+    string output_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
     if((output_runtimes_.find(output_runtime_addr)!=output_runtimes_.end())){
 
 
@@ -286,8 +286,8 @@ void derived_call_data<DeleteInputRtReq, DeleteInputRtRep>::Proceed(){
 
 
     string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
-                                                  std::to_string(request_.rpc_port()));
-    if((input_runtimes_.find(input_runtime_addr)!=input_runtimes_.end())){
+                                                  std::to_string(request_.addrs().rpc_port()));
+    if((input_runtimes_.find(input_runtime_addr)!=input_runtimes_.addrs().end())){
 
       llring_item item(rpc_operation::delete_input_runtime, input_runtimes_[input_runtime_addr], 0, 0);
 
