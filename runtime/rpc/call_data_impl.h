@@ -242,41 +242,4 @@ void derived_call_data<AddInputRtReq, AddInputRtRep>::Proceed(){
   }
 }
 
-
-
-// RPC implementation for DeleteOutputRt
-template<>
-void derived_call_data<AddInputRtReq, AddInputRtRep>::Proceed(){
-  if (status_ == CREATE) {
-    status_ = PROCESS;
-    service_->RequestAddInputRt(&ctx_, &request_, &responder_, cq_, cq_, this);
-  } else if (status_ == PROCESS) {
-    create_itself();
-
-    runtime_config input_runtime = protobuf2local(request_.input_runtime());
-    string input_runtime_addr = concat_with_colon(request_.input_runtime().rpc_ip(),
-                                                  std::to_string(request_.input_runtime().rpc_port()));
-    if((input_runtime != local_runtime_)&&
-        (input_runtimes_.find(input_runtime_addr)==input_runtimes_.end())){
-      input_runtimes_.emplace(input_runtime_addr, input_runtime);
-
-      llring_item item(rpc_operation::add_input_runtime, input_runtime, 0, 0);
-
-      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
-
-      poll_worker2rpc_ring();
-
-      RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
-
-      reply_.mutable_local_runtime()->CopyFrom(protobuf_local_runtime);
-    }
-
-    status_ = FINISH;
-    responder_.Finish(reply_, Status::OK, this);
-  } else {
-    GPR_ASSERT(status_ == FINISH);
-    delete this;
-  }
-}
-
 #endif
