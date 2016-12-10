@@ -242,4 +242,66 @@ void derived_call_data<AddInputRtReq, AddInputRtRep>::Proceed(){
   }
 }
 
+
+// RPC implementation for DeleteOutputRt
+
+template<>
+void derived_call_data<DeleteOutputRtReq, DeleteOutputRtRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteOutputRt(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+    string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
+                                                  std::to_string(request_.rpc_port()));
+    if((input_runtimes_.find(input_runtime_addr)!=input_runtimes_.end())){
+      input_runtimes_.erase(input_runtime_addr);
+
+      llring_item item(rpc_operation::delete_input_runtime, input_runtime, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+
+// RPC implementation for DeleteInputRt
+
+template<>
+void derived_call_data<DeleteInputRtReq, DeleteInputRtRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteInputRt(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+
+    string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
+                                                  std::to_string(request_.rpc_port()));
+    if((input_runtimes_.find(input_runtime_addr)!=input_runtimes_.end())){
+      input_runtimes_.erase(input_runtime_addr);
+
+      llring_item item(rpc_operation::delete_input_runtime, input_runtime, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
 #endif
