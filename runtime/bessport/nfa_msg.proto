@@ -5,7 +5,7 @@ package nfa_msg;
 service Runtime_RPC {
   // Sends a greeting
   rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
-  rpc AddOutputRts (AddOutputRtsReq) returns (AddOutputRtsRes) {}
+  rpc AddOutputRts (AddOutputRtsReq) returns (AddOutputRtsRes) {} 
   rpc AddInputRt (AddInputRtReq) returns (AddInputRtRep) {}
   rpc DeleteOutputRt (DeleteOutputRtReq) returns (DeleteOutputRtRep) {}
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
@@ -18,17 +18,17 @@ service Runtime_RPC {
   rpc GetRuntimeState(GetRuntimeStateReq) returns (GetRuntimeStateRep){}
 }
 
-message Address{
-  string rpc_ip = 1;
-  int32 rpc_port = 2;
-}
-
 message LivenessRequest {
 
 }
 
 message LivenessReply {
 
+}
+
+message Address{
+  string rpc_ip = 1;
+  int32 rpc_port = 2;
 }
 
 message RuntimeConfig{
@@ -41,10 +41,6 @@ message RuntimeConfig{
 }
 
 message AddOutputRtsReq{
-  message Address{
-    string rpc_ip = 1;
-    int32 rpc_port = 2;
-  }
   repeated Address addrs = 1;
 }
 
@@ -60,21 +56,17 @@ message AddInputRtRep{
 }
 
 message DeleteOutputRtReq{
-
   Address addrs = 1;
 }
 
 message DeleteOutputRtRep{
-
 }
 
 message DeleteInputRtReq{
-
   Address addrs = 1;
 }
 
 message DeleteInputRtRep{
-
 }
 
 message SetMigrationTargetReq{
@@ -83,25 +75,23 @@ message SetMigrationTargetReq{
 }
 
 message SetMigrationTargetRep{
-  bool succeed = 1;
 }
 
 message MigrationNegotiateReq{
-  repeated Address input_runtime_addrs = 1;
-  repeated Address output_runtime_addrs = 2;
-  uint64 quota = 3;
+  RuntimeConfig migration_source_config = 1;
+  repeated Address input_runtime_addrs = 2;
+  repeated Address output_runtime_addrs = 3;
+  uint64 quota = 4;
 }
 
 message MigrationNegotiateRep{
-  bool succeed = 1;
+  RuntimeConfig migration_target_runtime = 1;
   uint64 quota = 2;
 }
-
 
 message AddReplicasReq{
   repeated Address addrs = 1;
 }
-
 
 message AddReplicasRep{
 }
@@ -116,46 +106,33 @@ message ReplicaNegotiateRep{
   RuntimeConfig replication_target_info = 1;
 }
 
-
-
-
 message DeleteReplicaReq{
-
   Address addrs = 1;
 }
 
 message DeleteReplicaRep{
-
 }
 
-
-
 message DeleteStorageReq{
-
   Address addrs = 1;
 }
 
 message DeleteStorageRep{
-
 }
-
 
 message PortState{
   uint64 input_port_incoming_pkts=1;
   uint64 input_port_outgoing_pkts=2;
   uint64 input_port_dropped_pkts=3;
-
   uint64 output_port_incoming_pkts=4;
   uint64 output_port_outgoing_pkts=5;
   uint64 output_port_dropped_pkts=6;
-  
   uint64 control_port_incoming_pkts=7;
   uint64 control_port_outgoing_pkts=8;
   uint64 control_port_dropped_pkts=9;
 }
 
 message FlowState{
-
   uint64 active_flows=1;
   uint64 inactive_flows=2;
 }
@@ -179,18 +156,14 @@ message GetRuntimeStateReq{
 }
 
 message GetRuntimeStateRep{
-  
   PortState port_state=1;
   FlowState flow_state=2;
   MigrationState migration_state=3;
   repeated StorageState storage_states=4;
-  
-  
   repeated RuntimeConfig input_runtimes=5;
   repeated RuntimeConfig output_runtimes=6;
   repeated RuntimeConfig replicas=7;
   repeated RuntimeConfig storages=8;
-  
   RuntimeConfig migration_target=9;
   RuntimeConfig local_runtime=10;
 }

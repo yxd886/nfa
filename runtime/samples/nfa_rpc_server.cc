@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
   llring_set_water_mark(worker2rpc_ring, ((llring_size >> 3) * 7));
 
   ServerImpl rpc_server(rpc2worker_ring, worker2rpc_ring);
-  rpc_server.Run("127.0.0.1", 50051);
+  rpc_server.Run("127.0.0.1", FLAGS_rpc_port);
 
   auto rpc_thread_fun = [](ServerImpl &rpc_server, set<int> cpu_set, int lcore_id,
                            std::atomic<bool>& rpc_server_thread_ready){
@@ -44,7 +44,25 @@ int main(int argc, char* argv[]){
 
   LOG(INFO)<<"server thread runs";
 
+  void* dequeue_output[1];
+  int flag;
   while(true){
-    std::this_thread::sleep_for(std::chrono::seconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    flag = llring_sc_dequeue(rpc2worker_ring, dequeue_output);
+
+    if(flag != 0){
+      continue;
+    }
+    else{
+      llring_item* item = static_cast<llring_item*>(dequeue_output[0]);
+
+      LOG(INFO) << "Receive "<<opcode2string(item->op_code)<<" ring message.";
+      print_config(item->rt_config);
+      LOG(INFO) << "migration_qouta-> "<<item->migration_qouta;
+      print_stat(item->op_code, item->stat);
+
+      llring_sp_enqueue(worker2rpc_ring, static_cast<void*>(item));
+    }
   }
 }

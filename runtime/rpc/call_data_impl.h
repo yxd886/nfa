@@ -165,11 +165,14 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
     create_itself();
 
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
+    string local_addr = concat_with_colon(protobuf_local_runtime.rpc_ip(),
+                                          std::to_string(protobuf_local_runtime.rpc_port()));
 
     for(int i=0; i<request_.addrs_size(); i++){
       string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
                                            std::to_string(request_.addrs(i).rpc_port()));
-      if(output_runtimes_.find(dest_addr)!=output_runtimes_.end()){
+      if((output_runtimes_.find(dest_addr)!=output_runtimes_.end()) ||
+          (dest_addr == local_addr)){
         continue;
       }
 
@@ -189,6 +192,8 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
 
       if(status.ok() && rep.has_local_runtime()){
         runtime_config output_runtime = protobuf2local(rep.local_runtime());
+
+        output_runtimes_.emplace(dest_addr, output_runtime);
 
         llring_item item(rpc_operation::add_output_runtime, output_runtime, 0, 0);
 
@@ -242,7 +247,6 @@ void derived_call_data<AddInputRtReq, AddInputRtRep>::Proceed(){
   }
 }
 
-
 // RPC implementation for DeleteOutputRt
 
 template<>
@@ -255,14 +259,12 @@ void derived_call_data<DeleteOutputRtReq, DeleteOutputRtRep>::Proceed(){
     string output_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
                                                    std::to_string(request_.addrs().rpc_port()));
     if((output_runtimes_.find(output_runtime_addr)!=output_runtimes_.end())){
-
       llring_item item(rpc_operation::delete_output_runtime, output_runtimes_[output_runtime_addr], 0, 0);
+      output_runtimes_.erase(output_runtime_addr);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
       poll_worker2rpc_ring();
-
-      output_runtimes_.erase(output_runtime_addr);
     }
 
     status_ = FINISH;
@@ -272,7 +274,6 @@ void derived_call_data<DeleteOutputRtReq, DeleteOutputRtRep>::Proceed(){
     delete this;
   }
 }
-
 
 // RPC implementation for DeleteInputRt
 
@@ -287,14 +288,12 @@ void derived_call_data<DeleteInputRtReq, DeleteInputRtRep>::Proceed(){
     string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
                                                    std::to_string(request_.addrs().rpc_port()));
     if((input_runtimes_.find(input_runtime_addr)!=input_runtimes_.end())){
-
       llring_item item(rpc_operation::delete_input_runtime, input_runtimes_[input_runtime_addr], 0, 0);
+      input_runtimes_.erase(input_runtime_addr);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
       poll_worker2rpc_ring();
-      
-      input_runtimes_.erase(input_runtime_addr);
     }
 
     status_ = FINISH;
@@ -306,6 +305,7 @@ void derived_call_data<DeleteInputRtReq, DeleteInputRtRep>::Proceed(){
 }
 
 //RPC implementation for SetMigrationTarget
+
 template<>
 void derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>::Proceed(){
   if (status_ == CREATE) {
@@ -313,56 +313,58 @@ void derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>::Proceed(){
     service_->RequestSetMigrationTarget(&ctx_, &request_, &responder_, cq_, cq_, this);
   } else if (status_ == PROCESS) {
     create_itself();
-    reply_.set_succeed(false);
 
-    RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
+    string dest_addr = concat_with_colon(request_.addr().rpc_ip(),
+                                         std::to_string(request_.addr().rpc_port()));
+    string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
+                                         std::to_string(local_runtime_.rpc_port));
+    if((dest_addr==local_addr)||(request_.quota()==0)){
+      status_ = FINISH;
+      responder_.Finish(reply_, Status::OK, this);
+      return;
+    }
 
-		string dest_addr = concat_with_colon(request_.addr().rpc_ip(),
-																				 std::to_string(request_.addr().rpc_port()));
-		string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
-																				 std::to_string(local_runtime_.rpc_port));
-		if(dest_addr==local_addr){
-	    status_ = FINISH;
-	    responder_.Finish(reply_, Status::OK, this);
-	    return;
-		}
+    std::unique_ptr<Runtime_RPC::Stub> stub(Runtime_RPC::NewStub(
+        grpc::CreateChannel(dest_addr, grpc::InsecureChannelCredentials())));
 
-		std::unique_ptr<Runtime_RPC::Stub> stub(Runtime_RPC::NewStub(
-				grpc::CreateChannel(dest_addr, grpc::InsecureChannelCredentials())));
+    MigrationNegotiateReq req;
+    req.set_quota(request_.quota());
+    for(auto it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
+      auto addr_ptr = req.add_input_runtime_addrs();
+      addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+      addr_ptr->set_rpc_port(it->second.rpc_port);
 
-		MigrationNegotiateReq req;
-		req.set_quota(request_.quota());
-		for(unordered_map<string, runtime_config>::iterator it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
-			req.add_input_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
-			req.add_input_runtime_addrs()->set_rpc_port(it->second.rpc_port);
+    }
+    for(auto it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
+      auto addr_ptr = req.add_output_runtime_addrs();
+      addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+      addr_ptr->set_rpc_port(it->second.rpc_port);
 
-		}
-		for(unordered_map<string, runtime_config>::iterator it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
-			req.add_output_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
-			req.add_output_runtime_addrs()->set_rpc_port(it->second.rpc_port);
+    }
+    req.mutable_migration_source_config()->CopyFrom(local2protobuf(local_runtime_));
+    MigrationNegotiateRep rep;
 
-		}
-		MigrationNegotiateRep rep;
+    ClientContext context;
+    std::chrono::system_clock::time_point deadline =
+            std::chrono::system_clock::now() + std::chrono::seconds(FLAGS_rpc_timeout);
+    context.set_deadline(deadline);
 
-		ClientContext context;
-		std::chrono::system_clock::time_point deadline =
-						std::chrono::system_clock::now() + std::chrono::seconds(FLAGS_rpc_timeout);
-		context.set_deadline(deadline);
+    Status status = stub->MigrationNegotiate(&context, req, &rep);
 
-		Status status = stub->MigrationNegotiate(&context, req, &rep);
+    if(status.ok() && rep.has_migration_target_runtime()){
 
-		if(status.ok()){
-	    reply_.set_succeed(true);
+      runtime_config migration_target_runtime = protobuf2local(rep.migration_target_runtime());
 
-	    runtime_config runtime;
+      llring_item item(rpc_operation::set_migration_target, migration_target_runtime, rep.quota(), 0);
 
-			llring_item item(rpc_operation::set_migration_target, runtime, rep.quota(), 0);
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
-			llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+      poll_worker2rpc_ring();
 
-			poll_worker2rpc_ring();
-		}
-
+      if(item.migration_qouta!=0){
+        migration_target_ = migration_target_runtime;
+      }
+    }
 
     status_ = FINISH;
     responder_.Finish(reply_, Status::OK, this);
@@ -381,44 +383,47 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
     service_->RequestMigrationNegotiate(&ctx_, &request_, &responder_, cq_, cq_, this);
   } else if (status_ == PROCESS) {
     create_itself();
-    reply_.set_succeed(false);
 
-    if(input_runtimes_.size()!=request_.input_runtime_addrs_size()||output_runtimes_.size()!=request_.output_runtime_addrs_size()){
-
-    	status_ = FINISH;
+    if( (input_runtimes_.size()!=request_.input_runtime_addrs_size()) ||
+        (output_runtimes_.size()!=request_.output_runtime_addrs_size()) ){
+      status_ = FINISH;
       responder_.Finish(reply_, Status::OK, this);
       return;
     }
 
-    for(int i=0;i<request_.input_runtime_addrs_size();i++){
+    for(auto i=0; i<request_.input_runtime_addrs_size(); i++){
       string compare_addr = concat_with_colon(request_.input_runtime_addrs(i).rpc_ip(),
-                                                     std::to_string(request_.input_runtime_addrs(i).rpc_port()));
-    	if(input_runtimes_.find(compare_addr)==input_runtimes_.end()){
-      	status_ = FINISH;
+                                              std::to_string(request_.input_runtime_addrs(i).rpc_port()));
+      if(input_runtimes_.find(compare_addr)==input_runtimes_.end()){
+        status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
-    	}
+      }
     }
-    for(int i=0;i<request_.output_runtime_addrs_size();i++){
+
+    for(auto i=0; i<request_.output_runtime_addrs_size(); i++){
       string compare_addr = concat_with_colon(request_.output_runtime_addrs(i).rpc_ip(),
-                                                     std::to_string(request_.output_runtime_addrs(i).rpc_port()));
-    	if(output_runtimes_.find(compare_addr)==output_runtimes_.end()){
-      	status_ = FINISH;
+                                              std::to_string(request_.output_runtime_addrs(i).rpc_port()));
+      if(output_runtimes_.find(compare_addr)==output_runtimes_.end()){
+        status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
-    	}
+      }
     }
 
-    runtime_config runtime;
+    runtime_config migration_source_config = protobuf2local(request_.migration_source_config());
 
-		llring_item item(rpc_operation::migration_negotiate, runtime, request_.quota(), 0);
+    llring_item item(rpc_operation::migration_negotiate, migration_source_config, request_.quota(), 0);
 
-		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+    llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
-		poll_worker2rpc_ring();
+    poll_worker2rpc_ring();
 
-    reply_.set_succeed(true);
-    reply_.set_quota(item.migration_qouta);
+    if(item.migration_qouta > 0){
+      reply_.mutable_migration_target_runtime()->CopyFrom(local2protobuf(local_runtime_));
+      reply_.set_quota(item.migration_qouta);
+    }
+
     status_ = FINISH;
     responder_.Finish(reply_, Status::OK, this);
   } else {
@@ -427,11 +432,8 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
   }
 }
 
-
-
-
-
 //RPC implementation for AddReplicas
+
 template<>
 void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
   if (status_ == CREATE) {
@@ -440,9 +442,10 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
   } else if (status_ == PROCESS) {
     create_itself();
 
-		string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
-																				 std::to_string(local_runtime_.rpc_port));
+    string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
+                                         std::to_string(local_runtime_.rpc_port));
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
+
     for(int i=0; i<request_.addrs_size(); i++){
       string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
                                            std::to_string(request_.addrs(i).rpc_port()));
@@ -456,18 +459,20 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
 
       ReplicaNegotiateReq req;
       req.mutable_replication_source_info()->CopyFrom(protobuf_local_runtime);
-  		for(unordered_map<string, runtime_config>::iterator it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
-  			req.add_input_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
-  			req.add_input_runtime_addrs()->set_rpc_port(it->second.rpc_port);
 
-  		}
-  		for(unordered_map<string, runtime_config>::iterator it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
-  			req.add_output_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
-  			req.add_output_runtime_addrs()->set_rpc_port(it->second.rpc_port);
+      for(auto it=input_runtimes_.begin(); it!=input_runtimes_.end(); it++){
+        auto addr_ptr = req.add_input_runtime_addrs();
+        addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+        addr_ptr->set_rpc_port(it->second.rpc_port);
+      }
 
-  		}
+      for(auto it=output_runtimes_.begin(); it!=output_runtimes_.end(); it++){
+        auto addr_ptr = req.add_output_runtime_addrs();
+        addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+        addr_ptr->set_rpc_port(it->second.rpc_port);
+      }
 
-  		ReplicaNegotiateRep rep;
+      ReplicaNegotiateRep rep;
 
       ClientContext context;
       std::chrono::system_clock::time_point deadline =
@@ -479,8 +484,8 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
       if(status.ok() && rep.has_replication_target_info()){
         runtime_config target_runtime = protobuf2local(rep.replication_target_info());
 
-    		string target_addr = concat_with_colon(convert_uint32t_ip(target_runtime.rpc_ip),
-    																				 std::to_string(target_runtime.rpc_port));
+        string target_addr = concat_with_colon(convert_uint32t_ip(target_runtime.rpc_ip),
+                                               std::to_string(target_runtime.rpc_port));
 
         replicas_.emplace(target_addr,target_runtime);
 
@@ -500,10 +505,6 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
   }
 }
 
-
-
-
-
 // RPC implementation for ReplicaNegotiation
 
 template<>
@@ -514,48 +515,48 @@ void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>::Proceed(){
   } else if (status_ == PROCESS) {
     create_itself();
 
-    if(input_runtimes_.size()!=request_.input_runtime_addrs_size()||output_runtimes_.size()!=request_.output_runtime_addrs_size()){
-
-    	status_ = FINISH;
+    if( (input_runtimes_.size()!=request_.input_runtime_addrs_size()) ||
+        (output_runtimes_.size()!=request_.output_runtime_addrs_size()) ){
+      status_ = FINISH;
       responder_.Finish(reply_, Status::OK, this);
       return;
     }
 
-    for(int i=0;i<request_.input_runtime_addrs_size();i++){
+    for(int i=0; i<request_.input_runtime_addrs_size(); i++){
       string compare_addr = concat_with_colon(request_.input_runtime_addrs(i).rpc_ip(),
-                                                     std::to_string(request_.input_runtime_addrs(i).rpc_port()));
-    	if(input_runtimes_.find(compare_addr)==input_runtimes_.end()){
-      	status_ = FINISH;
+                                              std::to_string(request_.input_runtime_addrs(i).rpc_port()));
+      if(input_runtimes_.find(compare_addr)==input_runtimes_.end()){
+        status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
-    	}
+      }
     }
     for(int i=0;i<request_.output_runtime_addrs_size();i++){
       string compare_addr = concat_with_colon(request_.output_runtime_addrs(i).rpc_ip(),
-                                                     std::to_string(request_.output_runtime_addrs(i).rpc_port()));
-    	if(output_runtimes_.find(compare_addr)==output_runtimes_.end()){
-      	status_ = FINISH;
+                                              std::to_string(request_.output_runtime_addrs(i).rpc_port()));
+      if(output_runtimes_.find(compare_addr)==output_runtimes_.end()){
+        status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
-    	}
+      }
     }
 
     runtime_config source_runtime = protobuf2local(request_.replication_source_info());
 
-		string source_addr = concat_with_colon(convert_uint32t_ip(source_runtime.rpc_ip),
-																				 std::to_string(source_runtime.rpc_port));
+    string source_addr = concat_with_colon(convert_uint32t_ip(source_runtime.rpc_ip),
+                                           std::to_string(source_runtime.rpc_port));
 
     storages_.emplace(source_addr,source_runtime);
 
-		llring_item item(rpc_operation::add_storage, source_runtime, 0, 0);
+    llring_item item(rpc_operation::add_storage, source_runtime, 0, 0);
 
-		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+    llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
-		poll_worker2rpc_ring();
+    poll_worker2rpc_ring();
 
-		RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
+    RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
 
-		reply_.mutable_replication_target_info()->CopyFrom(protobuf_local_runtime);
+    reply_.mutable_replication_target_info()->CopyFrom(protobuf_local_runtime);
 
     status_ = FINISH;
     responder_.Finish(reply_, Status::OK, this);
@@ -564,9 +565,6 @@ void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>::Proceed(){
     delete this;
   }
 }
-
-
-
 
 // RPC implementation for DeleteReplica
 
@@ -582,13 +580,12 @@ void derived_call_data<DeleteReplicaReq, DeleteReplicaRep>::Proceed(){
                                                    std::to_string(request_.addrs().rpc_port()));
     if((replicas_.find(delete_replica_addr)!=replicas_.end())){
 
-      llring_item item(rpc_operation::delete_replica, replicas_[delete_replica_addr], 0, 0);
+      llring_item item(rpc_operation::remove_replica, replicas_[delete_replica_addr], 0, 0);
+      replicas_.erase(delete_replica_addr);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
       poll_worker2rpc_ring();
-
-      replicas_.erase(delete_replica_addr);
     }
 
     status_ = FINISH;
@@ -599,8 +596,8 @@ void derived_call_data<DeleteReplicaReq, DeleteReplicaRep>::Proceed(){
   }
 }
 
-
 // RPC implementation for DeleteStorage
+
 template<>
 void derived_call_data<DeleteStorageReq, DeleteStorageRep>::Proceed(){
   if (status_ == CREATE) {
@@ -613,13 +610,12 @@ void derived_call_data<DeleteStorageReq, DeleteStorageRep>::Proceed(){
                                                    std::to_string(request_.addrs().rpc_port()));
     if((storages_.find(delete_storage_addr)!=storages_.end())){
 
-      llring_item item(rpc_operation::delete_storage, storages_[delete_storage_addr], 0, 0);
+      llring_item item(rpc_operation::remove_storage, storages_[delete_storage_addr], 0, 0);
+      storages_.erase(delete_storage_addr);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
       poll_worker2rpc_ring();
-
-      storages_.erase(delete_storage_addr);
     }
 
     status_ = FINISH;

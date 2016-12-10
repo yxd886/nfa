@@ -3,7 +3,7 @@
 
 #include <glog/logging.h>
 
-bool ServerImpl::Run(string rpc_ip, uint16_t rpc_port){
+bool ServerImpl::Run(string rpc_ip, int32_t rpc_port){
   string server_address = rpc_ip + string(":") + std::to_string(rpc_port);
 
   ServerBuilder builder;
@@ -56,4 +56,14 @@ void ServerImpl::HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& r
 template<class... T>
 void ServerImpl::create_call_data(T&&... arg){
   new derived_call_data<LivenessRequest, LivenessReply>(std::forward<T>(arg)...);
+  new derived_call_data<AddOutputRtsReq, AddOutputRtsRes>(std::forward<T>(arg)...);
+  new derived_call_data<AddInputRtReq, AddInputRtRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteOutputRtReq, DeleteOutputRtRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteInputRtReq, DeleteInputRtRep>(std::forward<T>(arg)...);
+  new derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>(std::forward<T>(arg)...);
+  new derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>(std::forward<T>(arg)...);
+  new derived_call_data<AddReplicasReq, AddReplicasRep>(std::forward<T>(arg)...);
+  new derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteReplicaReq, DeleteReplicaRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteStorageReq, DeleteStorageRep>(std::forward<T>(arg)...);
 }

@@ -59,7 +59,7 @@ class ServerImpl final {
     }
   }
 
-  bool Run(string rpc_ip, uint16_t rpc_port);
+  bool Run(string rpc_ip, int32_t rpc_port);
 
   void HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& rpc_server_thread_ready);
 

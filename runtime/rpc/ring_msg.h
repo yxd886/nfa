@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 
+#include <glog/logging.h>
+
 #include "../bessport/nfa_msg.grpc.pb.h"
 #include "../bessport/mem_alloc.h"
 
@@ -187,11 +189,11 @@ enum class rpc_operation{
   delete_input_runtime,
   delete_output_runtime,
   set_migration_target,
-	migration_negotiate,
+  migration_negotiate,
   add_replica,
   add_storage,
-  delete_replica,
-  delete_storage,
+  remove_replica,
+  remove_storage,
   get_stats
 };
 
@@ -210,5 +212,71 @@ struct llring_item{
                 migration_qouta(qouta),
                 stat(replica_num){}
 };
+
+inline string opcode2string(rpc_operation code){
+  string return_val = "";
+  switch (code){
+    case rpc_operation::add_input_runtime:
+      return_val = "add_input_runtime";
+      break;
+    case rpc_operation::add_output_runtime:
+      return_val = "add_output_runtime";
+      break;
+    case rpc_operation::delete_input_runtime:
+      return_val = "delete_input_runtime";
+      break;
+    case rpc_operation::delete_output_runtime:
+      return_val = "delete_output_runtime";
+      break;
+    case rpc_operation::set_migration_target:
+      return_val = "set_migration_target";
+      break;
+    case rpc_operation::migration_negotiate:
+      return_val = "migration_negotiate";
+      break;
+    case rpc_operation::add_replica:
+      return_val = "add_replica";
+      break;
+    case rpc_operation::add_storage:
+      return_val = "add_storage";
+      break;
+    case rpc_operation::remove_replica:
+      return_val = "remove_replica";
+      break;
+    case rpc_operation::remove_storage:
+      return_val = "remove_storage";
+      break;
+    case rpc_operation::get_stats:
+      return_val = "get_stats";
+      break;
+    default:
+      return_val = "wtf??";
+      break;
+  }
+  return return_val;
+}
+
+inline void print_config(runtime_config config){
+  LOG(INFO) << "runtime_config-> "
+            << "id:"<<config.runtime_id<<" "
+            << "input_port_mac:"<<convert_uint64t_mac(config.input_port_mac)<<" "
+            << "output_port_mac:"<<convert_uint64t_mac(config.output_port_mac)<<" "
+            << "control_port_mac:"<<convert_uint64t_mac(config.control_port_mac)<<" "
+            << "rpc_ip:"<<convert_uint32t_ip(config.rpc_ip)<<" "
+            << "rpc_port:"<<std::to_string(config.rpc_port);
+}
+
+inline void print_stat(rpc_operation op_code, runtime_stat& stat){
+  if(op_code == rpc_operation::get_stats){
+    LOG(INFO) << "runtime_stat-> "
+              << "input_port_incoming_pkts:"<<stat.input_port_incoming_pkts<<" ";
+    for(uint64_t i=0; i<stat.array_size; i++){
+      LOG(INFO) << "storage_stat-> "
+                << "replication_source_runtime_id:"<<stat.array[i].replication_source_runtime_id<<" ";
+    }
+  }
+}
+
+
 
 #endif
