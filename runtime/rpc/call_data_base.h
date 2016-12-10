@@ -12,6 +12,8 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerCompletionQueue;
 using grpc::Status;
+using grpc::Channel;
+using grpc::ClientContext;
 using nfa_msg::Runtime_RPC;
 
 class call_data_base {

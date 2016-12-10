@@ -7,6 +7,7 @@
 #include <thread>
 #include <set>
 #include <atomic>
+#include <unordered_map>
 
 #include <grpc++/grpc++.h>
 #include <grpc/support/log.h>
@@ -19,9 +20,12 @@
 #include "../bessport/nfa_msg.grpc.pb.h"
 #include "../nfaflags.h"
 #include "../bessport/utils/common.h"
+#include "ring_msg.h"
+#include "../nfaflags.h"
 
 using std::string;
 using std::set;
+using std::unordered_map;
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
@@ -36,7 +40,15 @@ class ServerImpl final {
   ServerImpl(struct llring* rpc2worker_ring,
              struct llring* worker2rpc_ring) :
                rpc2worker_ring_(rpc2worker_ring),
-               worker2rpc_ring_(worker2rpc_ring){}
+               worker2rpc_ring_(worker2rpc_ring){
+    migration_target_.runtime_id = -1;
+    local_runtime_.runtime_id = FLAGS_runtime_id;
+    local_runtime_.input_port_mac = convert_string_mac(FLAGS_input_port_mac);
+    local_runtime_.output_port_mac = convert_string_mac(FLAGS_output_port_mac);
+    local_runtime_.control_port_mac = convert_string_mac(FLAGS_control_port_mac);
+    local_runtime_.rpc_ip = convert_string_ip(FLAGS_rpc_ip);
+    local_runtime_.rpc_port = FLAGS_rpc_port;
+  }
 
   ~ServerImpl() {
     if(server_!=nullptr){
@@ -53,7 +65,8 @@ class ServerImpl final {
 
  private:
 
-  void create_call_data();
+  template<class... T>
+  void create_call_data(T&&... arg);
 
   std::unique_ptr<ServerCompletionQueue> cq_;
 
@@ -64,6 +77,18 @@ class ServerImpl final {
   struct llring* rpc2worker_ring_;
 
   struct llring* worker2rpc_ring_;
+
+  unordered_map<int32_t, runtime_config> input_runtimes_;
+
+  unordered_map<int32_t, runtime_config> output_runtimes_;
+
+  unordered_map<int32_t, runtime_config> replicas_;
+
+  unordered_map<int32_t, runtime_config> storages_;
+
+  runtime_config migration_target_;
+
+  runtime_config local_runtime_;
 };
 
 #endif

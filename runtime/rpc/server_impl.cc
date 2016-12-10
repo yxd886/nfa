@@ -32,7 +32,16 @@ void ServerImpl::HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& r
   rte_thread_set_affinity(&set);
   RTE_PER_LCORE(_lcore_id) = lcore_id;
 
-  create_call_data();
+  create_call_data(&service_,
+                   cq_.get(),
+                   rpc2worker_ring_,
+                   worker2rpc_ring_,
+                   std::ref(input_runtimes_),
+                   std::ref(output_runtimes_),
+                   std::ref(replicas_),
+                   std::ref(storages_),
+                   std::ref(migration_target_),
+                   std::ref(local_runtime_));
   void* tag;
   bool ok;
 
@@ -44,8 +53,7 @@ void ServerImpl::HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& r
   }
 }
 
-void ServerImpl::create_call_data(){
-  // new LivenessCheck(&service_, cq_.get());
-  new derived_call_data<LivenessRequest, LivenessReply>(&service_, cq_.get());
-  new derived_call_data<AddOutputRtsReq, AddOutputRtsRes>(&service_, cq_.get());
+template<class... T>
+void ServerImpl::create_call_data(T&&... arg){
+  new derived_call_data<LivenessRequest, LivenessReply>(std::forward<T>(arg)...);
 }
