@@ -83,7 +83,7 @@ message SetMigrationTargetRep{
 
 message MigrationNegotiateReq{
   repeated Address input_runtime_addrs = 1;
-  repeated Address output_runtimes_addrs = 2;
+  repeated Address output_runtime_addrs = 2;
   uint64 quota = 3;
 }
 

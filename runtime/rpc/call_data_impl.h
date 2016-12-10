@@ -333,13 +333,13 @@ void derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>::Proceed(){
 		MigrationNegotiateReq req;
 		req.set_quota(request_.quota());
 		for(unordered_map<string, runtime_config>::iterator it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
-			req.add_input_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->rpc_ip));
-			req.add_input_runtime_addrs()->set_rpc_port(it->rpc_port);
+			req.add_input_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+			req.add_input_runtime_addrs()->set_rpc_port(it->second.rpc_port);
 
 		}
 		for(unordered_map<string, runtime_config>::iterator it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
-			req.add_output_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->rpc_ip));
-			req.add_output_runtime_addrs()->set_rpc_port(it->rpc_port);
+			req.add_output_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+			req.add_output_runtime_addrs()->set_rpc_port(it->second.rpc_port);
 
 		}
 		MigrationNegotiateRep rep;
@@ -383,8 +383,6 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
     create_itself();
     reply_.set_succeed(false);
 
-    string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
-                                                   std::to_string(request_.addrs().rpc_port()));
     if(input_runtimes_.size()!=request_.input_runtime_addrs_size()||output_runtimes_.size()!=request_.output_runtime_addrs_size()){
 
     	status_ = FINISH;
@@ -395,7 +393,7 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
     for(int i=0;i<request_.input_runtime_addrs_size();i++){
       string compare_addr = concat_with_colon(request_.input_runtime_addrs(i).rpc_ip(),
                                                      std::to_string(request_.input_runtime_addrs(i).rpc_port()));
-    	if(input_runtimes_.find(compare_addr)==input_runtime_.end()){
+    	if(input_runtimes_.find(compare_addr)==input_runtimes_.end()){
       	status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
@@ -404,7 +402,7 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
     for(int i=0;i<request_.output_runtime_addrs_size();i++){
       string compare_addr = concat_with_colon(request_.output_runtime_addrs(i).rpc_ip(),
                                                      std::to_string(request_.output_runtime_addrs(i).rpc_port()));
-    	if(output_runtimes_.find(compare_addr)==output_runtime_.end()){
+    	if(output_runtimes_.find(compare_addr)==output_runtimes_.end()){
       	status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
