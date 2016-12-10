@@ -454,7 +454,7 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
       std::unique_ptr<Runtime_RPC::Stub> stub(Runtime_RPC::NewStub(
           grpc::CreateChannel(dest_addr, grpc::InsecureChannelCredentials())));
 
-      ReplciaNegotiateReq req;
+      ReplicaNegotiateReq req;
       req.mutable_replication_source_info()->CopyFrom(protobuf_local_runtime);
   		for(unordered_map<string, runtime_config>::iterator it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
   			req.add_input_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
@@ -467,7 +467,7 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
 
   		}
 
-  		ReplciaNegotiateRep rep;
+  		ReplicaNegotiateRep rep;
 
       ClientContext context;
       std::chrono::system_clock::time_point deadline =
