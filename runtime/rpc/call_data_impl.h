@@ -285,9 +285,9 @@ void derived_call_data<DeleteInputRtReq, DeleteInputRtRep>::Proceed(){
     create_itself();
 
 
-    string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
+    string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
                                                   std::to_string(request_.addrs().rpc_port()));
-    if((input_runtimes_.find(input_runtime_addr)!=input_runtimes_.addrs().end())){
+    if((input_runtimes_.find(input_runtime_addr)!=input_runtimes_.end())){
 
       llring_item item(rpc_operation::delete_input_runtime, input_runtimes_[input_runtime_addr], 0, 0);
 
