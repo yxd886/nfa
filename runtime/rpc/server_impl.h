@@ -78,13 +78,13 @@ class ServerImpl final {
 
   struct llring* worker2rpc_ring_;
 
-  unordered_map<int32_t, runtime_config> input_runtimes_;
+  unordered_map<string, runtime_config> input_runtimes_;
 
-  unordered_map<int32_t, runtime_config> output_runtimes_;
+  unordered_map<string, runtime_config> output_runtimes_;
 
-  unordered_map<int32_t, runtime_config> replicas_;
+  unordered_map<string, runtime_config> replicas_;
 
-  unordered_map<int32_t, runtime_config> storages_;
+  unordered_map<string, runtime_config> storages_;
 
   runtime_config migration_target_;
 
