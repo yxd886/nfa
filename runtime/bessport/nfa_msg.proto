@@ -15,6 +15,7 @@ service Runtime_RPC {
   rpc ReplicaNegotiate(ReplicaNegotiateReq) returns (ReplicaNegotiateRep){}
   rpc DeleteReplica(DeleteReplicaReq) returns (DeleteReplicaRep){}
   rpc DeleteStorage(DeleteStorageReq) returns (DeleteStorageRep){}
+  rpc GetRuntimeState(GetRuntimeStateReq) returns (GetRuntimeStateRep){}
 }
 
 message Address{
@@ -138,3 +139,49 @@ message DeleteStorageRep{
 
 }
 
+
+message PortState{
+  uint64 input_port_incoming_pkts=1;
+  uint64 input_port_outgoing_pkts=2;
+  uint64 input_port_dropped_pkts=3;
+
+  uint64 output_port_incoming_pkts=4;
+  uint64 output_port_outgoing_pkts=5;
+  uint64 output_port_dropped_pkts=6;
+  
+  uint64 control_port_incoming_pkts=7;
+  uint64 control_port_outgoing_pkts=8;
+  uint64 control_port_dropped_pkts=9;
+}
+
+message FlowState{
+
+  uint64 active_flows=1;
+  uint64 inactive_flows=2;
+}
+
+message MigrationState{
+  uint64 migration_index=1;
+  uint64 migration_target_runtime_id=2;
+  uint64 migration_qouta=3;
+  uint64 average_flow_migration_completion_time=4;
+  uint64 toal_flow_migration_completion_time=5;
+  uint64 successful_migration=6;
+}
+
+message StorageState{
+  uint64 replication_source_runtime_id=1;
+  uint64 num_of_flow_replicas=2;
+  uint64 total_replay_time=3;
+}
+
+message GetRuntimeStateReq{
+}
+
+message GetRuntimeStateRep{
+  
+  PortState port_state=1;
+  FlowState flow_state=2;
+  MigrationState migration_state=3;
+  repeated StorageState storage_states=4;
+}
