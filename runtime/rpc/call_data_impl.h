@@ -474,9 +474,9 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
               std::chrono::system_clock::now() + std::chrono::seconds(FLAGS_rpc_timeout);
       context.set_deadline(deadline);
 
-      Status status = stub->ReplciaNegotiate(&context, req, &rep);
+      Status status = stub->ReplicaNegotiate(&context, req, &rep);
 
-      if(status.ok() && rep.has_local_runtime()){
+      if(status.ok() && rep.has_replication_target_info()){
         runtime_config target_runtime = protobuf2local(rep.replication_target_info());
 
     		string target_addr = concat_with_colon(convert_uint32t_ip(target_runtime.rpc_ip),
