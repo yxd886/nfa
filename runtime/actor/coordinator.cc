@@ -1,8 +1,8 @@
 //
 #include "coordinator.h"
 
-using migration_check = atom_constant<atom("mc0")>;
-using migratino_traffic_check = atom_constant<atom("mc1")>;
+struct migration_check{};
+struct migratino_traffic_check {};
 
 template <class Inspector>
 typename Inspector::result_type inspect(Inspector& f, broadcast_msg& x) {

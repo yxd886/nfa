@@ -6,7 +6,7 @@ using std::endl;
 
 #define SNBUF_HEADROOM 128
 
-nf_execution_context::nf_execution_context(actor_config& cfg,
+nf_execution_context::nf_execution_context(
                                            network_function_hub& hub,
                                            int local_rt_id,
                                            vector<char>& flow_identifier,
@@ -46,7 +46,7 @@ nf_execution_context::nf_execution_context(actor_config& cfg,
 	make_behavior();
 }
 
-nf_execution_context::nf_execution_context(actor_config& cfg,
+nf_execution_context::nf_execution_context(
                                            network_function_hub& hub,
                                            int local_rt_id,
                                            vector<char>& flow_identifier,
@@ -92,7 +92,7 @@ nf_execution_context::nf_execution_context(actor_config& cfg,
 
 }
 
-nf_execution_context::nf_execution_context(actor_config& cfg,
+nf_execution_context::nf_execution_context(
                                            network_function_hub& hub,
                                            int local_rt_id,
                                            vector<char>& flow_identifier,
@@ -165,7 +165,8 @@ void nf_execution_context::make_behavior(){
       local_send(worker_a, request_replication_target::value, replication_target_rt_id, this->id());
     }
     print_normal("nf-ec is started normally, enter normal_run().");
-    return normal_run();
+    normal_run();
+    return;
   }
   else if(s==starting_status::migration_target){
     // started as migration target
@@ -180,7 +181,8 @@ void nf_execution_context::make_behavior(){
       send(worker_a, request_replication_target::value, replication_target_rt_id, this->id());
     }
     print_migration_target("nf-ec is started as migration target, enter wait_flow_states()");
-    return wait_flow_states();
+    wait_flow_states();
+    return;
   }
   else{
     print_recover("the nf_ec is recovered");
@@ -244,7 +246,12 @@ void nf_execution_context::make_behavior(){
     	request_replication_target*request_replication_target_value;
       local_send(worker_a, request_replication_target_value, replication_target_rt_id, this->id());
     }
-    return normal_run();
+    normal_run();
+    return;
+
+
+
+
   }
 }
 
