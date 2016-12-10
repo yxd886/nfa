@@ -96,28 +96,18 @@ message MigrationNegotiateRep{
 
 
 message AddReplicasReq{
-  message ReplicaInfo{
-    RuntimeConfig replica = 1;
-    repeated RuntimeConfig input_runtimes = 3;
-    repeated RuntimeConfig output_runtimes = 4;
-  }
-  repeated ReplicaInfo replicas = 1;
+  repeated Address addrs = 1;
 }
 
 
 message AddReplicasRep{
-  repeated RuntimeConfig replicas = 1;
 }
-
 
 message ReplicaNegotiateReq{
-
-  RuntimeConfig replication_source_info = 2;
-  repeated RuntimeConfig input_runtimes = 3;
-  repeated RuntimeConfig output_runtimes = 4;
-  repeated uint8 loaded_nf_modules = 5;
+  RuntimeConfig replication_source_info = 1;
+  repeated Address input_runtime_addrs = 2;
+  repeated Address output_runtime_addrs = 3;
 }
-
 
 message ReplicationNegotiateRep{
   bool succeed = 1;
