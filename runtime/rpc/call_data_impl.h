@@ -582,7 +582,7 @@ void derived_call_data<DeleteReplicaReq, DeleteReplicaRep>::Proceed(){
                                                    std::to_string(request_.addrs().rpc_port()));
     if((replicas_.find(delete_replica_addr)!=replicas_.end())){
 
-      llring_item item(rpc_operation::delete_relica, replicas_[delete_replica_addr], 0, 0);
+      llring_item item(rpc_operation::delete_replica, replicas_[delete_replica_addr], 0, 0);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
@@ -605,7 +605,7 @@ template<>
 void derived_call_data<DeleteStorageReq, DeleteStorageRep>::Proceed(){
   if (status_ == CREATE) {
     status_ = PROCESS;
-    service_->RequestDeleteApplica(&ctx_, &request_, &responder_, cq_, cq_, this);
+    service_->RequestDeleteStorage(&ctx_, &request_, &responder_, cq_, cq_, this);
   } else if (status_ == PROCESS) {
     create_itself();
 
