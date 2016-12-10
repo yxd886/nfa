@@ -184,4 +184,13 @@ message GetRuntimeStateRep{
   FlowState flow_state=2;
   MigrationState migration_state=3;
   repeated StorageState storage_states=4;
+  
+  
+  repeated RuntimeConfig input_runtimes=5;
+  repeated RuntimeConfig output_runtimes=6;
+  repeated RuntimeConfig replicas=7;
+  repeated RuntimeConfig storages=8;
+  
+  RuntimeConfig migration_target=9;
+  RuntimeConfig local_runtime=10;
 }
