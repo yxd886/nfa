@@ -640,12 +640,6 @@ void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
   } else if (status_ == PROCESS) {
     create_itself();
 
-    string delete_storage_addr = concat_with_colon(request_.addrs().rpc_ip(),
-                                                   std::to_string(request_.addrs().rpc_port()));
-
-
-
-
 		llring_item item(rpc_operation::get_stats, local_runtime_, 0, replicas_.size());
 
 		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
