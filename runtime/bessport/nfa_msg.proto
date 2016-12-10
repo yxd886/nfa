@@ -109,6 +109,6 @@ message ReplicaNegotiateReq{
   repeated Address output_runtime_addrs = 3;
 }
 
-message ReplicationNegotiateRep{
+message ReplicaNegotiateRep{
   RuntimeConfig replication_target_info = 1;
 }
