@@ -5,9 +5,9 @@ package nfa_msg;
 service Runtime_RPC {
   // Sends a greeting
   rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
-  rpc AddOutputRts (AddOutputRtsReq) returns (AddOutputRtsRes) {} 
+  rpc AddOutputRts (AddOutputRtsReq) returns (AddOutputRtsRes) {}
   rpc AddInputRt (AddInputRtReq) returns (AddInputRtRep) {}
-  rpc DeleteOutputRts (DeleteOutputRtsReq) returns (DeleteOutputRtsRes) {} 
+  rpc DeleteOutputRts (DeleteOutputRtsReq) returns (DeleteOutputRtsRes) {}
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
 }
 
@@ -47,10 +47,7 @@ message AddInputRtRep{
   RuntimeConfig local_runtime = 1;
 }
 
-
-
-
-message DeleteOutputRtsReq{
+message DeleteOutputRtReq{
   message Address{
     string rpc_ip = 1;
     int32 rpc_port = 2;
@@ -58,7 +55,8 @@ message DeleteOutputRtsReq{
   Address addrs = 1;
 }
 
-message DeleteOutputRtsRes{
+message DeleteOutputRtRep{
+
 }
 
 message DeleteInputRtReq{
@@ -70,5 +68,5 @@ message DeleteInputRtReq{
 }
 
 message DeleteInputRtRep{
-  
+
 }
