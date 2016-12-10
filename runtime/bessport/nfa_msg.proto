@@ -13,6 +13,8 @@ service Runtime_RPC {
   rpc MigrationNegotiate (MigrationNegotiateReq) returns (MigrationNegotiateRep){}
   rpc AddReplicas (AddReplicasReq) returns (AddReplicasRep){}
   rpc ReplicaNegotiate(ReplicaNegotiateReq) returns (ReplicaNegotiateRep){}
+  rpc DeleteReplica(DeleteReplicaReq) returns (DeleteReplicaRep){}
+  rpc DeleteStorage(DeleteStorageReq) returns (DeleteStorageRep){}
 }
 
 message Address{
@@ -112,3 +114,27 @@ message ReplicaNegotiateReq{
 message ReplicaNegotiateRep{
   RuntimeConfig replication_target_info = 1;
 }
+
+
+
+
+message DeleteReplicaReq{
+
+  Address addrs = 1;
+}
+
+message DeleteReplicaRep{
+
+}
+
+
+
+message DeleteStorageReq{
+
+  Address addrs = 1;
+}
+
+message DeleteStorageRep{
+
+}
+
