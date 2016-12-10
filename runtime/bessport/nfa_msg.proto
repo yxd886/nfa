@@ -44,3 +44,29 @@ message AddInputRtReq{
 message AddInputRtRep{
   RuntimeConfig local_runtime = 1;
 }
+
+
+
+
+message DeleteOutputRtsReq{
+  message Address{
+    string rpc_ip = 1;
+    int32 rpc_port = 2;
+  }
+  Address addrs = 1;
+}
+
+message DeleteOutputRtsRes{
+}
+
+message DeleteInputRtReq{
+    message Address{
+    string rpc_ip = 1;
+    int32 rpc_port = 2;
+  }
+  Address addrs = 1;
+}
+
+message DeleteInputRtRep{
+  
+}
