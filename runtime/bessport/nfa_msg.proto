@@ -110,5 +110,5 @@ message ReplicaNegotiateReq{
 }
 
 message ReplicationNegotiateRep{
-  bool succeed = 1;
+  RuntimeConfig replication_target_info = 1;
 }

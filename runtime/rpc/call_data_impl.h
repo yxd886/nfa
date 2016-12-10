@@ -427,4 +427,142 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
   }
 }
 
+
+
+
+
+//RPC implementation for AddReplicas
+template<>
+void derived_call_data<AddReplicasReq, SAddReplicasRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestAddReplicas(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+		string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
+																				 std::to_string(local_runtime_.rpc_port));
+    RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
+    for(int i=0; i<request_.addrs_size(); i++){
+      string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
+                                           std::to_string(request_.addrs(i).rpc_port()));
+
+      if(replicas_.find(dest_addr)!=replicas_.end()||dest_addr==local_addr){
+        continue;
+      }
+
+      std::unique_ptr<Runtime_RPC::Stub> stub(Runtime_RPC::NewStub(
+          grpc::CreateChannel(dest_addr, grpc::InsecureChannelCredentials())));
+
+      ReplciaNegotiateReq req;
+      req.mutable_replication_source_info()->CopyFrom(protobuf_local_runtime);
+  		for(unordered_map<string, runtime_config>::iterator it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
+  			req.add_input_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+  			req.add_input_runtime_addrs()->set_rpc_port(it->second.rpc_port);
+
+  		}
+  		for(unordered_map<string, runtime_config>::iterator it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
+  			req.add_output_runtime_addrs()->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+  			req.add_output_runtime_addrs()->set_rpc_port(it->second.rpc_port);
+
+  		}
+
+  		ReplciaNegotiateRep rep;
+
+      ClientContext context;
+      std::chrono::system_clock::time_point deadline =
+              std::chrono::system_clock::now() + std::chrono::seconds(FLAGS_rpc_timeout);
+      context.set_deadline(deadline);
+
+      Status status = stub->ReplciaNegotiate(&context, req, &rep);
+
+      if(status.ok() && rep.has_local_runtime()){
+        runtime_config target_runtime = protobuf2local(rep.replication_target_info());
+
+    		string target_addr = concat_with_colon(convert_uint32t_ip(target_runtime.rpc_ip),
+    																				 std::to_string(target_runtime.rpc_port));
+
+        replicas_.emplace(target_addr,target_runtime);
+
+        llring_item item(rpc_operation::add_replica, target_runtime, 0, 0);
+
+        llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+        poll_worker2rpc_ring();
+      }
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+
+
+
+
+// RPC implementation for ReplicaNegotiation
+
+template<>
+void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateNegotiateRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestReplicaNegotiate(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    if(input_runtimes_.size()!=request_.input_runtime_addrs_size()||output_runtimes_.size()!=request_.output_runtime_addrs_size()){
+
+    	status_ = FINISH;
+      responder_.Finish(reply_, Status::OK, this);
+      return;
+    }
+
+    for(int i=0;i<request_.input_runtime_addrs_size();i++){
+      string compare_addr = concat_with_colon(request_.input_runtime_addrs(i).rpc_ip(),
+                                                     std::to_string(request_.input_runtime_addrs(i).rpc_port()));
+    	if(input_runtimes_.find(compare_addr)==input_runtimes_.end()){
+      	status_ = FINISH;
+        responder_.Finish(reply_, Status::OK, this);
+        return;
+    	}
+    }
+    for(int i=0;i<request_.output_runtime_addrs_size();i++){
+      string compare_addr = concat_with_colon(request_.output_runtime_addrs(i).rpc_ip(),
+                                                     std::to_string(request_.output_runtime_addrs(i).rpc_port()));
+    	if(output_runtimes_.find(compare_addr)==output_runtimes_.end()){
+      	status_ = FINISH;
+        responder_.Finish(reply_, Status::OK, this);
+        return;
+    	}
+    }
+
+    runtime_config source_runtime = protobuf2local(request_.replication_source_info());
+
+		string source_addr = concat_with_colon(convert_uint32t_ip(source_runtime.rpc_ip),
+																				 std::to_string(source_runtime.rpc_port));
+
+    storages_.emplace(source_addr,source_runtime);
+
+		llring_item item(rpc_operation::add_storage, source_runtime, 0, 0);
+
+		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+		poll_worker2rpc_ring();
+
+		RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
+
+		reply_.mutable_replication_target_info()->CopyFrom(protobuf_local_runtime);
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
 #endif
