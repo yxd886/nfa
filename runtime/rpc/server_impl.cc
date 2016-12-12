@@ -3,7 +3,7 @@
 
 #include <glog/logging.h>
 
-bool ServerImpl::Run(string rpc_ip, uint16_t rpc_port){
+bool ServerImpl::Run(string rpc_ip, int32_t rpc_port){
   string server_address = rpc_ip + string(":") + std::to_string(rpc_port);
 
   ServerBuilder builder;
@@ -32,7 +32,16 @@ void ServerImpl::HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& r
   rte_thread_set_affinity(&set);
   RTE_PER_LCORE(_lcore_id) = lcore_id;
 
-  create_call_data();
+  create_call_data(&service_,
+                   cq_.get(),
+                   rpc2worker_ring_,
+                   worker2rpc_ring_,
+                   std::ref(input_runtimes_),
+                   std::ref(output_runtimes_),
+                   std::ref(replicas_),
+                   std::ref(storages_),
+                   std::ref(migration_target_),
+                   std::ref(local_runtime_));
   void* tag;
   bool ok;
 
@@ -44,8 +53,18 @@ void ServerImpl::HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& r
   }
 }
 
-void ServerImpl::create_call_data(){
-  // new LivenessCheck(&service_, cq_.get());
-  new derived_call_data<LivenessRequest, LivenessReply>(&service_, cq_.get());
-  new derived_call_data<AddOutputRtsReq, AddOutputRtsRes>(&service_, cq_.get());
+template<class... T>
+void ServerImpl::create_call_data(T&&... arg){
+  new derived_call_data<LivenessRequest, LivenessReply>(std::forward<T>(arg)...);
+  new derived_call_data<AddOutputRtsReq, AddOutputRtsRes>(std::forward<T>(arg)...);
+  new derived_call_data<AddInputRtReq, AddInputRtRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteOutputRtReq, DeleteOutputRtRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteInputRtReq, DeleteInputRtRep>(std::forward<T>(arg)...);
+  new derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>(std::forward<T>(arg)...);
+  new derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>(std::forward<T>(arg)...);
+  new derived_call_data<AddReplicasReq, AddReplicasRep>(std::forward<T>(arg)...);
+  new derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteReplicaReq, DeleteReplicaRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteStorageReq, DeleteStorageRep>(std::forward<T>(arg)...);
+  new derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>(std::forward<T>(arg)...);
 }
