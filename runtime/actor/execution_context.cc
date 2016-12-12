@@ -465,7 +465,7 @@ void nf_execution_context::handle_message(uint64_t pkt_ptr, bool from_p0){
 
 
 }
-void nf_execution_context::handle_message(struct start_migration*, int new_migration_target_rt_id, const actor& new_migration_target_rt_a,
+void nf_execution_context::handle_message(atom_type(start_migration), int new_migration_target_rt_id, const actor& new_migration_target_rt_a,
     const actor& vswitch_a){
 
   if((pending_transaction==true) ||
@@ -484,7 +484,7 @@ void nf_execution_context::handle_message(struct start_migration*, int new_migra
 
 }
 
-void nf_execution_context::handle_message(struct set_up_entry_ok_atom*){
+void nf_execution_context::handle_message(atom_type(set_up_entry_ok_atom)){
 	set_up_entry = true;
 
 }
@@ -501,16 +501,16 @@ void nf_execution_context::handle_message(int new_replication_target_rt_id, cons
     }
   }
 }
-void nf_execution_context::handle_message(struct rep_peer_fail*){
+void nf_execution_context::handle_message(atom_type(rep_peer_fail)){
   is_replica_alive = false;
   destroy(replication_target_a);
 }
-void nf_execution_context::handle_message(struct ep_peer_back_to_alive*, const actor& new_replication_target_a){
+void nf_execution_context::handle_message(atom_type(rep_peer_back_to_alive), const actor& new_replication_target_a){
   is_replica_alive = true;
   set_up_entry = false;
   replication_target_a = new_replication_target_a;
 }
-void nf_execution_context::handle_message(struct idle_kill*){
+void nf_execution_context::handle_message(atom_type(idle_kill)){
   // killed due to idleness.
 	switch (cur_state){
 	case nf_ec_state::normal_run:
@@ -538,11 +538,11 @@ void nf_execution_context::handle_message(struct idle_kill*){
 }
 
 
-void nf_execution_context::handle_message(struct clean_up_vswitch_table_finish*){
+void nf_execution_context::handle_message(atom_type(clean_up_vswitch_table_finish)){
   pending_clear_up_vswitch_table = false;
 }
 
-void nf_execution_context::handle_message(struct nfactor_ok_atom*, const actor& new_migration_target_a){
+void nf_execution_context::handle_message(atom_type(nfactor_ok_atom), const actor& new_migration_target_a){
 
   pending_transaction = false;
   if(cur_state == nf_ec_state::acquire_migration_target_actor){
@@ -590,7 +590,7 @@ void nf_execution_context::handle_message(const error& err){
 
 }
 
-void nf_execution_context::handle_message(migration_fail*){
+void nf_execution_context::handle_message(atom_type(migration_fail)){
   // the nf ec is implicitly removed from the
   // migration list and added to the active list
 
@@ -616,7 +616,7 @@ void nf_execution_context::handle_message(migration_fail*){
 
 }
 
-void nf_execution_context::handle_message(struct try_change_forwarding_path*){
+void nf_execution_context::handle_message(atom_type(try_change_forwarding_path)){
   pending_transaction=true;
   send(my_vswitch_a, std::chrono::milliseconds(5*migration_timeout_ms), // 50ms deadline
                 forward_to_migration_target_actor::value,
@@ -624,7 +624,7 @@ void nf_execution_context::handle_message(struct try_change_forwarding_path*){
                 migration_target_rt_id);
 }
 
-void nf_execution_context::handle_message(struct nfactor_ok_atom*){
+void nf_execution_context::handle_message(atom_type(nfactor_ok_atom)){
 
 	pending_transaction=false;
 	switch(cur_state){
@@ -645,7 +645,7 @@ void nf_execution_context::handle_message(struct nfactor_ok_atom*){
 
 
 
-void nf_execution_context::handle_message(struct try_migrate_flow_state*, vector<char>& scs_buf){
+void nf_execution_context::handle_message(atom_type(try_migrate_flow_state), vector<char>& scs_buf){
   service_chain_state scs;
   binary_deserializer ds{system(), scs_buf};
   ds(scs);

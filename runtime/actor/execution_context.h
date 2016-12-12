@@ -2,7 +2,7 @@
 // We should port the funcionality of nf_exeuction_context.cpp/hpp,
 // to this file. 
 #include "actor.h"
-#include "nf_ec_timer.hpp"
+#include "nf_ec_timer.h"
 
 
 class nf_execution_context : public actor{
@@ -52,20 +52,20 @@ public:
 protected:
   void make_behavior();
   void handle_message(uint64_t pkt_ptr, bool from_p0);
-	void handle_message(struct start_migration*, int new_migration_target_rt_id, const actor& new_migration_target_rt_a,
+	void handle_message(atom_type(start_migration), int new_migration_target_rt_id, const actor& new_migration_target_rt_a,
 			const actor& vswitch_a);
-	void handle_message(struct set_up_entry_ok_atom*);
+	void handle_message(atom_type(set_up_entry_ok_atom));
 	void handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a, bool is_replica_alive_);
-	void handle_message(struct rep_peer_fail*);
-	void handle_message(struct ep_peer_back_to_alive*, const actor& new_replication_target_a);
-	void handle_message(struct idle_kill*);
-	void handle_message(struct clean_up_vswitch_table_finish*);
-	void handle_message(struct nfactor_ok_atom*, const actor& new_migration_target_a);
+	void handle_message(atom_type(rep_peer_fail));
+	void handle_message(atom_type(rep_peer_back_to_alive), const actor& new_replication_target_a);
+	void handle_message(atom_type(idle_kill));
+	void handle_message(atom_type(clean_up_vswitch_table_finish));
+	void handle_message(atom_type(nfactor_ok_atom), const actor& new_migration_target_a);
 	void handle_message(const error& err);
-	void handle_message(struct migration_fail*);
-	void handle_message(struct try_change_forwarding_path*);
-	void handle_message(struct nfactor_ok_atom*);
-	void handle_message(struct try_migrate_flow_state*, vector<char>& scs_buf);
+	void handle_message(atom_type(migration_fail));
+	void handle_message(atom_type(try_change_forwarding_path));
+	void handle_message(atom_type(nfactor_ok_atom));
+	void handle_message(atom_type(try_migrate_flow_state), vector<char>& scs_buf);
 
 private:
   /*********************private variables***************************************/
@@ -144,15 +144,7 @@ private:
 
   /***************************useful internal atoms*******************************/
 
-  struct nf_ec_internal_action {};
 
-  struct replica_internal_check {};
-
-  struct try_acquire_migration_target_actor{};
-
-  struct try_change_forwarding_path {};
-
-  struct try_migrate_flow_state {};
 
   /****************************flow finish quit function*************************/
 
