@@ -31,22 +31,9 @@ public:
 	virtual ~actor(){}
 
 
-	template <class T>
-	void local_send(actor& dst_actor,T x){
-		dst_actor.handle_message(x);
-	}
-
-	template <typename T,typename U>
-	void local_send(actor& dst_actor,T x,U y){
-		dst_actor.handle_message(x,y);
-	}
-	template <typename T,typename U,typename V>
-	void local_send(actor& dst_actor,T x,U y,V z){
-		dst_actor.handle_message(x,y,z);
-	}
-	template <typename T,typename U,typename V,typename W>
-	void local_send(actor& dst_actor,T x,U y,V z,W w){
-		dst_actor.handle_message(x,y,z,w);
+	template <class ...T>
+	void local_send(actor& dst_actor,T... x){
+		dst_actor.handle_message(x...);
 	}
 
 	void remote_send(int runtime_id,int actor_id,char* msg,int size);
