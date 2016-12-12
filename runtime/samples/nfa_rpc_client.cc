@@ -193,6 +193,24 @@ class LivenessCheckClient {
     }
   }
 
+  std::string GetRuntimeState(){
+    GetRuntimeStateReq request;
+    GetRuntimeStateRep reply;
+    ClientContext context;
+
+    Status status = stub_->GetRuntimeState(&context, request, &reply);
+
+    LOG(INFO)<<"The rpc ip of the runtime is "<<reply.local_runtime().rpc_ip();
+    LOG(INFO)<<"The rpc port of the runtime is "<<reply.local_runtime().rpc_port();
+
+    if(status.ok()){
+      return "GetRuntimeStateReq finishes.";
+    }
+    else{
+      return "GetRuntimeStateReq fails.";
+    }
+  }
+
  private:
   std::unique_ptr<Runtime_RPC::Stub> stub_;
 };
@@ -245,10 +263,15 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10241.AddReplicas(10242);
 
   // Test remove replica and storage
+  // LOG(INFO)<<checker_10240.AddOutputRt();
+  // LOG(INFO)<<checker_10241.AddReplicas(10242);
+  // LOG(INFO)<<checker_10241.DeleteReplica(10242);
+  // LOG(INFO)<<checker_10242.DeleteStorage(10241);
+
   LOG(INFO)<<checker_10240.AddOutputRt();
-  LOG(INFO)<<checker_10241.AddReplicas(10242);
-  LOG(INFO)<<checker_10241.DeleteReplica(10242);
-  LOG(INFO)<<checker_10242.DeleteStorage(10241);
+  LOG(INFO)<<checker_10240.GetRuntimeState();
+  LOG(INFO)<<checker_10241.GetRuntimeState();
+  LOG(INFO)<<checker_10242.GetRuntimeState();
 
   return 0;
 }
