@@ -11,11 +11,11 @@
 
 #include <glog/logging.h>
 
+#include "./bessport/packet.h"
+
 #include "nfadpdk.h"
 
 using std::string;
-
-static struct rte_mempool *nfa_pframe_pool[RTE_MAX_NUMA_NODES];
 
 static void disable_syslog() {
   setlogmask(0x01);
@@ -91,45 +91,12 @@ static void nfa_init_eal(const char* argv0){
   LOG(INFO) << "DPDK EAL finishes initialization";
 }
 
-static void nfa_load_mempool(){
-  int i,j;
-  int BEGIN = 16384;
-  int END = 524288;
-  char name[256];
-
-  int initialized[RTE_MAX_NUMA_NODES];
-  for (i = 0; i < RTE_MAX_NUMA_NODES; i++) {
-    initialized[i] = 0;
-  }
-
-  for (i = 0; i < RTE_MAX_LCORE; i++) {
-    int sid = rte_lcore_to_socket_id(i);
-
-    if (!initialized[sid]) {
-
-      for (j = BEGIN; j <= END; j *= 2) {
-        sprintf(name, "pframe%d_%dk", sid, (j + 1) / 1024);
-        nfa_pframe_pool[sid] = rte_mempool_lookup(name);
-
-        if (nfa_pframe_pool[sid]){
-          LOG(INFO) << "Find a memory pool on lcore "<<sid<<" with name "<<string(name);
-          break;
-        }
-      }
-
-      if(j>END){
-        LOG(ERROR)<<"Fail to find a memory pool on lcore "<<sid;
-        exit(EXIT_FAILURE);
-      }
-
-      initialized[sid] = 1;
-    }
-  }
-
-  LOG(INFO) << "Finish loading the memory pool";
-}
-
 void nfa_init_dpdk(const char* argv0){
   nfa_init_eal(argv0);
-  nfa_load_mempool();
+  /*int num_of_loaded_mempool = bess::nfa_load_mempool();
+
+  if(num_of_loaded_mempool == 0){
+    LOG(ERROR)<<"Fail to load memory pool";
+    exit(EXIT_FAILURE);
+  }*/
 }

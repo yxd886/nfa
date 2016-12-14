@@ -7,6 +7,26 @@
 #include "../bessport/kmod/llring.h"
 #include "../bessport/packet.h"
 
+/* The term RX/TX could be very confusing for a virtual switch.
+ * Instead, we use the "incoming/outgoing" convention:
+ * - incoming: outside -> BESS
+ * - outgoing: BESS -> outside */
+typedef enum {
+  PACKET_DIR_INC = 0,
+  PACKET_DIR_OUT = 1,
+  PACKET_DIRS
+} packet_dir_t;
+
+struct packet_stats {
+  packet_stats() : packets(), dropped(), bytes() {}
+
+  uint64_t packets;
+  uint64_t dropped; /* Not all drivers support this for inc dir */
+  uint64_t bytes;   /* doesn't include Ethernet overhead */
+};
+
+typedef struct packet_stats port_stats_t[PACKET_DIRS];
+
 /* Ideally share this with vport driver */
 
 #define PORT_NAME_LEN 128
@@ -72,6 +92,8 @@ public:
 
     return sent;
   }
+
+  struct packet_stats queue_stats[PACKET_DIRS][MAX_QUEUES_PER_PORT_DIR];
 
 private:
   struct vport_bar *bar;

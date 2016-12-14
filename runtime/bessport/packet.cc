@@ -115,6 +115,42 @@ void close_mempool(void) {
   /* Do nothing. Surprisingly, there is no destructor for mempools */
 }
 
+int nfa_load_mempool(){
+  int i,j;
+  int BEGIN = 16384;
+  int END = 524288;
+  char name[256];
+  int num_loaded_mempool = 0;
+
+  int initialized[RTE_MAX_NUMA_NODES];
+  for (i = 0; i < RTE_MAX_NUMA_NODES; i++) {
+    initialized[i] = 0;
+  }
+
+  for (i = 0; i < RTE_MAX_LCORE; i++) {
+    int sid = rte_lcore_to_socket_id(i);
+
+    if (!initialized[sid]) {
+
+      for (j = BEGIN; j <= END; j *= 2) {
+        sprintf(name, "pframe%d_%dk", sid, (j + 1) / 1024);
+        pframe_pool[sid] = rte_mempool_lookup(name);
+
+        if (pframe_pool[sid]){
+          num_loaded_mempool += 1;
+          break;
+        }
+      }
+
+      if(j<=END){
+        initialized[sid] = 1;
+      }
+    }
+  }
+
+  return num_loaded_mempool;
+}
+
 struct rte_mempool *get_pframe_pool() {
   return pframe_pool[ctx.socket()];
 }

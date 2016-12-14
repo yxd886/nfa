@@ -47,6 +47,7 @@ struct rte_mempool *get_pframe_pool_socket(int socket);
 
 void init_mempool(void);
 void close_mempool(void);
+int nfa_load_mempool();
 
 // For the layout of snbuf, see snbuf_layout.h
 class Packet {
