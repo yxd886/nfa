@@ -15,6 +15,7 @@ $(shell mkdir -p $(DEPDIR)/bessport/utils >/dev/null)
 $(shell mkdir -p $(DEPDIR)/bessport/hooks >/dev/null)
 $(shell mkdir -p $(DEPDIR)/samples > /dev/null)
 $(shell mkdir -p $(DEPDIR)/rpc > /dev/null)
+$(shell mkdir -p $(DEPDIR)/actor > /dev/null)
 
 # e.g., 4.9.3 -> 40903
 CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
