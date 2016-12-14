@@ -38,16 +38,16 @@ public:
 
 protected:
   void make_behavior();
-  void handle_message(struct nf_ec_timer_quit*);
-  void handle_message(struct prepare_to_get_replica*);
-  void handle_message(struct get_the_fking_replica*);
-  void handle_message(struct rep_peer_fail*);
-  void handle_message(struct rep_peer_back_to_alive* t,const actor& new_replication_target_a);
-  void handle_message(struct clean_up_vswitch_table* t,int arg_to_rt_id);
-  void handle_message(struct change_route_atom*);
-  void handle_message(struct get_vswitch_atom*);
+  void handle_message(atom_type(msg_type::nf_ec_timer_quit));
+  void handle_message(atom_type(msg_type::prepare_to_get_replica));
+  void handle_message(atom_type(msg_type::get_the_fking_replica));
+  void handle_message(atom_type(msg_type::rep_peer_fail));
+  void handle_message(atom_type(msg_type::rep_peer_back_to_alive),const actor& new_replication_target_a);
+  void handle_message(atom_type(msg_type::clean_up_vswitch_table),int arg_to_rt_id);
+  void handle_message(atom_type(msg_type::change_route_atom));
+  void handle_message(atom_type(msg_type::get_vswitch_atom));
   void handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a);
-  void handle_message(struct nfactor_ok_atom*);
+  void handle_message(atom_type(msg_type::nfactor_ok_atom));
   void handle_message(const error&);
   void handle_message(const actor& new_vswitch_a);
 
