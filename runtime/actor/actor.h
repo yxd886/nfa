@@ -69,6 +69,10 @@ public:
   virtual	void handle_message(atom_type(msg_type::nfactor_ok_atom)){}
   virtual	void handle_message(atom_type(msg_type::try_migrate_flow_state), std::vector<char>& scs_buf){}
 
+  int id(){
+  	return actor_id;
+  }
+
 private:
 	int actor_id;
 	int runtime_id;
