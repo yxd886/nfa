@@ -25,6 +25,10 @@
 //        RPC worker thread. When the module gets a message, it calls the
 //        message handler of the coordinator to handle the messages. 
 
+#ifndef ACTOR_H
+#define ACTOR_H
+
+
 #include "atom_definition.h"
 #include <vector>
 #include <iostream>
@@ -69,4 +73,7 @@ private:
 	int actor_id;
 	int runtime_id;
 };
+
+
+#endif
 

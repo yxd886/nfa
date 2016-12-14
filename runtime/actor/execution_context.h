@@ -3,7 +3,14 @@
 // to this file. 
 #include "actor.h"
 #include "nf_ec_timer.h"
+#include "network_function_hub.h"
+#include "service_chain_state.h"
 
+
+using std::vector;
+using std::tuple;
+using std::get;
+using std::string;
 
 class nf_execution_context : public actor{
 public:
@@ -61,7 +68,7 @@ protected:
 	void handle_message(atom_type(msg_type::idle_kill));
 	void handle_message(atom_type(msg_type::clean_up_vswitch_table_finish));
 	void handle_message(atom_type(msg_type::nfactor_ok_atom), const actor& new_migration_target_a);
-	void handle_message(const error& err);
+	//void handle_message(const error& err);
 	void handle_message(atom_type(msg_type::migration_fail));
 	void handle_message(atom_type(msg_type::try_change_forwarding_path));
 	void handle_message(atom_type(msg_type::nfactor_ok_atom));

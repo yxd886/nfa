@@ -88,7 +88,7 @@ PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
 PROTOCFLAGS += --proto_path=$(PROTO_DIR) --proto_path=protobuf --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
 ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc samples/*.cc rpc/*.cc) gtest_main.cc actor/actor.cc actor/execution_context.cc actor/nf_ec_timer.cc
-HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h rpc/*.h) actor/actor.h actor/atom_definition.h actor/execution_context.h actor/nf_ec_timer.h actor/network_function.h actor/network_function_hub.h actor/flow_state.h
+HEADERS = $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h rpc/*.h) actor/actor.h actor/atom_definition.h actor/execution_context.h actor/nf_ec_timer.h actor/network_function.h actor/network_function_hub.h actor/flow_state.h actor/service_chain_state.h
 
 TEST_SRCS = $(filter %_test.cc gtest_main.cc, $(ALL_SRCS))
 TEST_OBJS = $(TEST_SRCS:.cc=.o)

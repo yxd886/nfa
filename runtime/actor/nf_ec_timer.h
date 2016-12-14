@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-using namespace caf;
+//using namespace caf;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -33,8 +33,9 @@ public:
               int replication_target_rt_id,
               int local_rt_id,
               vector<char>& flow_identifier,
-              uint64_t service_chain_type_sig,
-              actor_id nf_ec_id);
+              uint64_t service_chain_type_sig
+             // actor_id nf_ec_id
+							);
 
 protected:
   void make_behavior();
@@ -48,7 +49,7 @@ protected:
   void handle_message(atom_type(msg_type::get_vswitch_atom));
   void handle_message(int new_replication_target_rt_id, const actor& new_replication_target_a);
   void handle_message(atom_type(msg_type::nfactor_ok_atom));
-  void handle_message(const error&);
+ // void handle_message(const error&);
   void handle_message(const actor& new_vswitch_a);
 
 
@@ -72,7 +73,7 @@ private:
   int to_rt_id;
   bool clean_up_finish;
 
-  actor_id nf_ec_id;
+ // actor_id nf_ec_id;
 
   bool quitting;
   bool bond_to_replication_target_rt;
