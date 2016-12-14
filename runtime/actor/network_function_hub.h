@@ -6,7 +6,7 @@
 #include <map>
 #include <memory>
 #include <tuple>
-
+#include "network_function.h"
 using std::map;
 using std::make_pair;
 using std::unique_ptr;
@@ -16,7 +16,7 @@ static constexpr uint8_t firewall_type = 2;
 
 class network_function_hub{
 public:
-  network_function_hub(actor_system& sys):sys(sys){};
+  network_function_hub(){};
 
   void init(){
   	/*
@@ -51,7 +51,7 @@ public:
   }
 
 private:
-  actor_system& sys;
+
   map<uint8_t, unique_ptr<network_function>> nf_map;
 
 };

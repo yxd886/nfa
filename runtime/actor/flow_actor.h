@@ -24,7 +24,7 @@ public:
   bool servce_chain_process(struct rte_mbuf* input_pkt, bool from_p0);
   void process_pkt(struct rte_mbuf* input_pkt, bool from_p0);
 
-
+  int internal_pkt_counter;
 	network_function_hub& hub;
   int local_rt_id;
   vector<char> flow_identifier;

@@ -52,8 +52,8 @@ public:
 
   virtual bool process_pkt(struct rte_mbuf* pkt, flow_state* fs) = 0;
 
-  virtual void serialize(actor_system& sys, vector<char>& buf, flow_state* fs) = 0;
-  virtual unique_ptr<flow_state> deserialize(actor_system& sys, vector<char>& buf) = 0;
+ // virtual void serialize(actor_system& sys, vector<char>& buf, flow_state* fs) = 0;
+ // virtual unique_ptr<flow_state> deserialize(actor_system& sys, vector<char>& buf) = 0;
 
   uint8_t nf_type_sig;
 };

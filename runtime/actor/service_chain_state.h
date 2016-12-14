@@ -13,7 +13,7 @@ struct service_chain_state{
 
 template <class Inspector>
 static typename Inspector::result_type inspect(Inspector& f, service_chain_state& x) {
-  return f(meta::type_name("q"), x.states);
+  //return f(meta::type_name("q"), x.states);
 }
 
 #endif
