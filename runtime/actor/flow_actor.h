@@ -5,6 +5,7 @@
 #include "actor.h"
 #include "nf_ec_timer.h"
 #include "network_function_hub.h"
+#include "network_function.h"
 #include "service_chain_state.h"
 #include "concurrentqueue.h"
 
@@ -34,7 +35,7 @@ public:
 
   vector<tuple<network_function*, unique_ptr<flow_state>>> service_chain;
 
-  moodycamel::ConcurrentQueue<struct rte_mbuf*> output_queue;
+  moodycamel::ConcurrentQueue<struct rte_mbuf*>* output_queue;
 
 
 };

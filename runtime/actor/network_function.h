@@ -3,7 +3,7 @@
 
 #include "flow_state.h"
 #include <memory>
-
+#include <stdint.h>
 #include <rte_config.h>
 #include <rte_mbuf.h>
 
