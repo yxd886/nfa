@@ -1,6 +1,10 @@
 // This is the actor that handles flow packet processing.
 // We should port the funcionality of nf_exeuction_context.cpp/hpp,
 // to this file. 
+
+#ifndef EXECUTION_CONTEXT_H
+#define EXECUTION_CONTEXT_H
+
 #include "actor.h"
 #include "nf_ec_timer.h"
 #include "network_function_hub.h"
@@ -11,6 +15,28 @@ using std::vector;
 using std::tuple;
 using std::get;
 using std::string;
+
+
+
+enum class nf_ec_state{
+  normal_run,
+  acquire_migration_target_actor,
+  change_forwarding_path,
+  migrate_flow_state,
+  wait_flow_states
+};
+
+enum class starting_status{
+  normal_start,
+  migration_target,
+  recovery
+};
+
+enum class migration_status{
+  in_migration_source,
+  in_migration_target,
+  in_normal_processing
+};
 
 class nf_execution_context : public actor{
 public:
@@ -197,3 +223,7 @@ private:
   void print_replication(int new_replication_target_rt_id, const actor& new_replication_target_a);
   void print_recover(string content);
 };
+
+
+
+#endif
