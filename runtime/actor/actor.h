@@ -63,7 +63,7 @@ public:
   virtual	void handle_message(atom_type(msg_type::migration_fail)){}
   virtual	void handle_message(atom_type(msg_type::try_change_forwarding_path)){}
   virtual	void handle_message(atom_type(msg_type::nfactor_ok_atom)){}
-  virtual	void handle_message(atom_type(msg_type::try_migrate_flow_state), vector<char>& scs_buf){}
+  virtual	void handle_message(atom_type(msg_type::try_migrate_flow_state), std::vector<char>& scs_buf){}
 
 private:
 	int actor_id;

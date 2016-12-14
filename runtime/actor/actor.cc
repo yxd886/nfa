@@ -5,7 +5,7 @@
 #include "../module/message_passing.h"
 
 
-
+using namespace std;
 
 void actor::remote_send(int runtime_id, int actor_id, char* msg, int size){
 
