@@ -1,5 +1,5 @@
 //
-#include "execution_context.hpp"
+#include "execution_context.h"
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -14,7 +14,7 @@ nf_execution_context::nf_execution_context(
                                            service_chain_t service_chain_type_sig,
                                            int replication_strategy,
                                            worker_output_packet_queue* output_queue) :
-                                             event_based_actor(cfg),
+                                          //   event_based_actor(cfg),
                                              hub(hub),
                                              local_rt_id(std::move(local_rt_id)),
                                              flow_identifier(flow_identifier),
@@ -59,7 +59,7 @@ nf_execution_context::nf_execution_context(
                                            const actor& my_vswitch_a,
                                            int replication_target_rt_id,
                                            worker_output_packet_queue* output_queue) :
-                                             event_based_actor(cfg),
+                                       //      event_based_actor(cfg),
                                              hub(hub),
                                              local_rt_id(local_rt_id),
                                              flow_identifier(std::move(flow_identifier)),
@@ -104,7 +104,7 @@ nf_execution_context::nf_execution_context(
                                            vector<char>& scs_buf,
                                            worker_output_packet_queue* output_queue,
                                            int replication_target_rt_id) :
-                                             event_based_actor(cfg),
+                                     //        event_based_actor(cfg),
                                              hub(hub),
                                              local_rt_id(local_rt_id),
                                              flow_identifier(std::move(flow_identifier)),
@@ -141,7 +141,7 @@ nf_execution_context::nf_execution_context(
 }
 
 void nf_execution_context::make_behavior(){
-  set_default_handler(print_and_drop);
+ // set_default_handler(print_and_drop);
   if(s==starting_status::normal_start){
     // normal start
     // generate the service chain
@@ -153,16 +153,17 @@ void nf_execution_context::make_behavior(){
     }
 
     // launch the nf_ec_timer
-    nf_ec_timer_a = this->spawn<nf_ec_timer>(actor_cast<actor>(this),
+  /*  nf_ec_timer_a = this->spawn<nf_ec_timer>(actor_cast<actor>(this),
                                              worker_a,
                                              replication_target_rt_id,
                                              local_rt_id,
                                              flow_identifier,
                                              service_chain_type_sig,
                                              this->id());
+     */
     if(replication_strategy>0){
       // start the contacting replicas if enable_replication is set to true
-      local_send(worker_a, request_replication_target::value, replication_target_rt_id, this->id());
+      local_send(worker_a, atom_type(msg_type::request_replication_target)::value, replication_target_rt_id, this->id());
     }
     print_normal("nf-ec is started normally, enter normal_run().");
     normal_run();
@@ -170,15 +171,18 @@ void nf_execution_context::make_behavior(){
   }
   else if(s==starting_status::migration_target){
     // started as migration target
-    nf_ec_timer_a = this->spawn<nf_ec_timer>(actor_cast<actor>(this),
+
+  	/*
+  	nf_ec_timer_a = this->spawn<nf_ec_timer>(actor_cast<actor>(this),
                                              worker_a,
                                              replication_target_rt_id,
                                              local_rt_id,
                                              flow_identifier,
                                              service_chain_type_sig,
                                              this->id());
+       */
     if(replication_strategy>0){
-      send(worker_a, request_replication_target::value, replication_target_rt_id, this->id());
+      send(worker_a, atom_type(msg_type::request_replication_target)::value, replication_target_rt_id, this->id());
     }
     print_migration_target("nf-ec is started as migration target, enter wait_flow_states()");
     wait_flow_states();
@@ -234,7 +238,7 @@ void nf_execution_context::make_behavior(){
     p0_input_packet_bufs.clear();
     // p1_input_packet_bufs.clear();
 
-
+    /*
     nf_ec_timer_a = this->spawn<nf_ec_timer>(actor_cast<actor>(this),
                                              worker_a,
                                              replication_target_rt_id,
@@ -242,6 +246,9 @@ void nf_execution_context::make_behavior(){
                                              flow_identifier,
                                              service_chain_type_sig,
                                              this->id());
+
+
+    */
     if(replication_strategy>0){
     	request_replication_target*request_replication_target_value;
       local_send(worker_a, request_replication_target_value, replication_target_rt_id, this->id());
@@ -305,7 +312,7 @@ void nf_execution_context::process_pkt(struct rte_mbuf* input_pkt, bool from_p0)
   else{
     if(set_up_entry == false){
       if(internal_pkt_counter % 3 ==0){
-      	remote_send(replication_target_a, create_new_replica::value, this->id(), flow_identifier, service_chain_type_sig, 10);
+      	remote_send(replication_target_a, atom_type(msg_type::create_new_replica)::value, this->id(), flow_identifier, service_chain_type_sig, 10);
       }
       servce_chain_process(input_pkt, from_p0);
       while(!output_queue->try_enqueue(input_pkt)){
@@ -322,7 +329,7 @@ void nf_execution_context::process_pkt(struct rte_mbuf* input_pkt, bool from_p0)
         for(size_t i=0; i<service_chain.size(); i++){
           auto nf_ptr = get<0>(service_chain[i]);
           auto fs_ptr = get<1>(service_chain[i]).get();
-          nf_ptr->serialize(system(), scs.states[i], fs_ptr);
+       //   nf_ptr->serialize(system(), scs.states[i], fs_ptr);
         }
 
         vector<char> scs_buf;
@@ -346,26 +353,26 @@ void nf_execution_context::process_pkt(struct rte_mbuf* input_pkt, bool from_p0)
 
 void nf_execution_context::flow_finish_quit(migration_status status){
   if(status == migration_status::in_migration_source){
-    send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, false);
+    send(worker_a, atom_type(msg_type::remove_from_migration_source_nf_ecs)::value, this->id(), this->migration_target_rt_id, false);
   }
   else if(status == migration_status::in_normal_processing){
-    local_send(worker_a, remove_from_active_nf_ecs::value, this->id());
+    local_send(worker_a, atom_type(msg_type::remove_from_active_nf_ecs)::value, this->id());
   }
   else{
   }
 
   if(is_replica_alive){
     if(set_up_entry){
-    	remote_send(replication_target_a, force_quit_atom::value, this->id());
+    	remote_send(replication_target_a, atom_type(msg_type::force_quit_atom)::value, this->id());
     }
     destroy(replication_target_a);
   }
 
   if(replication_strategy>0){
-    local_send(worker_a, remove_from_replication_helpers::value, replication_target_rt_id, this->id());
+    local_send(worker_a, atom_type(msg_type::remove_from_replication_helpers)::value, replication_target_rt_id, this->id());
   }
 
-  remote_send(nf_ec_timer_a, nf_ec_timer_quit::value);
+  remote_send(nf_ec_timer_a, atom_type(msg_type::nf_ec_timer_quit)::value);
   destroy(worker_a);
   destroy(nf_ec_timer_a);
   destroy(replication_target_a);
@@ -382,7 +389,7 @@ void nf_execution_context::normal_run(){
     is_registered=true;
     // register itself with the worker, so that this
     // actor could be migrated.
-    local_send(worker_a, add_to_active_nf_ecs::value, this->id());
+    local_send(worker_a, atom_type(msg_type::add_to_active_nf_ecs)::value, this->id());
   }
 
 }
@@ -393,14 +400,14 @@ void nf_execution_context::acquire_migration_target_actor(const actor& new_migra
   // ask for the migration target runtime to create a migration target actor
   pending_transaction=true;
   remote_send(new_migration_target_rt_a, std::chrono::milliseconds(5*migration_timeout_ms), //50ms deadline
-                create_migration_target_actor::value, flow_identifier, service_chain_type_sig, local_rt_id,
+  		atom_type(msg_type::create_migration_target_actor)::value, flow_identifier, service_chain_type_sig, local_rt_id,
                 replication_target_rt_id);
 
 }
 
 void nf_execution_context::change_forwarding_path(){
   cur_state = nf_ec_state::change_forwarding_path;
-  local_send(this, try_change_forwarding_path::value);
+  local_send(this, atom_type(msg_type::try_change_forwarding_path)::value);
   retry_counter = 0;
 
 }
@@ -425,7 +432,7 @@ void nf_execution_context::migrate_flow_state(){
   bs(scs);
 
   remote_send(migration_target_a, std::chrono::seconds(migration_timeout_ms), //10s long deadline
-                try_migrate_flow_state::value, scs_buf);
+  		atom_type(msg_type::try_migrate_flow_state)::value, scs_buf);
 
 }
 
@@ -529,7 +536,7 @@ void nf_execution_context::handle_message(atom_type(msg_type::idle_kill)){
     print_migration_target("nf-ec is killed due to idleness, quit");
 
     // notify the worker to remove this actor from migration target list.
-    local_send(worker_a, remove_from_migration_target_nf_ecs::value, this->id(), this->migration_source_rt_id, false);
+    local_send(worker_a, atom_type(msg_type::(remove_from_migration_target_nf_ecs)::value, this->id(), this->migration_source_rt_id, false);
     target_clean_up();
     break;
 	}
@@ -619,7 +626,7 @@ void nf_execution_context::handle_message(atom_type(msg_type::migration_fail)){
 void nf_execution_context::handle_message(atom_type(msg_type::try_change_forwarding_path)){
   pending_transaction=true;
   remote_send(my_vswitch_a, std::chrono::milliseconds(5*migration_timeout_ms), // 50ms deadline
-                forward_to_migration_target_actor::value,
+  		atom_type(msg_type::forward_to_migration_target_actor)::value,
                 flow_identifier,
                 migration_target_rt_id);
 }
@@ -666,7 +673,7 @@ void nf_execution_context::handle_message(atom_type(msg_type::try_migrate_flow_s
   destroy(my_vswitch_a);
 
   // notify the worker to add us to the active_nf_ec.
-  local_send(worker_a, remove_from_migration_target_nf_ecs::value, this->id(), this->migration_source_rt_id, false);
+  local_send(worker_a, atom_type(msg_type::remove_from_migration_target_nf_ecs)::value, this->id(), this->migration_source_rt_id, false);
   print_migration_target("nf-ec receives flow state, become normal, enter process_buffer()");
 
   for(size_t i=0; i<p0_buffer.size(); i++){
