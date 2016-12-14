@@ -1,4 +1,6 @@
 //
+
+
 #include "actor.h"
 #include "../module/message_passing.h"
 
@@ -7,7 +9,7 @@
 
 void actor::remote_send(int runtime_id, int actor_id, char* msg, int size){
 
-
+/*
 	reliable_p2p *p2p=p2p_find(runtime_id);
 
 	if(p2p==nullptr){
@@ -15,6 +17,6 @@ void actor::remote_send(int runtime_id, int actor_id, char* msg, int size){
 	}
 
 	p2p->interface_to_actor(actor_id,msg,size);
-
+*/
 
 }

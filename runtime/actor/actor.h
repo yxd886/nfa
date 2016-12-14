@@ -26,6 +26,8 @@
 //        message handler of the coordinator to handle the messages. 
 
 #include "atom_definition.h"
+#include <vector>
+#include <iostream>
 class actor{
 public:
 	virtual ~actor(){}
@@ -57,7 +59,7 @@ public:
   virtual	void handle_message(atom_type(msg_type::idle_kill)){}
   virtual	void handle_message(atom_type(msg_type::clean_up_vswitch_table_finish)){}
   virtual	void handle_message(atom_type(msg_type::nfactor_ok_atom), const actor& new_migration_target_a){}
-  virtual	void handle_message(const error& err){}
+  //virtual	void handle_message(const error& err){}
   virtual	void handle_message(atom_type(msg_type::migration_fail)){}
   virtual	void handle_message(atom_type(msg_type::try_change_forwarding_path)){}
   virtual	void handle_message(atom_type(msg_type::nfactor_ok_atom)){}
