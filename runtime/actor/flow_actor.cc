@@ -47,5 +47,10 @@ void flow_actor::process_pkt(struct rte_mbuf* input_pkt, bool from_p0){
 
 }
 
+void flow_actor::handle_message(uint64_t pkt_ptr, bool from_p0){
 
+	struct rte_mbuf* pkt = reinterpret_cast<struct rte_mbuf*>(pkt_ptr);
+	process_pkt(pkt, from_p0);
+
+}
 
