@@ -181,7 +181,7 @@ int main(int argc, char* argv[]){
     LOG(INFO)<<"Successfully open output port "<<FLAGS_output_port;
   }
 
-  /*bess::PacketBatch batch;
+  bess::PacketBatch batch;
   uint8_t qid = 0;
   int sent = 0;
 
@@ -195,9 +195,9 @@ int main(int argc, char* argv[]){
     if (sent < batch.cnt()) {
       bess::Packet::Free(batch.pkts() + sent, batch.cnt() - sent);
     }
-  }*/
+  }
 
-  Module* mod_port_inc = create_module<PortInc>("PortInc", "mod_port_inc", &input_port, 0, 32);
+  /*Module* mod_port_inc = create_module<PortInc>("PortInc", "mod_port_inc", &input_port, 0, 32);
   Module* mod_port_out = create_module<PortOut>("PortOut", "mod_port_out", &output_port);
 
   bool flag = mod_port_inc->ConnectModules(0, mod_port_out, 0);
@@ -207,5 +207,5 @@ int main(int argc, char* argv[]){
 
   while(true){
     mod_port_inc->RunTask(nullptr);
-  }
+  }*/
 }

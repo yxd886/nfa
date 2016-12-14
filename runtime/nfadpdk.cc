@@ -93,10 +93,10 @@ static void nfa_init_eal(const char* argv0){
 
 void nfa_init_dpdk(const char* argv0){
   nfa_init_eal(argv0);
-  /*int num_of_loaded_mempool = bess::nfa_load_mempool();
+  int num_of_loaded_mempool = bess::nfa_load_mempool();
 
   if(num_of_loaded_mempool == 0){
     LOG(ERROR)<<"Fail to load memory pool";
     exit(EXIT_FAILURE);
-  }*/
+  }
 }

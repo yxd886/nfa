@@ -1,8 +1,5 @@
 #include "worker.h"
 
-#include <cassert>
-#include <climits>
-
 #include <sched.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
@@ -11,15 +8,33 @@
 #include <rte_config.h>
 #include <rte_lcore.h>
 
+#include <cassert>
+#include <climits>
+#include <string>
+
 #include "metadata.h"
+#include "opts.h"
 #include "packet.h"
+#include "scheduler.h"
 #include "task.h"
-#include "tc.h"
 #include "utils/time.h"
+
+using bess::Scheduler;
 
 int num_workers = 0;
 std::thread worker_threads[MAX_WORKERS];
 Worker *volatile workers[MAX_WORKERS];
+
+using bess::TrafficClassBuilder;
+using namespace bess::traffic_class_initializer_types;
+using bess::PriorityTrafficClass;
+using bess::WeightedFairTrafficClass;
+using bess::RoundRobinTrafficClass;
+using bess::RateLimitTrafficClass;
+using bess::LeafTrafficClass;
+
+const char *Worker::kRootClassNamePrefix = "root_";
+const char *Worker::kDefaultLeafClassNamePrefix = "defaultleaf_";
 
 // See worker.h
 __thread Worker ctx;
@@ -61,8 +76,8 @@ static void pause_worker(int wid) {
 
     FULL_BARRIER();
 
-    while (workers[wid]->status() == WORKER_PAUSING)
-      ; /* spin */
+    while (workers[wid]->status() == WORKER_PAUSING) {
+    } /* spin */
   }
 }
 
@@ -84,14 +99,15 @@ static void resume_worker(int wid) {
     ret = write(workers[wid]->fd_event(), &sig, sizeof(sig));
     DCHECK_EQ(ret, sizeof(uint64_t));
 
-    while (workers[wid]->status() == WORKER_PAUSED)
-      ; /* spin */
+    while (workers[wid]->status() == WORKER_PAUSED) {
+    } /* spin */
   }
 }
 
 void resume_all_workers() {
   bess::metadata::default_pipeline.ComputeMetadataOffsets();
-  process_orphan_tasks();
+  // TODO(barath): Handle orphan tasks somehow.
+  // process_orphan_tasks();
 
   for (int wid = 0; wid < MAX_WORKERS; wid++)
     resume_worker(wid);
@@ -107,8 +123,8 @@ static void destroy_worker(int wid) {
     ret = write(workers[wid]->fd_event(), &sig, sizeof(sig));
     DCHECK_EQ(ret, sizeof(uint64_t));
 
-    while (workers[wid]->status() == WORKER_PAUSED)
-      ; /* spin */
+    while (workers[wid]->status() == WORKER_PAUSED) {
+    } /* spin */
 
     workers[wid] = nullptr;
 
@@ -151,7 +167,7 @@ void Worker::SetNonWorker() {
   }
 }
 
-int Worker::Block() {
+int Worker::BlockWorker() {
   worker_signal t;
   int ret;
 
@@ -184,9 +200,6 @@ void *Worker::Run(void *_arg) {
   CPU_SET(arg->core, &set);
   rte_thread_set_affinity(&set);
 
-  /* just in case */
-  memset(this, 0, sizeof(*this));  // FIXME
-
   /* DPDK lcore ID == worker ID (0, 1, 2, 3, ...) */
   RTE_PER_LCORE(_lcore_id) = arg->wid;
 
@@ -198,7 +211,16 @@ void *Worker::Run(void *_arg) {
   fd_event_ = eventfd(0, 0);
   DCHECK_GE(fd_event_, 0);
 
-  s_ = sched_init();
+  // By default create a root node of default policy with a single leaf.
+  std::string root_name = kRootClassNamePrefix + std::to_string(wid_);
+  std::string leaf_name = kDefaultLeafClassNamePrefix + std::to_string(wid_);
+  const bess::priority_t kDefaultPriority = 10;
+  PriorityTrafficClass *root =
+      TrafficClassBuilder::CreateTrafficClass<PriorityTrafficClass>(root_name);
+  LeafTrafficClass *leaf =
+      TrafficClassBuilder::CreateTrafficClass<LeafTrafficClass>(leaf_name);
+  root->AddChild(leaf, kDefaultPriority);
+  scheduler_ = new Scheduler(root, leaf_name);
 
   current_tsc_ = rdtsc();
 
@@ -216,18 +238,19 @@ void *Worker::Run(void *_arg) {
             << "is running on core " << core_ << " (socket " << socket_ << ")";
 
   CPU_ZERO(&set);
-  sched_loop(s_);
+  scheduler_->ScheduleLoop();
 
   LOG(INFO) << "Worker " << wid_ << "(" << this << ") "
             << "is quitting... (core " << core_ << ", socket " << socket_
             << ")";
 
-  sched_free(s_);
+  delete scheduler_;
 
   return nullptr;
 }
 
 void *run_worker(void *_arg) {
+  CHECK_EQ(memcmp(&ctx, new Worker(), sizeof(Worker)), 0);
   return ctx.Run(_arg);
 }
 
@@ -243,4 +266,20 @@ void launch_worker(int wid, int core) {
     continue;
 
   num_workers++;
+}
+
+Worker *get_next_active_worker() {
+  static int prev_wid = 0;
+  if (num_workers == 0) {
+    launch_worker(0, FLAGS_c);
+    return workers[0];
+  }
+
+  while (!is_worker_active(prev_wid)) {
+    prev_wid = (prev_wid + 1) % MAX_WORKERS;
+  }
+
+  Worker *ret = workers[prev_wid];
+  prev_wid = (prev_wid + 1) % MAX_WORKERS;
+  return ret;
 }

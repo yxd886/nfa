@@ -22,11 +22,12 @@ int Packet::Alloc(Packet **pkts, size_t cnt, uint16_t len) {
    * rss 			0 	(32 bits) */
   rxdesc_fields = _mm_setr_epi32(0, len, len, 0);
 
-  ret = rte_mempool_get_bulk(ctx.pframe_pool(), (void **)pkts, cnt);
+  ret = rte_mempool_get_bulk(ctx.pframe_pool(), reinterpret_cast<void **>(pkts),
+                             cnt);
   if (ret != 0)
     return 0;
 
-  mbuf_template = *((__m128i *)&pframe_template.buf_len_);
+  mbuf_template = *(reinterpret_cast<__m128i *>(&pframe_template.buf_len_));
 
   /* 4 at a time didn't help */
   for (i = 0; i < (cnt & (~0x1)); i += 2) {
@@ -35,18 +36,24 @@ int Packet::Alloc(Packet **pkts, size_t cnt, uint16_t len) {
     Packet *pkt0 = pkts[i];
     Packet *pkt1 = pkts[i + 1];
 
-    _mm_storeu_si128((__m128i *)&pkt0->buf_len_, mbuf_template);
-    _mm_storeu_si128((__m128i *)&pkt0->packet_type_, rxdesc_fields);
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(&pkt0->buf_len_),
+                     mbuf_template);
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(&pkt0->packet_type_),
+                     rxdesc_fields);
 
-    _mm_storeu_si128((__m128i *)&pkt1->buf_len_, mbuf_template);
-    _mm_storeu_si128((__m128i *)&pkt1->packet_type_, rxdesc_fields);
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(&pkt1->buf_len_),
+                     mbuf_template);
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(&pkt1->packet_type_),
+                     rxdesc_fields);
   }
 
   if (cnt & 0x1) {
     Packet *pkt = pkts[i];
 
-    _mm_storeu_si128((__m128i *)&pkt->buf_len_, mbuf_template);
-    _mm_storeu_si128((__m128i *)&pkt->packet_type_, rxdesc_fields);
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(&pkt->buf_len_),
+                     mbuf_template);
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(&pkt->packet_type_),
+                     rxdesc_fields);
   }
 
   return cnt;
@@ -114,7 +121,7 @@ void Packet::Free(Packet **pkts, int cnt) {
 
   /* NOTE: it seems that zeroing the refcnt of mbufs is not necessary.
    *   (allocators will reset them) */
-  rte_mempool_put_bulk(_pool, (void **)pkts, cnt);
+  rte_mempool_put_bulk(_pool, reinterpret_cast<void **>(pkts), cnt);
   return;
 
 slow_path:

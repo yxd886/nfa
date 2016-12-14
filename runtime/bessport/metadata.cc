@@ -1,10 +1,10 @@
 #include "metadata.h"
 
+#include <glog/logging.h>
+
 #include <algorithm>
 #include <functional>
 #include <queue>
-
-#include <glog/logging.h>
 
 #include "mem_alloc.h"
 #include "module.h"
@@ -43,7 +43,7 @@ static void CheckOrphanReaders() {
 
     size_t i = 0;
     for (const auto &attr : m->all_attrs()) {
-      if (m->attr_offsets[i] == kMetadataOffsetNoRead) {
+      if (m->attr_offset(i) == kMetadataOffsetNoRead) {
         LOG(WARNING) << "Metadata attr " << attr.name << "/" << attr.size
                      << " of module " << m->name() << " has "
                      << "no upstream module that sets the value!";
@@ -61,7 +61,8 @@ static inline attr_id_t get_attr_id(const struct Attribute *attr) {
 
 class ScopeComponentComp {
  public:
-  ScopeComponentComp(const bool &revparam = false) : reverse_(revparam) {}
+  explicit ScopeComponentComp(const bool &revparam = false)
+      : reverse_(revparam) {}
 
   bool operator()(const ScopeComponent *lhs, const ScopeComponent *rhs) const {
     if (reverse_) {
@@ -177,13 +178,13 @@ void Pipeline::TraverseUpstream(Module *m, const struct Attribute *attr) {
   }
   module_scopes_[m] = static_cast<int>(scope_components_.size());
 
-  for (const auto &g : m->igates) {
+  for (const auto &g : m->igates()) {
     for (const auto &og : g->ogates_upstream()) {
       TraverseUpstream(og->module(), attr);
     }
   }
 
-  if (m->igates.size() == 0) {
+  if (m->igates().size() == 0) {
     scope_components_.back().set_invalid(true);
   }
 }
@@ -205,7 +206,7 @@ int Pipeline::TraverseDownstream(Module *m, const struct Attribute *attr) {
     AddModuleToComponent(m, found_attr);
     found_attr->scope_id = scope_components_.size();
 
-    for (const auto &ogate : m->ogates) {
+    for (const auto &ogate : m->ogates()) {
       if (!ogate) {
         continue;
       }
@@ -223,7 +224,7 @@ int Pipeline::TraverseDownstream(Module *m, const struct Attribute *attr) {
     return -1;
   }
 
-  for (const auto &ogate : m->ogates) {
+  for (const auto &ogate : m->ogates()) {
     if (!ogate) {
       continue;
     }
@@ -256,7 +257,7 @@ void Pipeline::IdentifyScopeComponent(Module *m, const struct Attribute *attr) {
   /* cycle detection */
   module_scopes_[m] = static_cast<int>(scope_components_.size());
 
-  for (const auto &ogate : m->ogates) {
+  for (const auto &ogate : m->ogates()) {
     if (!ogate) {
       continue;
     }
@@ -285,12 +286,12 @@ void Pipeline::FillOffsetArrays() {
         if (get_attr_id(&attr) == id) {
           if (invalid) {
             if (attr.mode == Attribute::AccessMode::kRead) {
-              m->attr_offsets[k] = kMetadataOffsetNoRead;
+              m->set_attr_offset(k, kMetadataOffsetNoRead);
             } else {
-              m->attr_offsets[k] = kMetadataOffsetNoWrite;
+              m->set_attr_offset(k, kMetadataOffsetNoWrite);
             }
           } else {
-            m->attr_offsets[k] = offset;
+            m->set_attr_offset(k, offset);
           }
           break;
         }
@@ -369,7 +370,7 @@ void Pipeline::LogAllScopes() const {
   for (size_t i = 0; i < scope_components_.size(); i++) {
     VLOG(1) << "scope component for " << scope_components_[i].size()
             << "-byte attr " << scope_components_[i].attr_id() << " at offset "
-            << (int)scope_components_[i].offset() << ": {";
+            << static_cast<int>(scope_components_[i].offset()) << ": {";
 
     for (const auto &it : scope_components_[i].modules()) {
       VLOG(1) << it->name();
@@ -428,9 +429,9 @@ int Pipeline::ComputeMetadataOffsets() {
     for (const auto &attr : m->all_attrs()) {
       if (attr.mode == Attribute::AccessMode::kRead ||
           attr.mode == Attribute::AccessMode::kUpdate) {
-        m->attr_offsets[i] = kMetadataOffsetNoRead;
+        m->set_attr_offset(i, kMetadataOffsetNoRead);
       } else if (attr.mode == Attribute::AccessMode::kWrite) {
-        m->attr_offsets[i] = kMetadataOffsetNoWrite;
+        m->set_attr_offset(i, kMetadataOffsetNoWrite);
         if (attr.scope_id == -1) {
           IdentifySingleScopeComponent(m, &attr);
         }
@@ -485,7 +486,7 @@ void Pipeline::DeregisterAttribute(const std::string &attr_name) {
   int &count = std::get<1>(it->second);
 
   count--;
-  assert(count >= 0);
+  DCHECK_GE(count, 0);
 
   if (count == 0) {
     // No more modules are using the attribute. Remove it from the map.

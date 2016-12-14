@@ -1,14 +1,16 @@
 #ifndef BESS_WORKER_H_
 #define BESS_WORKER_H_
 
+#include <glog/logging.h>
+
 #include <cstdint>
+#include <string>
 #include <thread>
 #include <type_traits>
 
-#include <glog/logging.h>
-
 #include "gate.h"
 #include "pktbatch.h"
+#include "traffic_class.h"
 #include "utils/common.h"
 
 #define MAX_WORKERS 4
@@ -18,7 +20,6 @@
 // XXX
 typedef uint16_t gate_idx_t;
 #define MAX_GATES 8192
-#define BRANCH_FACTOR 3
 
 /* 	TODO: worker threads doesn't necessarily be pinned to 1 core
  *
@@ -40,13 +41,16 @@ typedef enum {
   WORKER_FINISHED,
 } worker_status_t;
 
-struct gate_task {
-  bess::Gate *gate;
-  bess::PacketBatch batch;
-};
+namespace bess {
+class Scheduler;
+}  // namespace bess
 
 class Worker {
  public:
+  static const bess::TrafficPolicy kDefaultRootPolicy;
+  static const char *kRootClassNamePrefix;
+  static const char *kDefaultLeafClassNamePrefix;
+
   /* ----------------------------------------------------------------------
    * functions below are invoked by non-worker threads (the master)
    * ---------------------------------------------------------------------- */
@@ -58,7 +62,7 @@ class Worker {
   inline int is_pause_requested() { return status_ == WORKER_PAUSING; }
 
   /* Block myself. Return nonzero if the worker needs to die */
-  int Block();
+  int BlockWorker();
 
   /* The entry point of worker threads */
   void *Run(void *_arg);
@@ -75,9 +79,7 @@ class Worker {
     return pframe_pool_;
   }
 
-  struct sched *s() {
-    return s_;
-  }
+  bess::Scheduler *scheduler() { return scheduler_; }
 
   uint64_t silent_drops() { return silent_drops_; }
   void set_silent_drops(uint64_t drops) { silent_drops_ = drops; }
@@ -92,29 +94,6 @@ class Worker {
   gate_idx_t current_igate() const { return current_igate_; }
   void set_current_igate(gate_idx_t idx) { current_igate_ = idx; }
 
-  // Store gate+packets into tasks for worker to service.
-  // Returns true on success.
-  bool push_ogate_and_packets(bess::Gate *gate, bess::PacketBatch *batch) {
-    if (pending_gates_ > MAX_MODULES_PER_PATH * BRANCH_FACTOR) {
-      LOG(ERROR) << "Gate servicing stack overrun -- loop in execution?";
-      return false;
-    }
-    struct gate_task *new_task = &(gate_servicing_stack_[pending_gates_]);
-    new_task->gate = gate;     // store pointer
-    new_task->batch = *batch;  // store value
-    pending_gates_++;
-    return true;
-  }
-
-  // Retrieve next gate that this worker should serve packets to.
-  // Do not call without checking gates_pending() first.
-  struct gate_task pop_ogate_and_packets() {
-    pending_gates_--;
-    return gate_servicing_stack_[pending_gates_];  // return value
-  }
-
-  bool gates_pending() { return !(pending_gates_ == 0); }
-
   /* better be the last field. it's huge */
   bess::PacketBatch *splits() { return splits_; }
 
@@ -128,16 +107,12 @@ class Worker {
 
   struct rte_mempool *pframe_pool_;
 
-  struct sched *s_;
+  bess::Scheduler *scheduler_;
 
   uint64_t silent_drops_; /* packets that have been sent to a deadend */
 
   uint64_t current_tsc_;
   uint64_t current_ns_;
-
-  // Gates and packets that this worker should serve next.
-  struct gate_task gate_servicing_stack_[MAX_MODULES_PER_PATH * BRANCH_FACTOR];
-  int pending_gates_;
 
   /* The current input gate index is not given as a function parameter.
    * Modules should use get_igate() for access */
@@ -187,5 +162,7 @@ static inline int is_worker_running(int wid) {
 
 /* arg (int) is the core id the worker should run on */
 void launch_worker(int wid, int core);
+
+Worker *get_next_active_worker();
 
 #endif  // BESS_WORKER_H_

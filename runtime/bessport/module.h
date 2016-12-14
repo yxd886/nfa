@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "gate.h"
@@ -10,6 +11,8 @@
 #include "metadata.h"
 #include "packet.h"
 #include "task.h"
+
+using bess::gate_idx_t;
 
 static inline void set_cmd_response_error(pb_cmd_response_t *response,
                                           const pb_error_t &error) {
@@ -27,7 +30,7 @@ using module_init_func_t = pb_func_t<pb_error_t, Module, google::protobuf::Any>;
 template <typename T, typename M>
 static inline module_cmd_func_t MODULE_CMD_FUNC(
     pb_cmd_response_t (M::*fn)(const T &)) {
-  return [=](Module *m, const google::protobuf::Any &arg) -> pb_cmd_response_t {
+  return [fn](Module *m, const google::protobuf::Any &arg) {
     T arg_;
     arg.UnpackTo(&arg_);
     auto base_fn = std::mem_fn(fn);
@@ -38,7 +41,7 @@ static inline module_cmd_func_t MODULE_CMD_FUNC(
 template <typename T, typename M>
 static inline module_init_func_t MODULE_INIT_FUNC(
     pb_error_t (M::*fn)(const T &)) {
-  return [=](Module *m, const google::protobuf::Any &arg) -> pb_error_t {
+  return [fn](Module *m, const google::protobuf::Any &arg) {
     T arg_;
     arg.UnpackTo(&arg_);
     auto base_fn = std::mem_fn(fn);
@@ -109,9 +112,9 @@ class ModuleBuilder {
   gate_idx_t NumIGates() const { return num_igates_; }
   gate_idx_t NumOGates() const { return num_ogates_; }
 
-  const std::string &class_name() const { return class_name_; };
-  const std::string &name_template() const { return name_template_; };
-  const std::string &help_text() const { return help_text_; };
+  const std::string &class_name() const { return class_name_; }
+  const std::string &name_template() const { return name_template_; }
+  const std::string &help_text() const { return help_text_; }
 
   const std::vector<std::pair<std::string, std::string>> cmds() const {
     std::vector<std::pair<std::string, std::string>> ret;
@@ -151,19 +154,19 @@ class Module {
         module_builder_(),
         pipeline_(),
         attrs_(),
-        tasks(),
-        attr_offsets(),
-        igates(),
-        ogates() {}
+        attr_offsets_(),
+        tasks_(),
+        igates_(),
+        ogates_() {}
   virtual ~Module() {}
 
   pb_error_t Init(const bess::pb::EmptyArg &arg);
-  virtual void Deinit() {}
+  virtual void DeInit();
 
   virtual struct task_result RunTask(void *arg);
   virtual void ProcessBatch(bess::PacketBatch *batch);
 
-  virtual std::string GetDesc() const { return ""; };
+  virtual std::string GetDesc() const { return ""; }
   virtual std::string GetDump() const { return ""; }
 
   static const gate_idx_t kNumIGates = 1;
@@ -205,7 +208,6 @@ class Module {
   int DisconnectModulesUpstream(gate_idx_t igate_idx);
   int DisconnectModules(gate_idx_t ogate_idx);
 
-  int NumTasks();
   task_id_t RegisterTask(void *arg);
 
   /* Modules should call this function to declare additional metadata
@@ -231,6 +233,33 @@ class Module {
     return attrs_;
   }
 
+  const std::vector<Task *> tasks() const {
+    return tasks_;
+  }
+
+  void set_attr_offset(size_t idx, bess::metadata::mt_offset_t offset) {
+    if (idx < bess::metadata::kMaxAttrsPerModule) {
+      attr_offsets_[idx] = offset;
+    }
+  }
+
+  bess::metadata::mt_offset_t attr_offset(size_t idx) const {
+    DCHECK_LT(idx, bess::metadata::kMaxAttrsPerModule);
+    return attr_offsets_[idx];
+  }
+
+  const bess::metadata::mt_offset_t *all_attr_offsets() const {
+    return attr_offsets_;
+  }
+
+  const std::vector<bess::IGate *> &igates() const {
+    return igates_;
+  };
+
+  const std::vector<bess::OGate *> &ogates() const {
+    return ogates_;
+  };
+
  private:
   void DestroyAllTasks();
   void DeregisterAllAttributes();
@@ -250,43 +279,46 @@ class Module {
   bess::metadata::Pipeline *pipeline_;
 
   std::vector<bess::metadata::Attribute> attrs_;
+  bess::metadata::mt_offset_t attr_offsets_[bess::metadata::kMaxAttrsPerModule];
+
+  std::vector<Task *> tasks_;
+
+  std::vector<bess::IGate *> igates_;
+  std::vector<bess::OGate *> ogates_;
 
   DISALLOW_COPY_AND_ASSIGN(Module);
-
-  // FIXME: porting in progress ----------------------------
- public:
-  struct task *tasks[MAX_TASKS_PER_MODULE];
-
-  bess::metadata::mt_offset_t attr_offsets[bess::metadata::kMaxAttrsPerModule];
-
-  std::vector<bess::IGate *> igates;
-  std::vector<bess::OGate *> ogates;
 };
 
-void deadend(bess::PacketBatch *batch);
+static inline void deadend(bess::PacketBatch *batch) {
+  ctx.incr_silent_drops(batch->cnt());
+  bess::Packet::Free(batch);
+}
 
 inline void Module::RunChooseModule(gate_idx_t ogate_idx,
                                     bess::PacketBatch *batch) {
-  bess::Gate *ogate;
+  bess::OGate *ogate;
 
-  if (unlikely(ogate_idx >= ogates.size())) {
+  if (unlikely(ogate_idx >= ogates_.size())) {
     deadend(batch);
     return;
   }
 
-  ogate = ogates[ogate_idx];
+  ogate = ogates_[ogate_idx];
 
   if (unlikely(!ogate)) {
     deadend(batch);
     return;
   }
-
-  // Place packets into buffer so they can be run later
-  if (!ctx.push_ogate_and_packets(ogate, batch)) {
-    // This really shouldn't happen.
-    deadend(batch);
-    return;
+  for (auto &hook : ogate->hooks()) {
+    hook->ProcessBatch(batch);
   }
+
+  for (auto &hook : ogate->igate()->hooks()) {
+    hook->ProcessBatch(batch);
+  }
+
+  ctx.set_current_igate(ogate->igate_idx());
+  (static_cast<Module *>(ogate->arg()))->ProcessBatch(batch);
 }
 
 inline void Module::RunNextModule(bess::PacketBatch *batch) {
@@ -362,17 +394,17 @@ inline void set_attr_with_offset(bess::metadata::mt_offset_t offset,
 // TODO(melvin): These ought to be members of Module
 template <typename T>
 inline T *ptr_attr(Module *m, int attr_id, bess::Packet *pkt) {
-  return ptr_attr_with_offset<T>(m->attr_offsets[attr_id], pkt);
+  return ptr_attr_with_offset<T>(m->attr_offset(attr_id), pkt);
 }
 
 template <typename T>
 inline T get_attr(Module *m, int attr_id, bess::Packet *pkt) {
-  return get_attr_with_offset<T>(m->attr_offsets[attr_id], pkt);
+  return get_attr_with_offset<T>(m->attr_offset(attr_id), pkt);
 }
 
 template <typename T>
 inline void set_attr(Module *m, int attr_id, bess::Packet *pkt, T val) {
-  set_attr_with_offset(m->attr_offsets[attr_id], pkt, val);
+  set_attr_with_offset(m->attr_offset(attr_id), pkt, val);
 }
 
 // Define some common versions of the above functions
