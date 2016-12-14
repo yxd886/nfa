@@ -305,7 +305,7 @@ void nf_execution_context::process_pkt(struct rte_mbuf* input_pkt, bool from_p0)
   else{
     if(set_up_entry == false){
       if(internal_pkt_counter % 3 ==0){
-        send(replication_target_a, create_new_replica::value, this->id(), flow_identifier, service_chain_type_sig, 10);
+      	remote_send(replication_target_a, create_new_replica::value, this->id(), flow_identifier, service_chain_type_sig, 10);
       }
       servce_chain_process(input_pkt, from_p0);
       while(!output_queue->try_enqueue(input_pkt)){
@@ -329,7 +329,7 @@ void nf_execution_context::process_pkt(struct rte_mbuf* input_pkt, bool from_p0)
         binary_serializer bs{system(), scs_buf};
         bs(scs);
 
-        this->send(replication_target_a, from_p0, this->id(), true, scs_buf);
+        this->remote_send(replication_target_a, from_p0, this->id(), true, scs_buf);
       }
       else{
         // vector<char> input_pkt_buf = pkt_to_char_buf(input_pkt);
@@ -349,23 +349,23 @@ void nf_execution_context::flow_finish_quit(migration_status status){
     send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, false);
   }
   else if(status == migration_status::in_normal_processing){
-    send(worker_a, remove_from_active_nf_ecs::value, this->id());
+    local_send(worker_a, remove_from_active_nf_ecs::value, this->id());
   }
   else{
   }
 
   if(is_replica_alive){
     if(set_up_entry){
-      send(replication_target_a, force_quit_atom::value, this->id());
+    	remote_send(replication_target_a, force_quit_atom::value, this->id());
     }
     destroy(replication_target_a);
   }
 
   if(replication_strategy>0){
-    send(worker_a, remove_from_replication_helpers::value, replication_target_rt_id, this->id());
+    local_send(worker_a, remove_from_replication_helpers::value, replication_target_rt_id, this->id());
   }
 
-  send(nf_ec_timer_a, nf_ec_timer_quit::value);
+  remote_send(nf_ec_timer_a, nf_ec_timer_quit::value);
   destroy(worker_a);
   destroy(nf_ec_timer_a);
   destroy(replication_target_a);
@@ -392,7 +392,7 @@ void nf_execution_context::acquire_migration_target_actor(const actor& new_migra
 
   // ask for the migration target runtime to create a migration target actor
   pending_transaction=true;
-  send(new_migration_target_rt_a, std::chrono::milliseconds(5*migration_timeout_ms), //50ms deadline
+  remote_send(new_migration_target_rt_a, std::chrono::milliseconds(5*migration_timeout_ms), //50ms deadline
                 create_migration_target_actor::value, flow_identifier, service_chain_type_sig, local_rt_id,
                 replication_target_rt_id);
 
@@ -424,7 +424,7 @@ void nf_execution_context::migrate_flow_state(){
   binary_serializer bs{system(), scs_buf};
   bs(scs);
 
-  send(migration_target_a, std::chrono::seconds(migration_timeout_ms), //10s long deadline
+  remote_send(migration_target_a, std::chrono::seconds(migration_timeout_ms), //10s long deadline
                 try_migrate_flow_state::value, scs_buf);
 
 }
@@ -529,7 +529,7 @@ void nf_execution_context::handle_message(atom_type(idle_kill)){
     print_migration_target("nf-ec is killed due to idleness, quit");
 
     // notify the worker to remove this actor from migration target list.
-    send(worker_a, remove_from_migration_target_nf_ecs::value, this->id(), this->migration_source_rt_id, false);
+    local_send(worker_a, remove_from_migration_target_nf_ecs::value, this->id(), this->migration_source_rt_id, false);
     target_clean_up();
     break;
 	}
@@ -559,7 +559,7 @@ void nf_execution_context::handle_message(const error& err){
   case nf_ec_state::acquire_migration_target_actor:
   	pending_transaction = false;
   	print_migration_source("nf-ec fails to get migration target actor, become normal");
-		send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
+		lcoal_send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
 		normal_run();
 		break;
   case nf_ec_state::change_forwarding_path:
@@ -567,13 +567,13 @@ void nf_execution_context::handle_message(const error& err){
     retry_counter+=1;
     if(retry_counter<2){
       print_migration_source("nf-ec fails to receive error message in change_forwarding_path, retry");
-      send(this, try_change_forwarding_path::value);
+      local_send(this, try_change_forwarding_path::value);
     }
     else{
       // nf ec fails to change the route
       // we should tells the worker to add the nf ec back to active list
       print_migration_source("nf-ec fails to change forwarding path, become normal");
-      send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
+      local_send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
       source_clean_up();
     }
     break;
@@ -582,7 +582,7 @@ void nf_execution_context::handle_message(const error& err){
 		// nf ec fails to migrate the flow state
 		// we should tells the worker to add the nf ec back to active list
 		print_migration_source("nf-ec receives error message "+caf::to_string(err)+" in migrate_flow_state(), become normal");
-		send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
+		local_send(worker_a, remove_from_migration_source_nf_ecs::value, this->id(), this->migration_target_rt_id, true);
 		source_clean_up();
 		break;
 
@@ -618,7 +618,7 @@ void nf_execution_context::handle_message(atom_type(migration_fail)){
 
 void nf_execution_context::handle_message(atom_type(try_change_forwarding_path)){
   pending_transaction=true;
-  send(my_vswitch_a, std::chrono::milliseconds(5*migration_timeout_ms), // 50ms deadline
+  remote_send(my_vswitch_a, std::chrono::milliseconds(5*migration_timeout_ms), // 50ms deadline
                 forward_to_migration_target_actor::value,
                 flow_identifier,
                 migration_target_rt_id);
@@ -666,7 +666,7 @@ void nf_execution_context::handle_message(atom_type(try_migrate_flow_state), vec
   destroy(my_vswitch_a);
 
   // notify the worker to add us to the active_nf_ec.
-  send(worker_a, remove_from_migration_target_nf_ecs::value, this->id(), this->migration_source_rt_id, false);
+  local_send(worker_a, remove_from_migration_target_nf_ecs::value, this->id(), this->migration_source_rt_id, false);
   print_migration_target("nf-ec receives flow state, become normal, enter process_buffer()");
 
   for(size_t i=0; i<p0_buffer.size(); i++){

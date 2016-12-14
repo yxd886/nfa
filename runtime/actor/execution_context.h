@@ -169,7 +169,7 @@ private:
   void process_pkt(struct rte_mbuf* input_pkt, bool from_p0);
 
   void source_clean_up(){
-    send(nf_ec_timer_a, clean_up_vswitch_table::value, local_rt_id);
+    remote_send(nf_ec_timer_a, clean_up_vswitch_table::value, local_rt_id);
     pending_clear_up_vswitch_table = true;
     destroy(my_vswitch_a);
     destroy(migration_target_a);
@@ -177,7 +177,7 @@ private:
   }
 
   void target_clean_up(){
-    send(nf_ec_timer_a, clean_up_vswitch_table::value, migration_source_rt_id);
+  	remote_send(nf_ec_timer_a, clean_up_vswitch_table::value, migration_source_rt_id);
     pending_clear_up_vswitch_table = true;
     destroy(my_vswitch_a);
     destroy(migration_source_a);
