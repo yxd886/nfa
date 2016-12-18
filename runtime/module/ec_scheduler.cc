@@ -1,6 +1,5 @@
 //
 #include "ec_scheduler.h"
-#include <glog/logging.h>
 
 struct ipv4_field{
   uint16_t pos;
@@ -36,14 +35,11 @@ pb_error_t ec_scheduler::Init(const bess::pb::PortIncArg &arg){
 }
 
 void ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
-  LOG(INFO)<<"in ProcessBatch with batch size "<<batch->cnt();
 
   char keys[bess::PacketBatch::kMaxBurst][flow_key_size] __ymm_aligned;
   init_ipv4_field(fields);
 
   for(int i=0; i<batch->cnt(); i++){
-    LOG(INFO)<<batch->pkts()[i]->Dump();
-
     char* data_start = reinterpret_cast<char *>(batch->pkts()[i]->buffer());
     data_start += batch->pkts()[i]->data_off();
 
@@ -53,12 +49,10 @@ void ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
       *(uint64_t *)key = *(uint64_t *)(data_start + fields[j].offset) & fields[j].mask;
     }
 
-    LOG(INFO)<<"before ht Get";
-    flow_actor* actor = *(static_cast<flow_actor**>(htable_.Get(reinterpret_cast<flow_key_t*>(keys[i]))));
-    LOG(INFO)<<"after ht Get";
+    flow_actor** actor_ptr = htable_.Get(reinterpret_cast<flow_key_t*>(keys[i]));
+    flow_actor* actor = 0;
 
-
-    if(unlikely(actor==nullptr)){
+    if(unlikely(actor_ptr==nullptr)){
       actor = allocator_->allocate();
 
       if(unlikely(actor==nullptr)){
@@ -66,9 +60,11 @@ void ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);
+
+      actor_ptr = &actor;
     }
 
-    send(actor, pkt_msg_t::value, batch->pkts()[i]);
+    send(*actor_ptr, pkt_msg_t::value, batch->pkts()[i]);
   }
 
   RunNextModule(batch);
