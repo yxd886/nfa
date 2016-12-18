@@ -22,8 +22,6 @@ public:
 
   virtual struct task_result RunTask(void *arg);
 
-  // static Module* create(const string& name, sn_port* port, int prefetch, int burst);
-
   void customized_init(sn_port* port, int prefetch, int burst);
 
 private:

@@ -29,23 +29,6 @@ pb_error_t PortOut::Init(const bess::pb::PortIncArg &arg){
   return pb_errno(0);
 }
 
-// Module* PortOut::create(const string& name, sn_port* port){
-//   const ModuleBuilder& builder =
-//           ModuleBuilder::all_module_builders().find("PortInc")->second;
-//
-//   string final_name = name;
-//   if (ModuleBuilder::all_modules().count(name)) {
-//     final_name = ModuleBuilder::GenerateDefaultName(builder.class_name(),
-//                                                     builder.name_template());
-//   }
-//
-//   Module* m = builder.CreateModule(final_name, &bess::metadata::default_pipeline);
-//
-//   static_cast<PortOut*>(m)->customized_init(port);
-//
-//   return m;
-// }
-
 void PortOut::customized_init(sn_port* port){
   port_ = port;
 }

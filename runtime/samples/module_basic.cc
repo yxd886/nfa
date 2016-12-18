@@ -1,5 +1,6 @@
 #include <thread>
 #include <chrono>
+#include <cassert>
 
 #include <glog/logging.h>
 
@@ -13,9 +14,14 @@
 #include "../port/sn_port.h"
 #include "../bessport/task.h"
 #include "../bessport/scheduler.h"
+#include "../actor/flow_actor.h"
+#include "../module/ec_scheduler.h"
+#include "../actor/flow_actor_allocator.h"
 
 using namespace bess;
 using namespace std;
+
+static constexpr int num_flow_actors = 1024*512;
 
 int main(int argc, char* argv[]){
   google::ParseCommandLineFlags(&argc, &argv, true);
@@ -23,6 +29,48 @@ int main(int argc, char* argv[]){
   google::InitGoogleLogging(argv[0]);
 
   nfa_init_dpdk(argv[0]);
+
+  flow_actor_allocator::create(num_flow_actors);
+  LOG(INFO)<<"creating "<<num_flow_actors<<" flow actors";
+
+  flow_actor_allocator* allocator = flow_actor_allocator::get();
+
+  /*flow_actor* a0 = allocator->allocate();
+  flow_actor* a1 = allocator->allocate();
+  flow_actor* a2 = allocator->allocate();
+  flow_actor* a3 = allocator->allocate();
+  flow_actor* a4 = allocator->allocate();
+  flow_actor* a5 = allocator->allocate();
+
+  assert(a0->get_id() == 0);
+  assert(a1->get_id() == 1);
+  assert(a2->get_id() == 2);
+  assert(a3->get_id() == 3);
+  assert(a4->get_id() == 4);
+  assert(a5 == nullptr);
+
+  assert(allocator->deallocate(a4) == true);
+  assert(allocator->deallocate(a3) == true);
+  assert(allocator->deallocate(a2) == true);
+  assert(allocator->deallocate(a1) == true);
+  assert(allocator->deallocate(a0) == true);
+  assert(allocator->deallocate(a5) == false);
+
+  a0 = allocator->allocate();
+  a1 = allocator->allocate();
+  a2 = allocator->allocate();
+  a3 = allocator->allocate();
+  a4 = allocator->allocate();
+  a5 = allocator->allocate();
+
+  assert(a0->get_id() == 4);
+  assert(a1->get_id() == 3);
+  assert(a2->get_id() == 2);
+  assert(a3->get_id() == 1);
+  assert(a4->get_id() == 0);
+  assert(a5 == nullptr);
+
+  LOG(INFO)<<"pass flow_actor_allocator test";*/
 
   if((string(FLAGS_input_port)=="")||(string(FLAGS_output_port)=="")){
     LOG(ERROR)<<"The name of intput/output port must be specified";
@@ -53,13 +101,21 @@ int main(int argc, char* argv[]){
 
   Module* mod_port_inc = create_module<PortInc>("PortInc", "mod_port_inc", &input_port, 0, 32);
   Module* mod_port_out = create_module<PortOut>("PortOut", "mod_port_out", &output_port);
+  Module* mod_ec_scheduler = create_module<ec_scheduler>("ec_scheduler", "mod_ec_scheduler", allocator);
 
-  bool flag = mod_port_inc->ConnectModules(0, mod_port_out, 0);
+  bool flag = mod_port_inc->ConnectModules(0, mod_ec_scheduler, 0);
   if(flag!=0){
-    LOG(ERROR)<<"Error connecting mod_port_inc with mod_port_out";
+    LOG(ERROR)<<"Error connecting mod_port_inc with mod_ec_scheduler";
     exit(-1);
   }
-  LOG(INFO)<<"mod_port_inc is connected to mod_port_out";
+  LOG(INFO)<<"mod_port_inc is connected to mod_ec_scheduler";
+
+  flag = mod_ec_scheduler->ConnectModules(0, mod_port_out, 0);
+  if(flag!=0){
+    LOG(ERROR)<<"Error connecting mod_ec_scheduler with mod_port_out";
+    exit(-1);
+  }
+  LOG(INFO)<<"mod_ec_scheduler is connected to mod_port_out";
 
   Task* t = mod_port_inc->tasks()[0];
   if(t==nullptr){

@@ -22,8 +22,6 @@ public:
 
   virtual void ProcessBatch(bess::PacketBatch *batch);
 
-  // static Module* create(const string& name, sn_port* port);
-
   void customized_init(sn_port* port);
 
 private:

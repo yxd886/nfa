@@ -26,3 +26,23 @@
 //        message handler of the coordinator to handle the messages. 
 
 
+#ifndef ACTOR_H
+#define ACTOR_H
+
+using actor_id_t = uint32_t;
+
+class actor_base{
+public:
+  actor_id_t get_id(){
+    return actor_id_;
+  }
+
+  void set_id(actor_id_t actor_id){
+    actor_id_ = actor_id;
+  }
+
+private:
+  actor_id_t actor_id_;
+};
+
+#endif
