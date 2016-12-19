@@ -4,5 +4,6 @@
 
 void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
   // do nothing
-  LOG(INFO)<<"Flow actor "<<this->get_id()<<" is processing packet";
+  // LOG(INFO)<<"Flow actor "<<this->get_id()<<" is processing packet";
+  pkt_counter+=1;
 }

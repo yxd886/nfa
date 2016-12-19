@@ -21,6 +21,11 @@ struct flow_key_t{
 class flow_actor : public actor_base{
 public:
   void handle_message(pkt_msg_t, bess::Packet* pkt);
+
+  flow_actor() : pkt_counter(0){}
+
+private:
+  uint64_t pkt_counter;
 };
 
 #endif
