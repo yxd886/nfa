@@ -8,15 +8,17 @@
 #include "../nfadpdk.h"
 #include "../bessport/worker.h"
 #include "../bessport/traffic_class.h"
-#include "../module/port_inc.h"
-#include "../module/port_out.h"
-#include "../module/create.h"
-#include "../port/sn_port.h"
 #include "../bessport/task.h"
 #include "../bessport/scheduler.h"
-#include "../actor/flow_actor.h"
+#include "../port/sn_port.h"
+#include "../module/port_inc.h"
+#include "../module/port_out.h"
 #include "../module/ec_scheduler.h"
+#include "../module/sink.h"
+#include "../module/create.h"
+#include "../actor/flow_actor.h"
 #include "../actor/flow_actor_allocator.h"
+#include "../actor/coordinator.h"
 
 using namespace bess;
 using namespace std;
@@ -34,6 +36,7 @@ int main(int argc, char* argv[]){
   LOG(INFO)<<"creating "<<num_flow_actors<<" flow actors";
 
   flow_actor_allocator* allocator = flow_actor_allocator::get();
+  coordinator coordinator_actor(allocator);
 
   /*flow_actor* a0 = allocator->allocate();
   flow_actor* a1 = allocator->allocate();
@@ -101,7 +104,8 @@ int main(int argc, char* argv[]){
 
   Module* mod_port_inc = create_module<PortInc>("PortInc", "mod_port_inc", &input_port, 0, 32);
   Module* mod_port_out = create_module<PortOut>("PortOut", "mod_port_out", &output_port);
-  Module* mod_ec_scheduler = create_module<ec_scheduler>("ec_scheduler", "mod_ec_scheduler", allocator);
+  Module* mod_ec_scheduler = create_module<ec_scheduler>("ec_scheduler", "mod_ec_scheduler", &coordinator_actor);
+  Module* mod_sink = create_module<Sink>("Sink", "mod_sink");
 
   bool flag = mod_port_inc->ConnectModules(0, mod_ec_scheduler, 0);
   if(flag!=0){
@@ -116,6 +120,13 @@ int main(int argc, char* argv[]){
     exit(-1);
   }
   LOG(INFO)<<"mod_ec_scheduler is connected to mod_port_out";
+
+  flag = mod_ec_scheduler->ConnectModules(1, mod_sink, 0);
+  if(flag!=0){
+    LOG(ERROR)<<"Error connecting ogate 1 of mod_ec_scheduler with mod_sink";
+    exit(-1);
+  }
+  LOG(INFO)<<"ogate 1 of mod_ec_scheduler is connected with mod_sink";
 
   Task* t = mod_port_inc->tasks()[0];
   if(t==nullptr){

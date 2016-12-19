@@ -1,8 +1,8 @@
 #ifndef LOCAL_SEND_H
 #define LOCAL_SEND_H
 
-#include "local_message.h"
 #include "actor.h"
+#include "local_message.h"
 
 template<class TActor, class Mid, class... TArgs>
 inline void send(TActor* dest, Mid mid, TArgs&&... args){
