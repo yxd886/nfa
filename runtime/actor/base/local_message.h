@@ -2,7 +2,6 @@
 #define LOCAL_MESSAGE_H
 
 struct local_message_base{
-
 };
 
 template<int>

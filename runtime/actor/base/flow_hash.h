@@ -1,10 +1,11 @@
-#ifndef FLOW_KEY_HASH_FUNCTIONS_H
-#define FLOW_KEY_HASH_FUNCTIONS_H
+#ifndef FLOW_HASH_H
+#define FLOW_HASH_H
 
 #include <rte_config.h>
 #include <rte_hash_crc.h>
 
 #include "flow_key.h"
+#include "../../bessport/utils/common.h"
 
 inline int flow_keycmp(const void *key, const void *key_stored, size_t key_len) {
   const uint64_t *a = ((flow_key_t *)key)->field;

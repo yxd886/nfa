@@ -1,4 +1,13 @@
 #include "coordinator.h"
+#include "flow_actor_allocator.h"
+#include "../actor/base/local_send.h"
+
+coordinator::coordinator(flow_actor_allocator* allocator){
+  allocator_ = allocator;
+  htable_.Init(flow_key_size, sizeof(flow_actor*));
+  deadend_flow_actor_ = allocator_->allocate();
+  nfa_ipv4_field::nfa_init_ipv4_field(fields_);
+}
 
 void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch){
   ec_scheduler_batch_.clear();
@@ -33,7 +42,8 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
         actor = deadend_flow_actor_;
       }
       else{
-        send(actor, ec_scheduler_batch_and_gates_t::value, &ec_scheduler_batch_, es_scheduler_gates_);
+        send(actor, ec_scheduler_batch_and_gates_t::value, &ec_scheduler_batch_, es_scheduler_gates_,
+            this);
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);

@@ -1,5 +1,7 @@
 //
 #include "ec_scheduler.h"
+#include "../actor/coordinator.h"
+#include "../actor/base/local_send.h"
 
 pb_error_t ec_scheduler::Init(const bess::pb::PortIncArg &arg){
   return pb_errno(0);

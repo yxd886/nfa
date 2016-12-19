@@ -10,9 +10,10 @@
 #include "../bessport/module.h"
 #include "../bessport/module_msg.pb.h"
 #include "../bessport/message.h"
-#include "../actor/coordinator.h"
 
 using std::string;
+
+class coordinator;
 
 class ec_scheduler final : public Module {
 public:
