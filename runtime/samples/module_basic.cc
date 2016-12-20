@@ -15,6 +15,7 @@
 #include "../module/port_out.h"
 #include "../module/ec_scheduler.h"
 #include "../module/sink.h"
+#include "../module/timers.h"
 #include "../module/create.h"
 #include "../actor/flow_actor.h"
 #include "../actor/flow_actor_allocator.h"
@@ -107,6 +108,8 @@ int main(int argc, char* argv[]){
   Module* mod_ec_scheduler = create_module<ec_scheduler>("ec_scheduler", "mod_ec_scheduler", &coordinator_actor);
   Module* mod_sink = create_module<Sink>("Sink", "mod_sink");
 
+  Module* mod_timers = create_module<timers>("timers", "mod_timer", &coordinator_actor);
+
   bool flag = mod_port_inc->ConnectModules(0, mod_ec_scheduler, 0);
   if(flag!=0){
     LOG(ERROR)<<"Error connecting mod_port_inc with mod_ec_scheduler";
@@ -134,6 +137,12 @@ int main(int argc, char* argv[]){
     exit(-1);
   }
 
+  Task* t_timers = mod_timers->tasks()[0];
+  if(t_timers == nullptr){
+    LOG(ERROR)<<"mod_timers has no task";
+    exit(-1);
+  }
+
   bess::LeafTrafficClass* tc =
             workers[wid]->scheduler()->default_leaf_class();
   if (!tc) {
@@ -142,6 +151,7 @@ int main(int argc, char* argv[]){
   }
 
   tc->AddTask(t);
+  tc->AddTask(t_timers);
 
   resume_all_workers();
 

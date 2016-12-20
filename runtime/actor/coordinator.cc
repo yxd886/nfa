@@ -42,8 +42,8 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
         actor = deadend_flow_actor_;
       }
       else{
-        send(actor, ec_scheduler_batch_and_gates_t::value, &ec_scheduler_batch_, es_scheduler_gates_,
-            this);
+        send(actor, flow_actor_init_t::value,
+             this, reinterpret_cast<flow_key_t*>(keys[i]));
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);
@@ -52,5 +52,15 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
     }
 
     send(*actor_ptr, pkt_msg_t::value, batch->pkts()[i]);
+  }
+}
+
+void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key){
+  htable_.Del(flow_key);
+
+  if(flow_actor!=deadend_flow_actor_){
+    allocator_->deallocate(flow_actor);
+  }
+  else{
   }
 }

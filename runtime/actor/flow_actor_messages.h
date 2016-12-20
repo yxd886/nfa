@@ -5,10 +5,12 @@
 
 enum class flow_actor_messages{
   pkt_msg,
-  ec_scheduler_batch_and_gates
+  flow_actor_init,
+  check_idle
 };
 
 using pkt_msg_t = local_message(flow_actor_messages, pkt_msg);
-using ec_scheduler_batch_and_gates_t = local_message(flow_actor_messages, ec_scheduler_batch_and_gates);
+using flow_actor_init_t = local_message(flow_actor_messages, flow_actor_init);
+using check_idle_t = local_message(flow_actor_messages, check_idle);
 
 #endif
