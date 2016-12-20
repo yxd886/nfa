@@ -2,6 +2,8 @@
 #include "flow_actor_allocator.h"
 #include "../actor/base/local_send.h"
 
+#include <glog/logging.h>
+
 coordinator::coordinator(flow_actor_allocator* allocator){
   allocator_ = allocator;
   htable_.Init(flow_key_size, sizeof(flow_actor*));
@@ -39,6 +41,7 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
       actor = allocator_->allocate();
 
       if(unlikely(actor==nullptr)){
+        LOG(WARNING)<<"No available flow actors to allocate";
         actor = deadend_flow_actor_;
       }
       else{
