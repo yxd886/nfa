@@ -2,6 +2,8 @@
 #define COORDINATOR_H
 
 #include <list>
+#include <vector>
+#include <unordered_map>
 
 #include "../bessport/utils/htable.h"
 #include "../bessport/pktbatch.h"
@@ -11,6 +13,7 @@
 #include "./base/flow_hash.h"
 #include "coordinator_messages.h"
 #include "fixed_timer.h"
+#include "../nf/base/network_function_base.h"
 
 class flow_actor;
 class flow_actor_allocator;
@@ -47,6 +50,8 @@ private:
   gate_idx_t es_scheduler_gates_[bess::PacketBatch::kMaxBurst];
 
   std::list<fixed_timer<flow_actor_idle_timeout>> idle_flow_check_list_;
+
+  std::vector<network_function_base*> service_chain_;
 };
 
 #endif

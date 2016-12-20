@@ -31,6 +31,10 @@ public:
     return ring_buf_.push(flow_actor_ptr);
   }
 
+  inline size_t get_max_actor(){
+    return max_actors_;
+  }
+
 private:
   static std::unique_ptr<flow_actor_allocator> ptr_;
 
