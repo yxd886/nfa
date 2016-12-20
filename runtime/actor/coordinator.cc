@@ -56,6 +56,7 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
 }
 
 void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key){
+
   htable_.Del(flow_key);
 
   if(flow_actor!=deadend_flow_actor_){

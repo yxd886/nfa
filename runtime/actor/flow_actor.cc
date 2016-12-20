@@ -34,6 +34,10 @@ void flow_actor::handle_message(check_idle_t){
     if(idle_counter_ == 3){
       send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
     }
+    else{
+      add_timer(coordinator_actor_->peek_idle_flow_check_list(),
+                    ctx.current_ns(), static_cast<void*>(this), fixed_timer_messages::empty_msg);
+    }
   }
   else{
     idle_counter_ = 0;

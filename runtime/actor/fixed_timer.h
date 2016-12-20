@@ -35,4 +35,7 @@ inline void add_timer(std::list<fixed_timer<TO>>* to_list, Args&&... args){
   to_list->push_back(fixed_timer<TO>(std::forward<Args>(args)...));
 }
 
+template<>
+void fixed_timer<flow_actor_idle_timeout>::trigger();
+
 #endif

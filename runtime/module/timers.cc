@@ -19,7 +19,7 @@ struct task_result timers::RunTask(void *arg) {
       trigger_timer(coordinator_actor_->peek_idle_flow_check_list());
     }
     else{
-      continue;
+      break;
     }
   }
 
