@@ -1,5 +1,7 @@
 #ifndef CAF_NF_FLOW_MONITOR_HPP
 #define CAF_NF_FLOW_MONITOR_HPP
+#include <rte_config.h>
+#include <rte_mbuf.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
