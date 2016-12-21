@@ -40,9 +40,9 @@ int main(int argc, char* argv[]){
   flow_actor_allocator* allocator = flow_actor_allocator::get();
 
   std::vector<network_function_base*> service_chain_;
-  service_chain_.push_back(new network_function_derived<pkt_counter, pkt_counter_fs>(allocator_->get_max_actor()));
-  service_chain_.push_back(new network_function_derived<firewall, firewall_fs>(allocator_->get_max_actor()));
-  service_chain_.push_back(new network_function_derived<flow_monitor, flow_monitor_fs>(allocator_->get_max_actor()));
+  service_chain_.push_back(new network_function_derived<pkt_counter, pkt_counter_fs>(allocator->get_max_actor()));
+  service_chain_.push_back(new network_function_derived<firewall, firewall_fs>(allocator->get_max_actor()));
+  service_chain_.push_back(new network_function_derived<flow_monitor, flow_monitor_fs>(allocator->get_max_actor()));
 
 
   coordinator coordinator_actor(allocator,service_chain_);
