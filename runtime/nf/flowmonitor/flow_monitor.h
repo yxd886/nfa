@@ -23,7 +23,7 @@
 #include <map>
 #include <list>
 #include <asm-generic/int-ll64.h>
-#include "fm_SessionHash.h"
+#include "flow_monitor_fs.h"
 #include "fm_headinfo.h"
 #include "../../bessport/packet.h"
 
@@ -31,10 +31,8 @@
 class flow_monitor{
 public:
   flow_monitor(){
-	  _sesHash.Init();
-  }
 
-  flow_monitor_fsHashTable  _sesHash;
+  }
 
 
 
@@ -49,58 +47,40 @@ public:
 
 
   void process(char* raw_packet,flow_monitor_fs* fs){
-    struct head_info t;
-    struct head_info* hd=&t;
-    Format(raw_packet,hd);
-    uint32_t srcIp = ntohl(hd->m_pIphdr->saddr);
-    uint32_t dstIp = ntohl(hd->m_pIphdr->daddr);
-    uint16_t srcPort;
-    uint16_t dstPort;
-    if(hd->m_pTcphdr==NULL){
-       srcPort=0;
-       dstPort=0;
-    }else{
-       srcPort = ntohs(hd->m_pTcphdr->source);
-       dstPort = ntohs(hd->m_pTcphdr->dest);
-     }
 
-    flow_monitor_fsPtr sesptr = _sesHash.Find(srcIp,dstIp,srcPort,dstPort);
+  	if(fs->counter==0){
+  		struct head_info t;
+      struct head_info* hd=&t;
+      Format(raw_packet,hd);
+      fs->CreatedTime=time(0);
+      fs->SrcIp = ntohl(hd->m_pIphdr->saddr);
+      fs->DstIp = ntohl(hd->m_pIphdr->daddr);
+      fs->protocol   = hd->m_pIphdr->protocol;
+      if(hd->m_pTcphdr==NULL){
+			  fs->SrcPort=0;
+			  fs->DstPort=0;
+      }else{
+      	fs->SrcPort = ntohs(hd->m_pTcphdr->source);
+      	fs->DstPort = ntohs(hd->m_pTcphdr->dest);
 
-    if(sesptr.get() == NULL)
-    {
-        //如果不存在，则创建新会话
-    	printf("new session created!\n");
-    	//getchar();
-        sesptr = _sesHash.Create(hd);
-        if(sesptr.get() == NULL)
-        {
-            //log  create session error
-            return;
-        }
-        fs->CreatedTime=sesptr->CreatedTime;
-        fs->DstIp=sesptr->DstIp;
-        fs->DstPort=sesptr->DstPort;
-        fs->RefreshTime=sesptr->RefreshTime;
-        fs->SrcIp=sesptr->SrcIp;
-        fs->SrcPort=sesptr->SrcPort;
-        fs->protocol=sesptr->protocol;
-        fs->counter=sesptr->counter;
-    }
-    if(sesptr->protocol==IPPROTO_TCP){
+       }
+
+  	}
+
+  	fs->RefreshTime=time(0);
+    if(fs->protocol==IPPROTO_TCP){
     	fs->no_tcp++;
-        sesptr->no_tcp=fs->no_tcp;
 
-    }else if(sesptr->protocol==IPPROTO_UDP){
+    }else if(fs->protocol==IPPROTO_UDP){
     	fs->no_udp++;
-    	sesptr->no_udp=fs->no_udp;
-     }else if(sesptr->protocol==IPPROTO_ICMP){
-    	 fs->no_icmp++;
-    	 sesptr->no_icmp=fs->no_icmp;
-      }
+
+    }else if(fs->protocol==IPPROTO_ICMP){
+    	fs->no_icmp++;
+
+    }
     fs->no_total++;
     fs->counter++;
-    sesptr->no_total=fs->no_total;
-    sesptr->counter=fs->counter;
+
 
     printf("total number: %d\nudp number: %d\ntcp number: %d\nicmp number: %d\n",fs->no_total,fs->no_tcp,fs->no_udp,fs->no_icmp);
 
