@@ -5,7 +5,7 @@
 
 #include <glog/logging.h>
 
-coordinator::coordinator(flow_actor_allocator* allocator,std::vector<network_function_base*>& service_chain):service_chain_(service_chain){
+coordinator::coordinator(flow_actor_allocator* allocator,std::vector<network_function_base*>* service_chain):service_chain_(service_chain){
   allocator_ = allocator;
   htable_.Init(flow_key_size, sizeof(flow_actor*));
   deadend_flow_actor_ = allocator_->allocate();
@@ -59,7 +59,7 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
       }
       else{
         send(actor, flow_actor_init_t::value,
-             this, reinterpret_cast<flow_key_t*>(keys[i]), service_chain_);
+             this, reinterpret_cast<flow_key_t*>(keys[i]), *service_chain_);
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);

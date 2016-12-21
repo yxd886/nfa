@@ -45,7 +45,7 @@ int main(int argc, char* argv[]){
   service_chain_.push_back(new network_function_derived<flow_monitor, flow_monitor_fs>(allocator->get_max_actor()));
 
 
-  coordinator coordinator_actor(allocator,service_chain_);
+  coordinator coordinator_actor(allocator,&service_chain_);
 
   /*flow_actor* a0 = allocator->allocate();
   flow_actor* a1 = allocator->allocate();
