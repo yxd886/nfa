@@ -1,6 +1,7 @@
 #include <thread>
 #include <chrono>
 #include <cassert>
+#include <vector>
 
 #include <glog/logging.h>
 
@@ -37,7 +38,14 @@ int main(int argc, char* argv[]){
   LOG(INFO)<<"creating "<<num_flow_actors<<" flow actors";
 
   flow_actor_allocator* allocator = flow_actor_allocator::get();
-  coordinator coordinator_actor(allocator);
+
+  std::vector<network_function_base*> service_chain_;
+  service_chain_.push_back(new network_function_derived<pkt_counter, pkt_counter_fs>(allocator_->get_max_actor()));
+  service_chain_.push_back(new network_function_derived<firewall, firewall_fs>(allocator_->get_max_actor()));
+  service_chain_.push_back(new network_function_derived<flow_monitor, flow_monitor_fs>(allocator_->get_max_actor()));
+
+
+  coordinator coordinator_actor(allocator,service_chain_);
 
   /*flow_actor* a0 = allocator->allocate();
   flow_actor* a1 = allocator->allocate();

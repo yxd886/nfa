@@ -14,6 +14,10 @@
 #include "coordinator_messages.h"
 #include "fixed_timer.h"
 #include "../nf/base/network_function_base.h"
+#include "../nf/pktcounter/pkt_counter.h"
+#include "../nf/firewall/firewall.h"
+#include "../nf/flowmonitor/flow_monitor.h"
+#include "../nf/base/network_function_derived.h"
 
 class flow_actor;
 class flow_actor_allocator;
@@ -22,7 +26,7 @@ class coordinator : public actor_base{
 public:
   using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
 
-  coordinator(flow_actor_allocator* allocator);
+  coordinator(flow_actor_allocator* allocator,std::vector<network_function_base*>& service_chain);
 
   void handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch);
 
@@ -51,7 +55,7 @@ private:
 
   std::list<fixed_timer<flow_actor_idle_timeout>> idle_flow_check_list_;
 
-  std::vector<network_function_base*> service_chain_;
+  std::vector<network_function_base*>& service_chain_;
 };
 
 #endif
