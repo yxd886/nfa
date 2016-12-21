@@ -110,8 +110,10 @@ void firewall::filter_local_out(struct headinfo *hd,firewall_fs* sesptr){
   if(flag){
     sesptr->drop_no++;
     sesptr->current_pass=false;
+    std::cout<<"drop this packet! total drop: "<<sesptr->drop_no<<std::endl;
   }else{
     sesptr->pass_no++;
+    std::cout<<"pass this packet! total pass: "<<sesptr->pass_no<<std::endl;
     sesptr->current_pass=true;
    }
 
