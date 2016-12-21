@@ -1,7 +1,5 @@
 #ifndef CAF_NF_FLOW_MONITOR_HPP
 #define CAF_NF_FLOW_MONITOR_HPP
-#include "actor/network_function.hpp"
-#include "actor/flow_state.hpp"
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
