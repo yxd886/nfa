@@ -2,6 +2,7 @@
 #include "flow_actor_allocator.h"
 #include "../actor/base/local_send.h"
 #include "../nf/pktcounter/pkt_counter.h"
+#include "../nf/firewall/firewall.h"
 #include "../nf/base/network_function_derived.h"
 
 #include <glog/logging.h>

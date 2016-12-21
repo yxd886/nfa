@@ -63,9 +63,6 @@ void firewall::filter_local_out(struct headinfo *hd,firewall_fs* sesptr){
   uint32_t s_addr, d_addr;
   uint8_t protocol;
   uint16_t s_port, d_port;
-  char strtime[128]= {0};
-  time_t t;
-  tm* local;
   Bool match = false;
   Bool flag = false;
   protocol = hd->protocol;
