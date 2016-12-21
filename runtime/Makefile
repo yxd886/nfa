@@ -132,7 +132,7 @@ NFA_RPC_CLIENT_EXEC = samples/nfa_rpc_client
 NFA_RPC_CLIENT_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/nfa_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
 
 MODULE_BASIC_EXEC = samples/module_basic
-MODULE_BASIC_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/module_basic.o,$(SAMPLES_OBJS)),$(OBJS))
+MODULE_BASIC_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o samples/reliable/reliable.o  $(filter-out samples/module_basic.o,$(SAMPLES_OBJS)),$(OBJS))
 
 RELIABLE_EXEC = samples/reliable/reliable
 RELIABLE_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/reliable/reliable.o,$(SAMPLES_OBJS)),$(OBJS))
