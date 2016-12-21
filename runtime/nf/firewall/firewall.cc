@@ -13,11 +13,10 @@ void firewall::nf_logic_impl(bess::Packet* pkt, firewall_fs* fs){
 
 
 void firewall::process(char* packet,firewall_fs* fs){
-firewall_fs* fws=dynamic_cast<firewall_fs*>(fs);
 struct headinfo t;
   struct headinfo* hd=&t;
   Format(packet,hd);
-  filter_local_out(hd,fws);
+  filter_local_out(hd,fs);
 }
 
 
