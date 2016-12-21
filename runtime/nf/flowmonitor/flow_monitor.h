@@ -52,12 +52,6 @@ public:
     struct head_info t;
     struct head_info* hd=&t;
     Format(raw_packet,hd);
-
-	  if(fs==NULL){
-      printf("flow monitor dynamic cast fail\n");
-	  }else{
-		  printf("flow monitor dynamic cast successful\n");
-	  }
     uint32_t srcIp = ntohl(hd->m_pIphdr->saddr);
     uint32_t dstIp = ntohl(hd->m_pIphdr->daddr);
     uint16_t srcPort;
