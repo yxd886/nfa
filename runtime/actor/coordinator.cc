@@ -14,6 +14,7 @@ coordinator::coordinator(flow_actor_allocator* allocator){
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
 
   service_chain_.push_back(new network_function_derived<pkt_counter, pkt_counter_fs>(allocator_->get_max_actor()));
+  service_chain_.push_back(new network_function_derived<firewall, firewall_fs>(allocator_->get_max_actor()));
 }
 
 void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch){
