@@ -14,6 +14,16 @@ coordinator::coordinator(flow_actor_allocator* allocator,std::vector<network_fun
 
 }
 
+
+coordinator::coordinator(flow_actor_allocator* allocator):service_chain_(0){
+  allocator_ = allocator;
+  htable_.Init(flow_key_size, sizeof(flow_actor*));
+  deadend_flow_actor_ = allocator_->allocate();
+  nfa_ipv4_field::nfa_init_ipv4_field(fields_);
+
+
+}
+
 void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch){
   ec_scheduler_batch_.clear();
   char keys[bess::PacketBatch::kMaxBurst][flow_key_size] __ymm_aligned;

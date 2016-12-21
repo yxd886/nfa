@@ -27,6 +27,7 @@ public:
   using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
 
   coordinator(flow_actor_allocator* allocator,std::vector<network_function_base*>& service_chain);
+  coordinator(flow_actor_allocator* allocator);
 
   void handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch);
 
