@@ -29,7 +29,7 @@ public:
 private:
 
   void process(char* raw_packet,http_parser_fs* fs){
-	  http_parser_fs* fhs=dynamic_cast<http_parser_fs*>(fs);
+
 
 	  rcv.Work(raw_packet,fs);
 
