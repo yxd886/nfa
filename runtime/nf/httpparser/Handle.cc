@@ -123,7 +123,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
 
         }
 
-        if(fhs->ReqBuf.GetBufLen() == 0 && fhs->Result.RequestTimeStamp == 0)
+        if(GetBufLen(fhs->ReqBuf) == 0 && fhs->Result.RequestTimeStamp == 0)
         {
             //the first request packet. we will get timestamp from this packet
         	printf("first request packet!\n");

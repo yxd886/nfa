@@ -14,7 +14,7 @@ public:
     ~CHandle();
     void Init();
     void Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_parser_fsPtr& sesp);
-    void CHandle::Create(IFormatPacket *pPacket,CSharedBehaviorInfo* pInfo,http_parser_fsPtr& ptr);
+    void Create(IFormatPacket *pPacket,CSharedBehaviorInfo* pInfo,http_parser_fsPtr& ptr);
 
 private:
     void TimeOutCheck();
