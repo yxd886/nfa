@@ -1,5 +1,5 @@
-#ifndef FORMATPACKET_H_
-#define FORMATPACKET_H_
+#ifndef FORMATPACKETA_H_
+#define FORMATPACKETA_H_
 
 #include <net/if.h>
 #include <sys/types.h>

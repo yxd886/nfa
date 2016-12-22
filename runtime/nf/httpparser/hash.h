@@ -1,3 +1,6 @@
+#ifndef HASHAA_H
+#define HASHAA_H
+
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
@@ -171,3 +174,7 @@ void print(int p,ElemType r)
 {
  printf("address=%d (%s,%s)\n",p,r.key,r.value);
 }
+
+
+
+#endif

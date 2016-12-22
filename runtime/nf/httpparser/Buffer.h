@@ -1,5 +1,5 @@
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef BUFFERA_H
+#define BUFFERA_H
 
 #include <stdio.h>
 #include <stdint.h>

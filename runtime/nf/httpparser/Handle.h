@@ -1,5 +1,5 @@
-#ifndef HANDLE_H_
-#define HANDLE_H_
+#ifndef HANDLEA_H_
+#define HANDLEA_H_
 
 #include "Public.h"
 #include "BehaviorInfo.h"
