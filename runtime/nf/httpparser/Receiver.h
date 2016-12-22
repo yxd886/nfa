@@ -34,8 +34,8 @@ private:
         //格式化一个二进制包
     		 CFormatPacket packet;
     		 packet.Format(msg);
-    		 printf("packet.GetDstPort:%x\n",packet.GetDstPort());
-    		 printf("ntoh packet.GetDstPort:%x\n",ntohs(packet.GetDstPort()));
+   // 		 printf("packet.GetDstPort:%x\n",packet.GetDstPort());
+  //  		 printf("ntoh packet.GetDstPort:%x\n",ntohs(packet.GetDstPort()));
     		 CSharedBehaviorInfo info;
     		 if(packet.GetIpProtocol()==IPPROTO_TCP&&ntohs(packet.GetDstPort())==0x50)//if destport is 80
     		 {

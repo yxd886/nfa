@@ -15,7 +15,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     if(fhs->counter==0)
     {
         //如果不存在，则创建新会话
-    	printf("new session created!\n");
+  //  	printf("new session created!\n");
     	//getchar();
         Create(&packet,pInfo,fhs);
 
@@ -27,7 +27,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     if(packet.GetTcphdr()->fin == 1 || packet.GetTcphdr()->rst == 1)
     {
         //log 会话结束,session over
-    	printf("session over\n");
+  //  	printf("session over\n");
         _httpParse.Parse(fhs);
 
         return;
@@ -36,14 +36,14 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     if(fhs->SeqNo == ntohl(packet.GetTcphdr()->seq))
     {
         //log repeated packet  重复的包
-    	printf("repeated packet!\n");
+   // 	printf("repeated packet!\n");
         return;
     }
 
     if(packet.GetDataLen() == 0)
     {
         //log zero length
-    	printf("data zero!\n");
+   // 	printf("data zero!\n");
         return;
     }
 
@@ -53,15 +53,15 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     if(pInfo->m_nIdtMatchWay == UNK_MATCH)
     {
         //log unknown match
-    	printf("unknow match!\n");
+    	//printf("unknow match!\n");
         return;
     }
     else if(pInfo->m_nIdtMatchWay == C2S_MATCH)
     {
-        printf("C2S\n");
+       // printf("C2S\n");
     	if(GetBufLen(fhs->ReqBuf) > 0 && GetBufLen(fhs->RspBuf) > 0)
         {
-            printf("enter sesptr->ReqBuf.GetBufLen() > 0 && sesptr->RspBuf.GetBufLen() > 0\n");
+        //    printf("enter sesptr->ReqBuf.GetBufLen() > 0 && sesptr->RspBuf.GetBufLen() > 0\n");
         	_httpParse.Parse(fhs);
 
         }
@@ -69,10 +69,10 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
         if(GetBufLen(fhs->ReqBuf) == 0 && fhs->Result.RequestTimeStamp == 0)
         {
             //the first request packet. we will get timestamp from this packet
-        	printf("first request packet!\n");
+       // 	printf("first request packet!\n");
             fhs->Result.RequestTimeStamp=packet.GetPacketTime()->tv_sec * 1000000LL + packet.GetPacketTime()->tv_usec;;
         }
-        printf("appending request buffer!\n");
+     //   printf("appending request buffer!\n");
         if(!Append(fhs->ReqBuf,(char*) packet.GetData(), (size_t) packet.GetDataLen()))
         {
 
@@ -82,16 +82,16 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     }
     else if(pInfo->m_nIdtMatchWay == S2C_MATCH)
     {
-    	printf("S2C\n");
+   // 	printf("S2C\n");
     	if(GetBufLen(fhs->RspBuf) == 0 && fhs->Result.ResponseTimeStamp == 0)
         {
             //the first response packet. we will get timestamp from this packet
-    		printf("first response packet!\n");
+   // 		printf("first response packet!\n");
             fhs->Result.ResponseTimeStamp = packet.GetPacketTime()->tv_sec * 1000000LL + packet.GetPacketTime()->tv_usec;
 
         }
 
-    	printf("appending respone buffer!\n");
+    //	printf("appending respone buffer!\n");
     	if(!Append(fhs->RspBuf,(char*) packet.GetData(), (size_t) packet.GetDataLen()))
         {
             //log  c2s append date error
@@ -99,9 +99,9 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
         }
     }
     unsigned int i;
-    printf("session request buffer:%s\n\n\n\n",GetBuf(fhs->ReqBuf,i));
+ //   printf("session request buffer:%s\n\n\n\n",GetBuf(fhs->ReqBuf,i));
    // getchar();
-    printf("session response buffer:%s\n",GetBuf(fhs->RspBuf,i));
+  //  printf("session response buffer:%s\n",GetBuf(fhs->RspBuf,i));
     return;
 }
 
