@@ -17,7 +17,6 @@ public:
     ~Receiver(){}
     void Work(char* msg, http_parser_fsPtr& sesp){
 
-    	printf("packet %d processing!\n",++counter);
     	HandleMessage( msg,sesp);
 
 
