@@ -16,6 +16,7 @@
 #include <set>
 #include <map>
 #include <list>
+#include "hash.h"
 
 enum DIRECTION
 {
@@ -51,7 +52,7 @@ const  static uint32_t C2S_MATCH = 1; //client to server
 const  static uint32_t S2C_MATCH = 2; //server to client
 
 
-typedef std::map<std::string,std::string> HeaderMap;
+typedef HashTable HeaderMap;
 
 struct CResult
 {
@@ -63,12 +64,12 @@ struct CResult
     uint32_t      Method;
     uint32_t      Version;
     uint32_t      RetCode;
-    std::string   Url;
-    std::string   RetNote;
+    char  			  Url[40];
+    char          RetNote[40];
     HeaderMap     RequestHeader;
     HeaderMap     ResponseHeader;
-    std::string   RequestData;
-    std::string   ResponseData;
+    char          RequestData[40];
+    char          ResponseData[40];
 };
 
 void CResult_Reset(struct CResult& r)
@@ -77,13 +78,13 @@ void CResult_Reset(struct CResult& r)
     r.ResponseTimeStamp = 0;
     r.Method = METUNKNOWN;
     r.RetCode = 0;
-    r.Url = "";
-    r.RetNote = "";
+    memset(r.Url,0,sizeof(r.Url));
+    memset(r.RetNote,0,sizeof(r.RetNote));
     r.Version = VERUNKNOWN;
-    r.RequestHeader.clear();
-    r.ResponseHeader.clear();
-    r.RequestData = "";
-    r.ResponseData = "";
+    InitHashTable(&(r.RequestHeader));
+    InitHashTable(&(r.ResponseHeader));
+    memset(r.RequestData,0,sizeof(r.RequestData));
+    memset(r.ResponseData,0,sizeof(r.ResponseData));
 }
 
 #endif

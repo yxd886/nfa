@@ -6,6 +6,7 @@
 #include "FormatPacket.h"
 #include <string>
 #include <arpa/inet.h>
+#include <memory.h>
 
 using namespace std;
 union iptrans{
@@ -167,7 +168,10 @@ bool CHttpParse::ParseMethodAndUri(const char* pBuf, const uint32_t len, uint32_
 
 
     //get url
-    ret = GetBufByTag(pBuf+pos,len-pos," ",1,result.Url);
+    std::string url(result.Url);
+    ret = GetBufByTag(pBuf+pos,len-pos," ",1,url);
+    memset(result.Url,0,sizeof(result.Url));
+    strcpy(result.Url,url.c_str());
     if(ret == -1)
     {
         //log get url error
@@ -176,7 +180,7 @@ bool CHttpParse::ParseMethodAndUri(const char* pBuf, const uint32_t len, uint32_
     }
     pos += ret;
     pos += 1;  //skip the space
-    cout<<"Url:"<<result.Url<<endl;
+    cout<<"Url:"<<url<<endl;
 
 
     //get http version
@@ -241,7 +245,10 @@ bool CHttpParse::ParseRspState(const char* pBuf, const uint32_t len,uint32_t& po
     pos += ret;
     pos += 1;  //skip the space
     result.RetCode  = atoi(rspCode.c_str());
-    ret = GetBufByTag(pBuf+pos,len-pos,"\r\n",2,result.RetNote);
+    string retnote(result.RetNote);
+    ret = GetBufByTag(pBuf+pos,len-pos,"\r\n",2,retnote);
+    memset(result.RetNote,0,sizeof(result.RetNote));
+    strcpy(result.RetNote,retnote.c_str());
     if( ret == -1)
     {
         //log reponse get version error
@@ -304,8 +311,13 @@ bool CHttpParse::ParseHeader(const char* pBuf, const uint32_t len,uint32_t& pos,
         pos += ret;
         pos += 1; //skip the \r\n
         cout<<"value:"<<value<<endl;
+        ElemType key_value;
+        memset(key_value.key,0,sizeof(key_value.key));
+        memset(key_value.value,0,sizeof(key_value.value));
+        strcpy(key_value.key,key.c_str());
+        strcpy(key_value.value,value.c_str());
+        InsertHash(&headmap,key_value);
 
-        headmap[key] = value;
     }
     return true;
 }
@@ -340,21 +352,22 @@ void CHttpParse::Send(http_parser_fsPtr&  sesptr)
     output << "retrun code : " << sesptr->Result.RetCode << sesptr->Result.RetNote << std::endl;
     output << "url : " << sesptr->Result.Url << std::endl;
     output << "Request Header:\n";
-    HeaderMap::iterator it = sesptr->Result.RequestHeader.begin();
-    for(; it != sesptr->Result.RequestHeader.end(); it++)
-    {
-        output << "\t" <<  it->first << ":  " << it->second << "\n";
+    for(int i=0;i<m;i++){
+      if(sesptr->Result.RequestHeader.elem[i].key!=NULLKEY) // 有数据
+       print(i,sesptr->Result.RequestHeader.elem[i]);
+      output<<std::string(sesptr->Result.RequestHeader.elem[i].key)<<":\t"<<std::string(sesptr->Result.RequestHeader.elem[i].value)<<std::endl;
     }
+
     output << "Request Context:\n";
     unsigned int length;
     char*tmp = GetBuf(sesptr->ReqBuf,length);
     output.write(tmp,length);
     output<<std::endl;
     output << "Response Header:\n";
-    HeaderMap::iterator itr = sesptr->Result.ResponseHeader.begin();
-    for(; itr != sesptr->Result.ResponseHeader.end(); itr++)
-    {
-        output << "\t" <<  itr->first << ":  " << itr->second << "\n";
+    for(int i=0;i<m;i++){
+      if(sesptr->Result.ResponseHeader.elem[i].key!=NULLKEY) // 有数据
+       print(i,sesptr->Result.ResponseHeader.elem[i]);
+      output<<std::string(sesptr->Result.ResponseHeader.elem[i].key)<<":\t"<<std::string(sesptr->Result.ResponseHeader.elem[i].value)<<std::endl;
     }
     output << "Response Context:\n";
 
