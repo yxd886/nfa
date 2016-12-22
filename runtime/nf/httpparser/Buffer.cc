@@ -21,7 +21,7 @@ void CBuffer_Reset(struct CBuffer& Cbuf)
         memset(Cbuf.buf,0x00,Cbuf._free);
     }
 
-    if(Cbuf.len > BUFFER_SIZE * 2 && Cbuf->buf)
+    if(Cbuf.len > BUFFER_SIZE * 2 && Cbuf.buf)
     {
         //如果目前buf的大小是默认值的2倍，则对其裁剪内存，保持buf的大小为默认值，减小内存耗费
         char* newbuf = (char*) realloc(Cbuf.buf,BUFFER_SIZE);
