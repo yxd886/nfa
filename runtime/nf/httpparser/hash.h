@@ -2,6 +2,7 @@
 #define HASHAA_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
 #define NULLKEY 0 // 0为无记录标志
