@@ -120,21 +120,233 @@ public:
 class CFormatPacket : public IFormatPacket
 {
 public:
-    void Format(char *packet);
-    struct ether_hdr *GetEtherHeader();
-    u_int64_t GetDstMac();
-    u_int64_t GetSrcMac();
+	void Format(char* packet)
+	{
+	    //m_pPacketData = pRawPacket;
 
-    struct iphdr *GetIphdr();
-    u_int32_t GetDstIp();
-    u_int32_t GetSrcIp();
-    u_int8_t  GetIpProtocol();
-    u_int16_t GetIpPktLen();
+	    m_pPkt = packet;
 
-    struct tcphdr *GetTcphdr();
-    struct udphdr *GetUdphdr();
-    u_int16_t GetDstPort();
-    u_int16_t GetSrcPort();
+	   // if(m_pPacketData->ethhdr_off < 0)
+	  //  {
+	  //      m_pEthhdr = NULL;
+	  //  }
+	   // else
+	   // {
+	        m_pEthhdr = (struct ether_hdr*)packet;
+	  //  }
+
+	   // if(m_pPacketData->iphdr_off < 0)
+	   // {
+	       // m_pIphdr = NULL;
+	   // }
+	   // else
+	   // {
+	        m_pIphdr = (struct iphdr*)(packet + sizeof(struct ether_hdr));
+	   // }
+
+	   // if(m_pPacketData->tcphdr_off < 0)
+	   // {
+	    //    m_pTcphdr = NULL;
+	   // }
+	   // else
+	   // {
+	        m_pTcphdr = (struct tcphdr*)(packet + sizeof(struct ether_hdr)+(m_pIphdr->ihl)*4);
+	   // }
+	    m_uPktLen = ntohs(m_pIphdr->tot_len);
+	    m_pEthIndex = (int16_t*)(&m_pEthhdr->ether_type);
+
+	    m_pData = NULL;
+	    m_DataLen = 0;
+	    if (m_pIphdr)
+	    {
+			int16_t iplen=ntohs(m_pIphdr->tot_len);
+			int16_t offset;
+			if (m_pIphdr->protocol == IPPROTO_TCP)
+				offset = m_pIphdr->ihl * 4 + m_pTcphdr->doff * 4;
+			else
+				offset = m_pIphdr->ihl * 4 + 8;
+			m_pData = (u_int8_t *)(packet + sizeof(struct ether_hdr) + offset);
+			m_DataLen = iplen - offset;
+			gettimeofday(&_time,NULL);
+	    }
+	    return;
+	}
+
+	/**
+	 *  Get ether header pointer
+	 *  @return
+	 *      \n NULL failed / not exist
+	 *      \n point to ether header in packet
+	 */
+	struct ether_hdr *GetEtherHeader()
+	{
+	    return m_pEthhdr;
+	}
+
+	/**
+	 *  Get Destination MAC Address
+	 *  @return
+	 *      \n NULL :failed / no destinatiom MAC address
+	 *      \n pointer to ether destination MAC address
+	 */
+	u_int64_t GetDstMac()
+	{
+	    if(m_pEthhdr)
+	    {
+	        //return BCD2UInt64(m_pEthhdr->ether_dhost, 6);
+	        return 0;
+	    }
+	    else
+	    {
+	        return 0;
+	    }
+	}
+
+	/**
+	 *  Get Source MAC Address
+	 *  @return
+	 *      \n NULL :failed / no source MAC address
+	 *      \n pointer to ether source MAC address
+	 */
+	u_int64_t GetSrcMac()
+	{
+	    if(m_pEthhdr)
+	    {
+	        //return BCD2UInt64(m_pEthhdr->ether_shost, 6);
+	        return 0;
+	    }
+	    else
+	    {
+	        return 0;
+	    }
+	}
+
+	/**
+	 *  Get IP header pointer
+	 *  @return
+	 *      \n NULL failed / not exist
+	 *      \n point to IP header in packet
+	 */
+	struct iphdr *GetIphdr()
+	{
+	    return m_pIphdr;
+	}
+
+	/**
+	 *  Get Destination IP Address
+	 *  @return
+	 *      \n NULL :failed / no destinatiom IP address
+	 *      \n pointer to destination IP address
+	 */
+	u_int32_t GetDstIp()
+	{
+	    if(m_pIphdr)
+	    {
+	        return m_pIphdr->daddr;
+	    }
+	    else
+	    {
+	        return 0;
+	    }
+	}
+
+	/**
+	 *  Get Source IP Address
+	 *  @return
+	 *      \n NULL :failed / no source IP address
+	 *      \n pointer to source IP address
+	 */
+	u_int32_t GetSrcIp()
+	{
+	    if(m_pIphdr)
+	    {
+	        return m_pIphdr->saddr;
+	    }
+	    else
+	    {
+	        return 0;
+	    }
+	}
+
+	/**
+	 *  Get IP protocol in ip header
+	 *  @return
+	 *      \n NULL :failed / no exist
+	 *      \n pointer to IP protocol
+	 */
+	u_int8_t  GetIpProtocol()
+	{
+	    if(m_pIphdr)
+	    {
+	        return m_pIphdr->protocol;
+	    }
+	    else
+	    {
+	        return 0;
+	    }
+	}
+
+	u_int16_t GetIpPktLen()
+	{
+		return m_uPktLen;
+	}
+	/**
+	 *  Get TCP header pointer
+	 *  @return
+	 *      \n NULL failed / not exist
+	 *      \n point to TCP header in packet
+	 */
+	struct tcphdr *GetTcphdr()
+	{
+	    return m_pTcphdr;
+	}
+
+	/**
+	 *  Get UDP header pointer
+	 *  @return
+	 *      \n NULL failed / not exist
+	 *      \n point to UDP header in packet
+	 */
+	struct udphdr *GetUdphdr()
+	{
+	    return (struct udphdr *)m_pTcphdr;
+	}
+
+	/**
+	 *  Get Destination TCP/UDP port
+	 *  @return
+	 *      \n NULL :failed / no destinatiom TCP/UDP port
+	 *      \n pointer to destination TCP/UDP port
+	 */
+	u_int16_t GetDstPort()
+	{
+	    if(m_pTcphdr)
+	    {
+	        return m_pTcphdr->dest;
+	    }
+	    else
+	    {
+	        return 0;
+	    }
+	}
+
+	/**
+	 *  Get Source TCP/UDP port
+	 *  @return
+	 *      \n NULL :failed / no Source TCP/UDP port
+	 *      \n pointer to Source TCP/UDP port
+	 */
+	u_int16_t GetSrcPort()
+	{
+	    if(m_pTcphdr)
+	    {
+	        return m_pTcphdr->source;
+	    }
+	    else
+	    {
+	        return 0;
+	    }
+	}
     //int16_t GetDirect(){return m_pPacketData->direct;}
     u_int8_t *GetData()   {return m_pData;}
     int16_t  GetDataLen() {return m_DataLen;}
@@ -165,233 +377,7 @@ private:
 
 
 
-void CFormatPacket::Format(char* packet)
-{
-    //m_pPacketData = pRawPacket;
 
-    m_pPkt = packet;
-
-   // if(m_pPacketData->ethhdr_off < 0)
-  //  {
-  //      m_pEthhdr = NULL;
-  //  }
-   // else
-   // {
-        m_pEthhdr = (struct ether_hdr*)packet;
-  //  }
-
-   // if(m_pPacketData->iphdr_off < 0)
-   // {
-       // m_pIphdr = NULL;
-   // }
-   // else
-   // {
-        m_pIphdr = (struct iphdr*)(packet + sizeof(struct ether_hdr));
-   // }
-
-   // if(m_pPacketData->tcphdr_off < 0)
-   // {
-    //    m_pTcphdr = NULL;
-   // }
-   // else
-   // {
-        m_pTcphdr = (struct tcphdr*)(packet + sizeof(struct ether_hdr)+(m_pIphdr->ihl)*4);
-   // }
-    m_uPktLen = ntohs(m_pIphdr->tot_len);
-    m_pEthIndex = (int16_t*)(&m_pEthhdr->ether_type);
-
-    m_pData = NULL;
-    m_DataLen = 0;
-    if (m_pIphdr)
-    {
-		int16_t iplen=ntohs(m_pIphdr->tot_len);
-		int16_t offset;
-		if (m_pIphdr->protocol == IPPROTO_TCP)
-			offset = m_pIphdr->ihl * 4 + m_pTcphdr->doff * 4;
-		else
-			offset = m_pIphdr->ihl * 4 + 8;
-		m_pData = (u_int8_t *)(packet + sizeof(struct ether_hdr) + offset);
-		m_DataLen = iplen - offset;
-		gettimeofday(&_time,NULL);
-    }
-    return;
-}
-
-/**
- *  Get ether header pointer
- *  @return
- *      \n NULL failed / not exist
- *      \n point to ether header in packet
- */
-struct ether_hdr *CFormatPacket::GetEtherHeader()
-{
-    return m_pEthhdr;
-}
-
-/**
- *  Get Destination MAC Address
- *  @return
- *      \n NULL :failed / no destinatiom MAC address
- *      \n pointer to ether destination MAC address
- */
-u_int64_t CFormatPacket::GetDstMac()
-{
-    if(m_pEthhdr)
-    {
-        //return BCD2UInt64(m_pEthhdr->ether_dhost, 6);
-        return 0;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-/**
- *  Get Source MAC Address
- *  @return
- *      \n NULL :failed / no source MAC address
- *      \n pointer to ether source MAC address
- */
-u_int64_t CFormatPacket::GetSrcMac()
-{
-    if(m_pEthhdr)
-    {
-        //return BCD2UInt64(m_pEthhdr->ether_shost, 6);
-        return 0;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-/**
- *  Get IP header pointer
- *  @return
- *      \n NULL failed / not exist
- *      \n point to IP header in packet
- */
-struct iphdr *CFormatPacket::GetIphdr()
-{
-    return m_pIphdr;
-}
-
-/**
- *  Get Destination IP Address
- *  @return
- *      \n NULL :failed / no destinatiom IP address
- *      \n pointer to destination IP address
- */
-u_int32_t CFormatPacket::GetDstIp()
-{
-    if(m_pIphdr)
-    {
-        return m_pIphdr->daddr;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-/**
- *  Get Source IP Address
- *  @return
- *      \n NULL :failed / no source IP address
- *      \n pointer to source IP address
- */
-u_int32_t CFormatPacket::GetSrcIp()
-{
-    if(m_pIphdr)
-    {
-        return m_pIphdr->saddr;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-/**
- *  Get IP protocol in ip header
- *  @return
- *      \n NULL :failed / no exist
- *      \n pointer to IP protocol
- */
-u_int8_t  CFormatPacket::GetIpProtocol()
-{
-    if(m_pIphdr)
-    {
-        return m_pIphdr->protocol;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-u_int16_t CFormatPacket::GetIpPktLen()
-{
-	return m_uPktLen;
-}
-/**
- *  Get TCP header pointer
- *  @return
- *      \n NULL failed / not exist
- *      \n point to TCP header in packet
- */
-struct tcphdr *CFormatPacket::GetTcphdr()
-{
-    return m_pTcphdr;
-}
-
-/**
- *  Get UDP header pointer
- *  @return
- *      \n NULL failed / not exist
- *      \n point to UDP header in packet
- */
-struct udphdr *CFormatPacket::GetUdphdr()
-{
-    return (struct udphdr *)m_pTcphdr;
-}
-
-/**
- *  Get Destination TCP/UDP port
- *  @return
- *      \n NULL :failed / no destinatiom TCP/UDP port
- *      \n pointer to destination TCP/UDP port
- */
-u_int16_t CFormatPacket::GetDstPort()
-{
-    if(m_pTcphdr)
-    {
-        return m_pTcphdr->dest;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-/**
- *  Get Source TCP/UDP port
- *  @return
- *      \n NULL :failed / no Source TCP/UDP port
- *      \n pointer to Source TCP/UDP port
- */
-u_int16_t CFormatPacket::GetSrcPort()
-{
-    if(m_pTcphdr)
-    {
-        return m_pTcphdr->source;
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 
 
