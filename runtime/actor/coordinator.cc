@@ -3,7 +3,6 @@
 #include "../actor/base/local_send.h"
 #include "../nf/pktcounter/pkt_counter.h"
 #include "../nf/base/network_function_derived.h"
-#include "../nf/base/nf_item.h"
 
 #include <glog/logging.h>
 
@@ -19,7 +18,6 @@ coordinator::coordinator(flow_actor_allocator* allocator){
 void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch){
   ec_scheduler_batch_.clear();
   char keys[bess::PacketBatch::kMaxBurst][flow_key_size] __ymm_aligned;
-  nf_item nf_items[8];
 
   for(int i=0; i<batch->cnt(); i++){
     char* data_start = reinterpret_cast<char *>(batch->pkts()[i]->buffer());
@@ -51,31 +49,8 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
         actor = deadend_flow_actor_;
       }
       else{
-        bool fs_allocation_failure = false;
-
-        for(size_t i=0; i<service_chain_.size(); i++){
-          char* fs_ptr = service_chain_[i]->allocate();
-          if(unlikely(fs_ptr==nullptr)){
-            fs_allocation_failure = true;
-            break;
-          }
-          else{
-            nf_items[i].nf = service_chain_[i];
-            nf_items[i].nf_flow_state_ptr = fs_ptr;
-            nf_items[i].nf_flow_state_size = service_chain_[i]->get_nf_state_size();
-          }
-        }
-
-        if(unlikely(fs_allocation_failure == true)){
-          allocator_->deallocate(actor);
-          actor = deadend_flow_actor_;
-          LOG(WARNING)<<"No available flow states to allocate";
-        }
-        else{
-          send(actor, flow_actor_init_t::value,
-                       this, reinterpret_cast<flow_key_t*>(keys[i]),
-                       nf_items, service_chain_.size());
-        }
+        send(actor, flow_actor_init_t::value,
+             this, reinterpret_cast<flow_key_t*>(keys[i]), service_chain_);
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);
@@ -87,15 +62,11 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
   }
 }
 
-void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor){
+void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key){
 
-  htable_.Del(flow_actor->peek_flow_key());
+  htable_.Del(flow_key);
 
   if(flow_actor!=deadend_flow_actor_){
-    for(size_t i=0; i<flow_actor->peek_service_chain_length(); i++){
-      nf_item* item = &(flow_actor->peek_nf_items()[i]);
-      item->nf->deallocate(item->nf_flow_state_ptr);
-    }
     allocator_->deallocate(flow_actor);
   }
   else{

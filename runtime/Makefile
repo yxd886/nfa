@@ -110,7 +110,6 @@ GTEST_DIR = /usr/src/gtest
 # The following variables are defined for sample examples.
 
 SAMPLES_SRCS = $(wildcard samples/*.cc)
-SAMPLES_SRCS += $(wildcard samples/*/*.cc)
 SAMPLES_OBJS = $(SAMPLES_SRCS:.cc=.o)
 
 PROCESS_PACKET_EXEC = samples/process_packets
@@ -139,7 +138,7 @@ RELIABLE_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/re
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(MODULE_BASIC_EXEC)
+all: $(OBJS) $(RELIABLE_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \

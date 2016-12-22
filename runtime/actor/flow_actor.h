@@ -21,8 +21,7 @@ public:
   void handle_message(flow_actor_init_t,
                       coordinator* coordinator_actor,
                       flow_key_t* flow_key,
-                      nf_item* nf_items,
-                      size_t service_chain_length);
+                      vector<network_function_base*>& service_chain);
 
   void handle_message(pkt_msg_t, bess::Packet* pkt);
 
@@ -30,18 +29,6 @@ public:
 
   flow_actor() : pkt_counter_(0), sample_counter_(0), idle_counter_(0), coordinator_actor_(0),
       service_chain_length_(0){}
-
-  inline flow_key_t* peek_flow_key(){
-    return &flow_key_;
-  }
-
-  inline nf_item* peek_nf_items(){
-    return nf_items_;
-  }
-
-  inline size_t peek_service_chain_length(){
-    return service_chain_length_;
-  }
 
 private:
   uint64_t pkt_counter_;

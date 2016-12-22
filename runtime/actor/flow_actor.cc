@@ -1,15 +1,14 @@
-#include <rte_memcpy.h>
-
 #include "flow_actor.h"
 #include "coordinator.h"
 #include "./base/local_send.h"
 #include "../bessport/utils/time.h"
 
+#include <glog/logging.h>
+
 void flow_actor::handle_message(flow_actor_init_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
-                                nf_item* nf_items,
-                                size_t service_chain_length){
+                                vector<network_function_base*>& service_chain){
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
 
@@ -17,10 +16,31 @@ void flow_actor::handle_message(flow_actor_init_t,
   sample_counter_ = 0;
   idle_counter_ = 0;
 
-  service_chain_length_ = service_chain_length;
-  rte_memcpy(nf_items_,
-             nf_items,
-             service_chain_length*sizeof(nf_item));
+  bool fs_allocation_succeed = true;
+  size_t i = 0;
+  service_chain_length_ = service_chain.size();
+
+  for(; i<service_chain_length_; i++){
+    char* fs_state_ptr = service_chain[i]->allocate();
+
+    if(unlikely(fs_state_ptr == nullptr)){
+      fs_allocation_succeed = false;
+      break;
+    }
+    else{
+      nf_items_[i].nf = service_chain[i];
+      nf_items_[i].nf_flow_state_ptr = fs_state_ptr;
+      nf_items_[i].nf_flow_state_size = service_chain[i]->get_nf_state_size();
+    }
+  }
+
+  if(unlikely(fs_allocation_succeed == false)){
+    LOG(WARNING)<<"flow state allocation failed";
+    for(size_t j=0; j<i; j++){
+      nf_items_[j].nf->deallocate(nf_items_[j].nf_flow_state_ptr);
+    }
+    service_chain_length_ = 0;
+  }
 
   add_timer(coordinator_actor_->peek_idle_flow_check_list(),
             ctx.current_ns(), static_cast<void*>(this), fixed_timer_messages::empty_msg);
@@ -44,7 +64,10 @@ void flow_actor::handle_message(check_idle_t){
   if(sample_counter_ == pkt_counter_){
     idle_counter_ += 1;
     if(idle_counter_ == 3){
-      send(coordinator_actor_, remove_flow_t::value, this);
+      for(size_t i=0; i<service_chain_length_; i++){
+        nf_items_[i].nf->deallocate(nf_items_[i].nf_flow_state_ptr);
+      }
+      send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
     }
     else{
       add_timer(coordinator_actor_->peek_idle_flow_check_list(),
