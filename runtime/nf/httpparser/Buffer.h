@@ -1,0 +1,31 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <string.h>
+
+const uint32_t  MAX_BUFFER_SIZE = 64 * 1024 * 1024;
+const uint32_t  BUFFER_SIZE = 2048;
+
+struct CBuffer
+{
+
+    uint32_t len;
+    uint32_t _free;
+    char *   buf;
+
+};
+
+void Buf_init(struct CBuffer& Cbuf);
+
+bool Append(struct CBuffer& Cbuf,char* p, size_t size);
+
+char* GetBuf(struct CBuffer Cbuf,uint32_t& size);
+
+void CBuffer_Reset(struct CBuffer& Cbuf);
+
+uint32_t GetBufLen(struct CBuffer Cbuf){
+
+	return Cbuf.len;
+
+}

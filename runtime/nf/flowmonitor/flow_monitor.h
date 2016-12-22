@@ -80,10 +80,6 @@ public:
     }
     fs->no_total++;
     fs->counter++;
-
-
-    printf("total number: %d\nudp number: %d\ntcp number: %d\nicmp number: %d\n",fs->no_total,fs->no_tcp,fs->no_udp,fs->no_icmp);
-
   }
 
     void Format(char* packet,struct head_info* hd){

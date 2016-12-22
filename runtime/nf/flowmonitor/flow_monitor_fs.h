@@ -5,7 +5,6 @@
 #include <rte_mbuf.h>
 #include <rte_ether.h>
 #include <rte_ethdev.h>
-#include <boost/shared_ptr.hpp>
 #include <asm-generic/int-ll64.h>
 
 #include <iostream>
