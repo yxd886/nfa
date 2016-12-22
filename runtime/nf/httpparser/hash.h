@@ -42,7 +42,7 @@ int InitHashTable(HashTable *H)
  if(!(*H).elem)
   exit(0); // 存储分配失败
  for(i=0;i<m;i++)
-  (*H).elem[i].key=NULLKEY; // 未填记录的标志
+  *((*H).elem[i].key)=NULLKEY; // 未填记录的标志
 
  return 1;
 }
@@ -81,7 +81,7 @@ void collision(int *p,int d) // 线性探测再散列
 int SearchHash(HashTable H,KeyType K,int *p,int *c)
 {
  *p=Hash(K); // 求得哈希地址
- while(H.elem[*p].key!=NULLKEY&&!(strcmp(K,H.elem[*p].key)==0))
+ while(*(H.elem[*p].key)!=NULLKEY&&!(strcmp(K,H.elem[*p].key)==0))
  {
   // 该位置中填有记录．并且关键字不相等
   (*c)++;
@@ -114,7 +114,7 @@ void RecreateHashTable(HashTable *H) // 重建哈希表
   exit(0); // 存储分配失败
  (*H).elem=p;
  for(i=0;i<m;i++)
-  (*H).elem[i].key=NULLKEY; // 未填记录的标志(初始化)
+  *((*H).elem[i].key)=NULLKEY; // 未填记录的标志(初始化)
  for(p=elem;p<elem+count;p++) // 将原有的数据按照新的表长插入到重建的哈希表中
   InsertHash(H,*p);
 }
@@ -145,7 +145,7 @@ void TraverseHash(HashTable H,void(*Vi)(int,ElemType))
  int i;
  printf("哈希地址0～%d\n",m-1);
  for(i=0;i<m;i++)
-  if(H.elem[i].key!=NULLKEY) // 有数据
+  if(*(H.elem[i].key)!=NULLKEY) // 有数据
    Vi(i,H.elem[i]);
 }
 // 在开放定址哈希表H中查找关键码为K的元素,若查找成功,以p指示待查数据
@@ -154,7 +154,7 @@ int Find(HashTable H,KeyType K,int *p)
 {
  int c=0;
  *p=Hash(K); // 求得哈希地址
- while(H.elem[*p].key!=NULLKEY&&!(strcmp(K,H.elem[*p].key)==0))
+ while(*(H.elem[*p].key)!=NULLKEY&&!(strcmp(K,H.elem[*p].key)==0))
  { // 该位置中填有记录．并且关键字不相等
   c++;
   if(c<m)
