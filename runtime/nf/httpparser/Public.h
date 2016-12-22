@@ -16,6 +16,7 @@
 #include <set>
 #include <map>
 #include <list>
+#include <memory>
 #include "hash.h"
 
 enum DIRECTION

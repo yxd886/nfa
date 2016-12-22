@@ -33,13 +33,7 @@ struct http_parser_fs
 };
 typedef http_parser_fs*                         http_parser_fsPtr;
 
-void http_parser_fs_Reset(http_parser_fsPtr& ptr)
-{
-    CBuffer_Reset(ptr->ReqBuf);
-    CBuffer_Reset(ptr->RspBuf);
-    CResult_Reset(ptr->Result);
-
-}
+void http_parser_fs_Reset(http_parser_fsPtr& ptr);
 
 
 
