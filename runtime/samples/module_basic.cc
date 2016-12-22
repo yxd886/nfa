@@ -43,7 +43,7 @@ int main(int argc, char* argv[]){
   service_chain_.push_back(new network_function_derived<pkt_counter, pkt_counter_fs>(allocator->get_max_actor()));
   service_chain_.push_back(new network_function_derived<firewall, firewall_fs>(allocator->get_max_actor()));
   service_chain_.push_back(new network_function_derived<flow_monitor, flow_monitor_fs>(allocator->get_max_actor()));
-
+  service_chain_.push_back(new network_function_derived<http_parser, http_parser_fs>(allocator->get_max_actor()));
 
   coordinator coordinator_actor(allocator,&service_chain_);
 

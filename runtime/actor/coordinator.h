@@ -17,6 +17,7 @@
 #include "../nf/pktcounter/pkt_counter.h"
 #include "../nf/firewall/firewall.h"
 #include "../nf/flowmonitor/flow_monitor.h"
+#include "../nf/httpparser/http_parser.h"
 #include "../nf/base/network_function_derived.h"
 
 class flow_actor;
