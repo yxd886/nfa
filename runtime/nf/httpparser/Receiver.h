@@ -6,7 +6,6 @@
 #include "BehaviorInfo.h"
 #include "FormatPacket.h"
 
-static int counter;
 class Receiver
 {
 public:
