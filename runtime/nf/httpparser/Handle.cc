@@ -69,25 +69,15 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
         return;
     }
 
-    uint32_t srcIp = ntohl(packet.GetSrcIp());
-    uint32_t dstIp = ntohl(packet.GetDstIp());
-    uint16_t srcPort = ntohs(packet.GetSrcPort());
-    uint16_t dstPort = ntohs(packet.GetDstPort());
-
-    //从会话链中查找该会话
-
-
     if(fhs->counter==0)
     {
         //如果不存在，则创建新会话
     	printf("new session created!\n");
     	//getchar();
         Create(&packet,pInfo,fhs);
-        fhs->counter++;
-
-
 
     }
+    fhs->counter++;
 
     //开始组包
 
@@ -126,7 +116,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     else if(pInfo->m_nIdtMatchWay == C2S_MATCH)
     {
         printf("C2S\n");
-    	if(fhs->ReqBuf.GetBufLen() > 0 && fhs->RspBuf.GetBufLen() > 0)
+    	if(GetBufLen(fhs->ReqBuf) > 0 && GetBufLen(fhs->RspBuf) > 0)
         {
             printf("enter sesptr->ReqBuf.GetBufLen() > 0 && sesptr->RspBuf.GetBufLen() > 0\n");
         	_httpParse.Parse(fhs);
