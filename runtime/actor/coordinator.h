@@ -26,7 +26,7 @@ public:
 
   void handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch);
 
-  void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
+  void handle_message(remove_flow_t, flow_actor* flow_actor);
 
   inline bess::PacketBatch* peek_ec_scheduler_batch(){
     return &ec_scheduler_batch_;
