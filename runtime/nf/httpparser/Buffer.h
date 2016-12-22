@@ -21,16 +21,6 @@ struct CBuffer
 };
 
 
-void Buf_init(struct CBuffer& Cbuf)
-{
-
-
-	Cbuf.len=0;
-	Cbuf._free=0;
-	Cbuf.buf=0;
-	CBuffer_Reset(Cbuf);
-}
-
 
 
 void CBuffer_Reset(struct CBuffer& Cbuf)
@@ -82,5 +72,18 @@ uint32_t GetBufLen(struct CBuffer Cbuf){
 	return Cbuf.len;
 
 }
+
+
+void Buf_init(struct CBuffer& Cbuf)
+{
+
+
+	Cbuf.len=0;
+	Cbuf._free=0;
+	Cbuf.buf=0;
+	CBuffer_Reset(Cbuf);
+}
+
+
 
 #endif
