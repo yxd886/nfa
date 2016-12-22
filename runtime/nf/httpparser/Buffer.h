@@ -1,3 +1,6 @@
+#ifndef BUFFER_H
+#define BUFFER_H
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -29,3 +32,5 @@ uint32_t GetBufLen(struct CBuffer Cbuf){
 	return Cbuf.len;
 
 }
+
+#endif
