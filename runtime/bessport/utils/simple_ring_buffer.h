@@ -1,6 +1,8 @@
 #ifndef SIMPLE_RING_BUFFER_H
 #define SIMPLE_RING_BUFFER_H
 
+#include <cassert>
+
 #include "../mem_alloc.h"
 
 // This is a simple ring buffer implementation,
@@ -14,6 +16,19 @@ class simple_ring_buffer{
 public:
   simple_ring_buffer(size_t max_size) :
     head_pos_(0), tail_pos_(0), cur_size_(0), max_size_(max_size){
+    ring_buf_ = static_cast<T**>(mem_alloc(max_size*sizeof(T*)));
+  }
+
+  simple_ring_buffer() :
+    head_pos_(0), tail_pos_(0), cur_size_(0), max_size_(0), ring_buf_(0){
+  }
+
+  inline void init(size_t max_size){
+    assert(ring_buf_ == nullptr);
+    head_pos_ = 0;
+    tail_pos_ = 0;
+    cur_size_ = 0;
+    max_size_ = max_size;
     ring_buf_ = static_cast<T**>(mem_alloc(max_size*sizeof(T*)));
   }
 
