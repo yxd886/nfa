@@ -18,11 +18,11 @@ public:
 
   virtual ~network_function_base(){}
 
-  char* allocate(){
+  inline char* allocate(){
     return ring_buf_.pop();
   }
 
-  bool deallocate(char* state_ptr){
+  inline bool deallocate(char* state_ptr){
     return ring_buf_.push(state_ptr);
   }
 

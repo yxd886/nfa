@@ -7,17 +7,19 @@
 
 #include "../bessport/packet.h"
 #include "../bessport/pktbatch.h"
-#include "../nf/base/nf_item.h"
-#include "./base/actor.h"
 #include "./base/flow_key.h"
 #include "flow_actor_messages.h"
 #include "fixed_timer.h"
+#include "../nf/base/network_function_base.h"
+#include "../nf/base/nf_item.h"
 
 using namespace std;
 
 class coordinator;
-class flow_actor : public actor_base{
+class flow_actor{
 public:
+  using flow_actor_id_t = uint32_t;
+
   void handle_message(flow_actor_init_t,
                       coordinator* coordinator_actor,
                       flow_key_t* flow_key,
@@ -27,19 +29,37 @@ public:
 
   void handle_message(check_idle_t);
 
-  flow_actor() : pkt_counter_(0), sample_counter_(0), idle_counter_(0), coordinator_actor_(0),
-      service_chain_length_(0){}
+  inline flow_actor_id_t get_id(){
+    return actor_id_;
+  }
+
+  inline void set_id(flow_actor_id_t actor_id){
+    actor_id_ = actor_id;
+  }
 
 private:
+  flow_actor_id_t actor_id_;
   uint64_t pkt_counter_;
   uint64_t sample_counter_;
-  int idle_counter_;
-
+  uint64_t idle_counter_;
   flow_key_t flow_key_;
   coordinator* coordinator_actor_;
-
-  nf_item nf_items_[8];
   size_t service_chain_length_;
+
+  static_assert((sizeof(flow_actor_id_t)+
+                 sizeof(uint64_t)*3+
+                 sizeof(flow_key_t)+
+                 sizeof(coordinator*)+
+                 sizeof(size_t))<64,
+      "complilation error in flow_actor.h");
+
+  flow_actor_nfs nfs_;
+
+  flow_actor_fs fs_;
+
+  flow_actor_fs_size fs_size_;
 };
+
+static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");
 
 #endif

@@ -3,8 +3,6 @@
 #include "./base/local_send.h"
 #include "../bessport/utils/time.h"
 
-#include <glog/logging.h>
-
 void flow_actor::handle_message(flow_actor_init_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
@@ -16,7 +14,6 @@ void flow_actor::handle_message(flow_actor_init_t,
   sample_counter_ = 0;
   idle_counter_ = 0;
 
-  bool fs_allocation_succeed = true;
   size_t i = 0;
   service_chain_length_ = service_chain.size();
 
@@ -24,22 +21,17 @@ void flow_actor::handle_message(flow_actor_init_t,
     char* fs_state_ptr = service_chain[i]->allocate();
 
     if(unlikely(fs_state_ptr == nullptr)){
-      fs_allocation_succeed = false;
+      LOG(WARNING)<<"flow state allocation failed";
+      for(size_t j=0; j<i; j++){
+        nfs_.nf[j]->deallocate(fs_.nf_flow_state_ptr[j]);
+      }
+      service_chain_length_ = 0;
       break;
     }
-    else{
-      nf_items_[i].nf = service_chain[i];
-      nf_items_[i].nf_flow_state_ptr = fs_state_ptr;
-      nf_items_[i].nf_flow_state_size = service_chain[i]->get_nf_state_size();
-    }
-  }
 
-  if(unlikely(fs_allocation_succeed == false)){
-    LOG(WARNING)<<"flow state allocation failed";
-    for(size_t j=0; j<i; j++){
-      nf_items_[j].nf->deallocate(nf_items_[j].nf_flow_state_ptr);
-    }
-    service_chain_length_ = 0;
+    nfs_.nf[i] = service_chain[i];
+    fs_.nf_flow_state_ptr[i] = fs_state_ptr;
+    fs_size_.nf_flow_state_size[i] = service_chain[i]->get_nf_state_size();
   }
 
   add_timer(coordinator_actor_->peek_idle_flow_check_list(),
@@ -51,8 +43,10 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
 
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
+
   for(size_t i=0; i<service_chain_length_; i++){
-    nf_items_[i].nf->nf_logic(pkt, nf_items_[i].nf_flow_state_ptr);
+    rte_prefetch0(fs_.nf_flow_state_ptr[i]);
+    nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
   }
 
   int next_available_pos = coordinator_actor_->peek_ec_scheduler_batch()->cnt();
@@ -65,7 +59,7 @@ void flow_actor::handle_message(check_idle_t){
     idle_counter_ += 1;
     if(idle_counter_ == 3){
       for(size_t i=0; i<service_chain_length_; i++){
-        nf_items_[i].nf->deallocate(nf_items_[i].nf_flow_state_ptr);
+        nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
       }
       send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
     }

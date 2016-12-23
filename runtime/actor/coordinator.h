@@ -2,13 +2,10 @@
 #define COORDINATOR_H
 
 #include <list>
-#include <vector>
-#include <unordered_map>
 
 #include "../bessport/utils/htable.h"
 #include "../bessport/pktbatch.h"
 #include "../bessport/worker.h"
-#include "./base/actor.h"
 #include "./base/nfa_ipv4_field.h"
 #include "./base/flow_hash.h"
 #include "coordinator_messages.h"
@@ -18,7 +15,7 @@
 class flow_actor;
 class flow_actor_allocator;
 
-class coordinator : public actor_base{
+class coordinator{
 public:
   using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
 

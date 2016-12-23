@@ -6,7 +6,9 @@
 
 class pkt_counter{
 public:
-  void nf_logic_impl(bess::Packet* pkt, pkt_counter_fs* fs);
+  inline void nf_logic_impl(bess::Packet* pkt, pkt_counter_fs* fs){
+    fs->counter += 1;
+  }
 };
 
 #endif

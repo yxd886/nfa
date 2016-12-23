@@ -38,6 +38,7 @@ int main(int argc, char* argv[]){
 
   flow_actor_allocator* allocator = flow_actor_allocator::get();
   coordinator coordinator_actor(allocator);
+  LOG(INFO)<<"The size of flow_actor is "<<sizeof(flow_actor);
 
   /*flow_actor* a0 = allocator->allocate();
   flow_actor* a1 = allocator->allocate();
