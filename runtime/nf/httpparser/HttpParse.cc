@@ -24,8 +24,7 @@ void CHttpParse::Send(http_parser_fsPtr&  sesptr)
 	    output << "url : " << sesptr->Result.Url << std::endl;
 	    output << "Request Header:\n";
 	    for(int i=0;i<m;i++){
-	      if(sesptr->Result.RequestHeader.elem[i].key!=NULLKEY) // 有数据
-	       print(i,sesptr->Result.RequestHeader.elem[i]);
+	      if(*(sesptr->Result.RequestHeader.elem[i].key)!=NULLKEY) // 有数据
 	      output<<std::string(sesptr->Result.RequestHeader.elem[i].key)<<":\t"<<std::string(sesptr->Result.RequestHeader.elem[i].value)<<std::endl;
 	    }
 
@@ -36,8 +35,7 @@ void CHttpParse::Send(http_parser_fsPtr&  sesptr)
 	    output<<std::endl;
 	    output << "Response Header:\n";
 	    for(int i=0;i<m;i++){
-	      if(sesptr->Result.ResponseHeader.elem[i].key!=NULLKEY) // 有数据
-	       print(i,sesptr->Result.ResponseHeader.elem[i]);
+	      if(*(sesptr->Result.ResponseHeader.elem[i].key)!=NULLKEY) // 有数据
 	      output<<std::string(sesptr->Result.ResponseHeader.elem[i].key)<<":\t"<<std::string(sesptr->Result.ResponseHeader.elem[i].value)<<std::endl;
 	    }
 	    output << "Response Context:\n";

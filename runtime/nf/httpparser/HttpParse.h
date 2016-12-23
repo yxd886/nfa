@@ -42,6 +42,8 @@ public:
 	    uint32_t rspLen = 0;
 	    const char*  reqBuf = GetBuf(sesptr->ReqBuf,reqLen);
 	    const char*  rspBuf = GetBuf(sesptr->RspBuf,rspLen);
+	    printf("reqBuf: %s/b\n",reqBuf);
+	    printf("rspBuf: %s/b\n",rspBuf);
 
 	    if(!reqBuf || !rspBuf || !reqLen || !rspLen)
 	    {

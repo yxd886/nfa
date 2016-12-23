@@ -70,11 +70,11 @@ public:
     char daddr[200];
     memset(daddr,0,sizeof(daddr));
     if(fp==NULL){
-     std::cout<<"open file error!"<<std::endl;
+   //  std::cout<<"open file error!"<<std::endl;
     }
     struct rule r;
     struct rule* rp=&r;
-    std::cout<<"begin to read rules"<<std::endl;
+  //  std::cout<<"begin to read rules"<<std::endl;
     while(!feof(fp)){
       fscanf(fp,"%hhu.%hhu.%hhu.%hhu /%u:%u, %hhu.%hhu.%hhu.%hhu /%u:%u, %u, %d",
       (unsigned char *)&rp->saddr.addr,
@@ -95,9 +95,9 @@ public:
       std::cout<<rp->saddr.addr<<" "<<rp->protocol<<" "<<rp->sport<<std::endl;
      rules.push_back(r);
    }
-   std::cout<<"begin to close the rule file !"<<std::endl;
+ //  std::cout<<"begin to close the rule file !"<<std::endl;
    fclose(fp);
-   std::cout<<"close the rule file successfully !"<<std::endl;
+ //  std::cout<<"close the rule file successfully !"<<std::endl;
   }
 
   void nf_logic_impl(bess::Packet* pkt, firewall_fs* fs);
