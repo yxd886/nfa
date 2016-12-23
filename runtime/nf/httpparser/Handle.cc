@@ -89,7 +89,8 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     	if(!Append(fhs->RspBuf,(char*) packet.GetData(), (size_t) packet.GetDataLen()))
         {
             //log  c2s append date error
-            return;
+    			printf("appending respone buffer failure!\n");
+    			return;
         }
     	printf("RspBuf after append",fhs->RspBuf.buf);
     }
@@ -122,7 +123,8 @@ void CHandle::Create(IFormatPacket *pPacket,CSharedBehaviorInfo* pInfo,http_pars
 
 
 
-    if(pInfo->m_nIP == ntohl(pPacket->GetSrcIp()) && pInfo->m_nPort == ntohs(pPacket->GetSrcPort()))
+		http_parser_fs_Reset(ptr);
+		if(pInfo->m_nIP == ntohl(pPacket->GetSrcIp()) && pInfo->m_nPort == ntohs(pPacket->GetSrcPort()))
     {
         ptr->ServerIp   = ntohl(pPacket->GetSrcIp());
         ptr->ClientIp   = ntohl(pPacket->GetDstIp());
