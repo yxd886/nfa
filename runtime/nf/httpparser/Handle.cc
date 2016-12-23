@@ -33,14 +33,6 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
         return;
     }
 
-    if(fhs->SeqNo == ntohl(packet.GetTcphdr()->seq))
-    {
-        //log repeated packet  重复的包
-    	  printf("fhs->SeqNo: %d\n",fhs->SeqNo);
-    	  printf("ntohl(packet.GetTcphdr()->seq): %d\n",ntohl(packet.GetTcphdr()->seq));
-    	  printf("repeated packet!\n");
-        return;
-    }
 
     if(packet.GetDataLen() == 0)
     {
