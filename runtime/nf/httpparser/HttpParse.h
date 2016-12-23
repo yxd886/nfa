@@ -42,8 +42,8 @@ public:
 	    uint32_t rspLen = 0;
 	    const char*  reqBuf = GetBuf(sesptr->ReqBuf,reqLen);
 	    const char*  rspBuf = GetBuf(sesptr->RspBuf,rspLen);
-	    printf("reqBuf: %s\n",reqBuf);
-	    printf("rspBuf: %s\n",rspBuf);
+	//    printf("reqBuf: %s\n",reqBuf);
+	//    printf("rspBuf: %s\n",rspBuf);
 
 	    if(!reqBuf || !rspBuf || !reqLen || !rspLen)
 	    {
@@ -57,25 +57,25 @@ public:
 	    if(reqLen > 10)  //parse request packet
 	    {
 
-	    	printf("parsing MethodAndUri !\n");
+	//    	printf("parsing MethodAndUri !\n");
 	    	if(!ParseMethodAndUri(reqBuf,reqLen,pos,sesptr->Result))  //parse method, uri, version
 	        {
-	    		printf("parsing MethodAndUri failure!\n");
+	//    		printf("parsing MethodAndUri failure!\n");
 	    		http_parser_fs_Reset(sesptr);
 					return;
 	        }
 
-	    	printf("parsing Request header !\n");
+	//    	printf("parsing Request header !\n");
 	    	if(!ParseHeader(reqBuf, reqLen,pos, sesptr->Result.RequestHeader))  //parse request header
 	        {
-	    		printf("parsing Request header failure!\n");
+	//    		printf("parsing Request header failure!\n");
 	    		http_parser_fs_Reset(sesptr);
 	            return;
 	        }
-	    	printf("parsing Request data !\n");
+	//    	printf("parsing Request data !\n");
 	        if(!ParseReqData(reqBuf,reqLen,pos,sesptr->Result))  //parse request data
 	        {
-	        	printf("parsing Request data failure!\n");
+	//        	printf("parsing Request data failure!\n");
 	        	http_parser_fs_Reset(sesptr);
 	            return;
 	        }
@@ -84,26 +84,26 @@ public:
 	    if(rspLen > 10)  //parse response packet
 	    {
 	        pos = 0;
-	        printf("parsing Response state !\n");
+	//        printf("parsing Response state !\n");
 	        if(!ParseRspState(rspBuf,rspLen,pos,sesptr->Result)) //parse reponse state
 	        {
-	        	printf("parsing Response state failure!\n");
+	//        	printf("parsing Response state failure!\n");
 	        	http_parser_fs_Reset(sesptr);
 	            return;
 	        }
 
-	        printf("parsing Response header !\n");
+	//        printf("parsing Response header !\n");
 	        if(!ParseHeader(rspBuf,rspLen, pos,sesptr->Result.ResponseHeader)) //parse reponse header
 	        {
-	        	printf("parsing Response header failure!\n");
+	//        	printf("parsing Response header failure!\n");
 	        	http_parser_fs_Reset(sesptr);
 	            return;
 	        }
 
-	        printf("parsing Response data !\n");
+	//        printf("parsing Response data !\n");
 	        if(!ParseRspData(rspBuf,rspLen, pos,sesptr->Result)) //parse reponse data
 	        {
-	        	printf("parsing Response data failure!\n");
+	//        	printf("parsing Response data failure!\n");
 	        	http_parser_fs_Reset(sesptr);
 	            return;
 	        }
@@ -125,7 +125,7 @@ private:
 	    if( ret == -1)
 	    {
 	        //log get method error
-	    	printf("method prasing failure\n");
+//	    	printf("method prasing failure\n");
 	        return false;
 	    }
 	    pos += ret;
@@ -142,7 +142,7 @@ private:
 	    if(ret == -1)
 	    {
 	        //log get url error
-	    	printf("get url failure\n");
+//	    	printf("get url failure\n");
 	        return false;
 	    }
 	    pos += ret;
@@ -156,7 +156,7 @@ private:
 	    if( ret == -1)
 	    {
 	        //log get version error
-	    	printf("get version failure\n");
+//	    	printf("get version failure\n");
 	        return false;
 	    }
 	    pos += ret;
@@ -164,7 +164,7 @@ private:
 	    cout<<"Version:"<<version<<endl;
 	    if(!GetVersion(version,result.Version))
 	    {
-	    	printf(" version compare failure\n");
+//	    	printf(" version compare failure\n");
 	    	return false;
 	    }
 

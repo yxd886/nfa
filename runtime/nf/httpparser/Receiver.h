@@ -34,10 +34,10 @@ private:
         //格式化一个二进制包
     		 CFormatPacket packet;
     		 packet.Format(msg);
-    		 printf("packet.GetDstPort:%x\n",packet.GetDstPort());
-    		 printf("ntoh packet.GetDstPort:%x\n",ntohs(packet.GetDstPort()));
-    		 printf("packet.GetSrcPort:%x\n",packet.GetSrcPort());
-    		 printf("ntoh packet.GetSrcPort:%x\n",ntohs(packet.GetSrcPort()));
+    	//	 printf("packet.GetDstPort:%x\n",packet.GetDstPort());
+    	//	 printf("ntoh packet.GetDstPort:%x\n",ntohs(packet.GetDstPort()));
+    	//	 printf("packet.GetSrcPort:%x\n",packet.GetSrcPort());
+    	//	 printf("ntoh packet.GetSrcPort:%x\n",ntohs(packet.GetSrcPort()));
     		 CSharedBehaviorInfo info;
     		 if(packet.GetIpProtocol()==IPPROTO_TCP&&ntohs(packet.GetDstPort())==0x50)//if destport is 80
     		 {
@@ -46,7 +46,7 @@ private:
     			 info.m_nPort=ntohs(packet.GetDstPort());
     			 info.m_nBehaviorId=packet.GetIpProtocol();
     			 info.m_nIdtMatchWay=C2S_MATCH;
-    			 printf("Client to server/n");
+    		//	 printf("Client to server/n");
     		 }
     		 else if(packet.GetIpProtocol()==IPPROTO_TCP&&ntohs(packet.GetSrcPort())==0x50)
     		 {
@@ -55,7 +55,7 @@ private:
     			 info.m_nPort=ntohs(packet.GetSrcPort());
     			 info.m_nBehaviorId=packet.GetIpProtocol();
     			 info.m_nIdtMatchWay=S2C_MATCH;
-    			 printf("Server to client\n");
+    	//		 printf("Server to client\n");
     		 }else{
 
 
