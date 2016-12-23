@@ -22,6 +22,9 @@ $(shell mkdir -p $(DEPDIR)/actor > /dev/null)
 $(shell mkdir -p $(DEPDIR)/actor/base > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/base > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/pktcounter > /dev/null)
+$(shell mkdir -p $(DEPDIR)/nf/firewall > /dev/null)
+$(shell mkdir -p $(DEPDIR)/nf/flowmonitor > /dev/null)
+$(shell mkdir -p $(DEPDIR)/nf/httpparser > /dev/null)
 
 # e.g., 4.9.3 -> 40903
 CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')

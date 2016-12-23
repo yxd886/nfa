@@ -2,6 +2,9 @@
 #include "flow_actor_allocator.h"
 #include "../actor/base/local_send.h"
 #include "../nf/pktcounter/pkt_counter.h"
+#include "../nf/flowmonitor/flow_monitor.h"
+#include "../nf/httpparser/http_parser.h"
+#include "../nf/firewall/firewall.h"
 #include "../nf/base/network_function_derived.h"
 
 #include <glog/logging.h>
@@ -12,7 +15,10 @@ coordinator::coordinator(flow_actor_allocator* allocator){
   deadend_flow_actor_ = allocator_->allocate();
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
 
-  service_chain_.push_back(new network_function_derived<pkt_counter, pkt_counter_fs>(allocator_->get_max_actor()));
+  // service_chain_.push_back(new network_function_derived<pkt_counter, pkt_counter_fs>(allocator_->get_max_actor()));
+  // service_chain_.push_back(new network_function_derived<flow_monitor, flow_monitor_fs>(allocator_->get_max_actor()));
+  service_chain_.push_back(new network_function_derived<firewall, firewall_fs>(allocator_->get_max_actor()));
+  // service_chain_.push_back(new network_function_derived<http_parser, http_parser_fs>(allocator_->get_max_actor()));
 }
 
 void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch){
