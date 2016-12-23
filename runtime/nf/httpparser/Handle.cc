@@ -55,7 +55,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
        // printf("C2S\n");
     	if(GetBufLen(fhs->ReqBuf) > 0 && GetBufLen(fhs->RspBuf) > 0)
         {
-        //    printf("enter sesptr->ReqBuf.GetBufLen() > 0 && sesptr->RspBuf.GetBufLen() > 0\n");
+           printf("enter sesptr->ReqBuf.GetBufLen() > 0 && sesptr->RspBuf.GetBufLen() > 0\n");
         	_httpParse.Parse(fhs);
 
         }
@@ -80,17 +80,18 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     	if(GetBufLen(fhs->RspBuf) == 0 && fhs->Result.ResponseTimeStamp == 0)
         {
             //the first response packet. we will get timestamp from this packet
-   // 		printf("first response packet!\n");
+    				printf("first response packet!\n");
             fhs->Result.ResponseTimeStamp = packet.GetPacketTime()->tv_sec * 1000000LL + packet.GetPacketTime()->tv_usec;
 
         }
 
-    //	printf("appending respone buffer!\n");
+    		printf("appending respone buffer!\n");
     	if(!Append(fhs->RspBuf,(char*) packet.GetData(), (size_t) packet.GetDataLen()))
         {
             //log  c2s append date error
             return;
         }
+    	printf("RspBuf after append",fhs->RspBuf.buf);
     }
     unsigned int i;
  //   printf("session request buffer:%s\n\n\n\n",GetBuf(fhs->ReqBuf,i));
