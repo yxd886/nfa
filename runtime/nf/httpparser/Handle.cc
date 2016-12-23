@@ -92,7 +92,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     			printf("appending respone buffer failure!\n");
     			return;
         }
-    	printf("RspBuf after append",fhs->RspBuf.buf);
+    	printf("RspBuf after append: %s \n",fhs->RspBuf.buf);
     }
     unsigned int i;
  //   printf("session request buffer:%s\n\n\n\n",GetBuf(fhs->ReqBuf,i));
