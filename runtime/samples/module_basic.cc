@@ -21,6 +21,9 @@
 #include "../actor/flow_actor_allocator.h"
 #include "../actor/coordinator.h"
 
+#include "../nf/base/network_function_register.h"
+#include "../nf/pktcounter/pkt_counter.h"
+
 using namespace bess;
 using namespace std;
 

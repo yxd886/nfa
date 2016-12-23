@@ -39,19 +39,18 @@ public:
 
 private:
   flow_actor_id_t actor_id_;
-  uint64_t pkt_counter_;
-  uint64_t sample_counter_;
-  uint64_t idle_counter_;
-  flow_key_t flow_key_;
-  coordinator* coordinator_actor_;
-  size_t service_chain_length_;
 
-  static_assert((sizeof(flow_actor_id_t)+
-                 sizeof(uint64_t)*3+
-                 sizeof(flow_key_t)+
-                 sizeof(coordinator*)+
-                 sizeof(size_t))<64,
-      "complilation error in flow_actor.h");
+  uint64_t pkt_counter_;
+
+  uint64_t sample_counter_;
+
+  uint64_t idle_counter_;
+
+  flow_key_t flow_key_;
+
+  coordinator* coordinator_actor_;
+
+  size_t service_chain_length_;
 
   flow_actor_nfs nfs_;
 

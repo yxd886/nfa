@@ -1,5 +1,6 @@
 #include "firewall.h"
 
+#include "../base/network_function_register.h"
 
 void firewall::nf_logic_impl(bess::Packet* pkt, firewall_fs* fs){
 
@@ -137,3 +138,7 @@ void firewall::filter_local_out(struct headinfo *hd,firewall_fs* sesptr){
 	}
 	return port;
  }
+
+ bool registered_firewall =
+     static_nf_register::get_register().register_nf<firewall, firewall_fs>("firewall", 3);
+
