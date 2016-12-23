@@ -19,11 +19,10 @@
 #include <memory>
 #include "hash.h"
 
-enum DIRECTION
-{
-    DIRUNKNOWN,
-    C2S,
-    S2C
+enum DIRECTION{
+	DIRUNKNOWN,
+	C2S,
+	S2C
 };
 
 //define method
@@ -55,22 +54,21 @@ const  static uint32_t S2C_MATCH = 2; //server to client
 
 typedef HashTable HeaderMap;
 
-struct CResult
-{
+struct CResult{
 
 
-    uint64_t      RequestTimeStamp;
-    uint64_t      ResponseTimeStamp;
+	uint64_t      RequestTimeStamp;
+	uint64_t      ResponseTimeStamp;
 
-    uint32_t      Method;
-    uint32_t      Version;
-    uint32_t      RetCode;
-    char  			  Url[40];
-    char          RetNote[40];
-    HeaderMap     RequestHeader;
-    HeaderMap     ResponseHeader;
-    char          RequestData[40];
-    char          ResponseData[40];
+	uint32_t      Method;
+	uint32_t      Version;
+	uint32_t      RetCode;
+	char  			  Url[40];
+	char          RetNote[40];
+	HeaderMap     RequestHeader;
+	HeaderMap     ResponseHeader;
+	char          RequestData[40];
+	char          ResponseData[40];
 };
 
 void CResult_Reset(struct CResult& r);

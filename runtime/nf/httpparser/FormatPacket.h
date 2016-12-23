@@ -45,120 +45,87 @@
 #define ETH_PKT_LEN_MAX         1522
 
 
-struct RawPacketInfo
-{
-    timeval  m_timeval;
-    uint32_t m_method;
-    uint32_t m_index;
-    uint32_t m_length;
-    uint32_t m_ethhdr_off;
-    uint32_t m_iphdr_off;
-    uint32_t m_tcphdr_off;
+struct RawPacketInfo{
+	timeval  m_timeval;
+	uint32_t m_method;
+	uint32_t m_index;
+	uint32_t m_length;
+	uint32_t m_ethhdr_off;
+	uint32_t m_iphdr_off;
+	uint32_t m_tcphdr_off;
 };
 
 /**
  *  Struct for packet communication
  *   */
-typedef struct
-{
-    int32_t flag; /**< \brief indicate packet element have received packet*/
+typedef struct{
+	int32_t flag; /**< \brief indicate packet element have received packet*/
 
-    /**
-    *  *  indicate packet receive method.
-    *  *  @see PKT_METHOD_UNKNOWN
-    *  *  @see PKT_METHOD_SOCKET
-    *  *  @see PKT_METHOD_CAPFILE
-    *  *  @see PKT_METHOD_LIBPCAP
-    *  *  @see PKT_METHOD_IPTABLES
-    *  */
-    int16_t method;
+	/**
+	*  *  indicate packet receive method.
+	*  *  @see PKT_METHOD_UNKNOWN
+	*  *  @see PKT_METHOD_SOCKET
+	*  *  @see PKT_METHOD_CAPFILE
+	*  *  @see PKT_METHOD_LIBPCAP
+	*  *  @see PKT_METHOD_IPTABLES
+	*  */
+	int16_t method;
 
-    int16_t index; /**< \brief network interface index where packet received */
+	int16_t index; /**< \brief network interface index where packet received */
 
-    int16_t ethhdr_off;
-    int16_t iphdr_off;
-    int16_t tcphdr_off;
+	int16_t ethhdr_off;
+	int16_t iphdr_off;
+	int16_t tcphdr_off;
 
-    int16_t direct;
+	int16_t direct;
 
-    int16_t length; /**< \brief real packet bytes in buffer */
+	int16_t length; /**< \brief real packet bytes in buffer */
 
-    struct timeval time_val;
+	struct timeval time_val;
 
-    char  packet[MAX_RAW_PACKET_SIZE]; /**< \brief packet content. @see MAX_RAW_PACKET_SIZE */
+	char  packet[MAX_RAW_PACKET_SIZE]; /**< \brief packet content. @see MAX_RAW_PACKET_SIZE */
 } SRawPacket;
 
 
 
-class IFormatPacket
-{
+class IFormatPacket{
 public:
-    virtual ~IFormatPacket(){};
-    virtual void Format(char *packet) = 0;
-    virtual struct ether_hdr *GetEtherHeader() = 0;
-    virtual u_int64_t GetDstMac() = 0;
-    virtual u_int64_t GetSrcMac() = 0;
+	virtual ~IFormatPacket(){};
+	virtual void Format(char *packet) = 0;
+	virtual struct ether_hdr *GetEtherHeader() = 0;
+	virtual u_int64_t GetDstMac() = 0;
+	virtual u_int64_t GetSrcMac() = 0;
 
-    virtual struct iphdr *GetIphdr() = 0;
-    virtual u_int32_t GetDstIp() = 0;
-    virtual u_int32_t GetSrcIp() = 0;
-    virtual u_int8_t  GetIpProtocol() = 0;
-    virtual u_int16_t GetIpPktLen() = 0;
+	virtual struct iphdr *GetIphdr() = 0;
+	virtual u_int32_t GetDstIp() = 0;
+	virtual u_int32_t GetSrcIp() = 0;
+	virtual u_int8_t  GetIpProtocol() = 0;
+	virtual u_int16_t GetIpPktLen() = 0;
 
-    virtual struct tcphdr *GetTcphdr() = 0;
-    virtual struct udphdr *GetUdphdr() = 0;
-    virtual u_int16_t GetDstPort() = 0;
-    virtual u_int16_t GetSrcPort() = 0;
-    //virtual int16_t GetDirect() = 0;
-    virtual u_int8_t *GetData() = 0;
-    virtual int16_t  GetDataLen() = 0;
-   // virtual SRawPacket *GetRawPacket() = 0;
+	virtual struct tcphdr *GetTcphdr() = 0;
+	virtual struct udphdr *GetUdphdr() = 0;
+	virtual u_int16_t GetDstPort() = 0;
+	virtual u_int16_t GetSrcPort() = 0;
+	//virtual int16_t GetDirect() = 0;
+	virtual u_int8_t *GetData() = 0;
+	virtual int16_t  GetDataLen() = 0;
+ // virtual SRawPacket *GetRawPacket() = 0;
 };
 
 
 
-class CFormatPacket : public IFormatPacket
-{
+class CFormatPacket : public IFormatPacket{
 public:
-	void Format(char* packet)
-	{
-	    //m_pPacketData = pRawPacket;
-
-	    m_pPkt = packet;
-
-	   // if(m_pPacketData->ethhdr_off < 0)
-	  //  {
-	  //      m_pEthhdr = NULL;
-	  //  }
-	   // else
-	   // {
-	        m_pEthhdr = (struct ether_hdr*)packet;
-	  //  }
-
-	   // if(m_pPacketData->iphdr_off < 0)
-	   // {
-	       // m_pIphdr = NULL;
-	   // }
-	   // else
-	   // {
-	        m_pIphdr = (struct iphdr*)(packet + sizeof(struct ether_hdr));
-	   // }
-
-	   // if(m_pPacketData->tcphdr_off < 0)
-	   // {
-	    //    m_pTcphdr = NULL;
-	   // }
-	   // else
-	   // {
-	        m_pTcphdr = (struct tcphdr*)(packet + sizeof(struct ether_hdr)+(m_pIphdr->ihl)*4);
-	   // }
-	    m_uPktLen = ntohs(m_pIphdr->tot_len);
-	    m_pEthIndex = (int16_t*)(&m_pEthhdr->ether_type);
-
-	    m_pData = NULL;
-	    m_DataLen = 0;
-	    if (m_pIphdr)
-	    {
+	void Format(char* packet){
+		m_pPkt = packet;
+		m_pEthhdr = (struct ether_hdr*)packet;
+		m_pIphdr = (struct iphdr*)(packet + sizeof(struct ether_hdr));
+		m_pTcphdr = (struct tcphdr*)(packet + sizeof(struct ether_hdr)+(m_pIphdr->ihl)*4);
+		m_uPktLen = ntohs(m_pIphdr->tot_len);
+		m_pEthIndex = (int16_t*)(&m_pEthhdr->ether_type);
+		m_pData = NULL;
+		m_DataLen = 0;
+		if (m_pIphdr){
 			int16_t iplen=ntohs(m_pIphdr->tot_len);
 			int16_t offset;
 			if (m_pIphdr->protocol == IPPROTO_TCP)
@@ -168,8 +135,8 @@ public:
 			m_pData = (u_int8_t *)(packet + sizeof(struct ether_hdr) + offset);
 			m_DataLen = iplen - offset;
 			gettimeofday(&_time,NULL);
-	    }
-	    return;
+		}
+		return;
 	}
 
 	/**
@@ -178,8 +145,7 @@ public:
 	 *      \n NULL failed / not exist
 	 *      \n point to ether header in packet
 	 */
-	struct ether_hdr *GetEtherHeader()
-	{
+	struct ether_hdr *GetEtherHeader(){
 	    return m_pEthhdr;
 	}
 
@@ -189,17 +155,13 @@ public:
 	 *      \n NULL :failed / no destinatiom MAC address
 	 *      \n pointer to ether destination MAC address
 	 */
-	u_int64_t GetDstMac()
-	{
-	    if(m_pEthhdr)
-	    {
-	        //return BCD2UInt64(m_pEthhdr->ether_dhost, 6);
-	        return 0;
-	    }
-	    else
-	    {
-	        return 0;
-	    }
+	u_int64_t GetDstMac(){
+		if(m_pEthhdr){
+			//return BCD2UInt64(m_pEthhdr->ether_dhost, 6);
+			return 0;
+		}else{
+			return 0;
+		}
 	}
 
 	/**
@@ -208,17 +170,13 @@ public:
 	 *      \n NULL :failed / no source MAC address
 	 *      \n pointer to ether source MAC address
 	 */
-	u_int64_t GetSrcMac()
-	{
-	    if(m_pEthhdr)
-	    {
-	        //return BCD2UInt64(m_pEthhdr->ether_shost, 6);
-	        return 0;
-	    }
-	    else
-	    {
-	        return 0;
-	    }
+	u_int64_t GetSrcMac(){
+		if(m_pEthhdr){
+			//return BCD2UInt64(m_pEthhdr->ether_shost, 6);
+			return 0;
+	}else{
+			return 0;
+		}
 	}
 
 	/**
@@ -227,9 +185,8 @@ public:
 	 *      \n NULL failed / not exist
 	 *      \n point to IP header in packet
 	 */
-	struct iphdr *GetIphdr()
-	{
-	    return m_pIphdr;
+	struct iphdr *GetIphdr(){
+		return m_pIphdr;
 	}
 
 	/**
@@ -238,16 +195,13 @@ public:
 	 *      \n NULL :failed / no destinatiom IP address
 	 *      \n pointer to destination IP address
 	 */
-	u_int32_t GetDstIp()
-	{
-	    if(m_pIphdr)
-	    {
-	        return m_pIphdr->daddr;
-	    }
-	    else
-	    {
-	        return 0;
-	    }
+	u_int32_t GetDstIp(){
+		if(m_pIphdr){
+			return m_pIphdr->daddr;
+		}
+		else{
+			return 0;
+		}
 	}
 
 	/**
@@ -256,16 +210,12 @@ public:
 	 *      \n NULL :failed / no source IP address
 	 *      \n pointer to source IP address
 	 */
-	u_int32_t GetSrcIp()
-	{
-	    if(m_pIphdr)
-	    {
-	        return m_pIphdr->saddr;
-	    }
-	    else
-	    {
-	        return 0;
-	    }
+	u_int32_t GetSrcIp(){
+		if(m_pIphdr){
+			return m_pIphdr->saddr;
+		}else{
+			return 0;
+		}
 	}
 
 	/**
@@ -274,20 +224,15 @@ public:
 	 *      \n NULL :failed / no exist
 	 *      \n pointer to IP protocol
 	 */
-	u_int8_t  GetIpProtocol()
-	{
-	    if(m_pIphdr)
-	    {
-	        return m_pIphdr->protocol;
-	    }
-	    else
-	    {
-	        return 0;
-	    }
+	u_int8_t  GetIpProtocol(){
+		if(m_pIphdr){
+			return m_pIphdr->protocol;
+		}else{
+			return 0;
+		}
 	}
 
-	u_int16_t GetIpPktLen()
-	{
+	u_int16_t GetIpPktLen(){
 		return m_uPktLen;
 	}
 	/**
@@ -296,9 +241,8 @@ public:
 	 *      \n NULL failed / not exist
 	 *      \n point to TCP header in packet
 	 */
-	struct tcphdr *GetTcphdr()
-	{
-	    return m_pTcphdr;
+	struct tcphdr *GetTcphdr(){
+		return m_pTcphdr;
 	}
 
 	/**
@@ -307,9 +251,8 @@ public:
 	 *      \n NULL failed / not exist
 	 *      \n point to UDP header in packet
 	 */
-	struct udphdr *GetUdphdr()
-	{
-	    return (struct udphdr *)m_pTcphdr;
+	struct udphdr *GetUdphdr(){
+		return (struct udphdr *)m_pTcphdr;
 	}
 
 	/**
@@ -318,16 +261,12 @@ public:
 	 *      \n NULL :failed / no destinatiom TCP/UDP port
 	 *      \n pointer to destination TCP/UDP port
 	 */
-	u_int16_t GetDstPort()
-	{
-	    if(m_pTcphdr)
-	    {
-	        return m_pTcphdr->dest;
-	    }
-	    else
-	    {
-	        return 0;
-	    }
+	u_int16_t GetDstPort(){
+		if(m_pTcphdr){
+			return m_pTcphdr->dest;
+		}else{
+			return 0;
+		}
 	}
 
 	/**
@@ -336,48 +275,37 @@ public:
 	 *      \n NULL :failed / no Source TCP/UDP port
 	 *      \n pointer to Source TCP/UDP port
 	 */
-	u_int16_t GetSrcPort()
-	{
-	    if(m_pTcphdr)
-	    {
-	        return m_pTcphdr->source;
-	    }
-	    else
-	    {
-	        return 0;
-	    }
+	u_int16_t GetSrcPort(){
+		if(m_pTcphdr){
+			return m_pTcphdr->source;
+		}	else	{
+			return 0;
+		}
 	}
-    //int16_t GetDirect(){return m_pPacketData->direct;}
-    u_int8_t *GetData()   {return m_pData;}
-    int16_t  GetDataLen() {return m_DataLen;}
-    //SRawPacket *GetRawPacket() {return m_pPacketData;}
-    struct timeval *GetPacketTime() {return &(_time);}
-    int16_t *GetEthIndex(){return m_pEthIndex;}
+	//int16_t GetDirect(){return m_pPacketData->direct;}
+	u_int8_t *GetData()   {return m_pData;}
+	int16_t  GetDataLen() {return m_DataLen;}
+	//SRawPacket *GetRawPacket() {return m_pPacketData;}
+	struct timeval *GetPacketTime() {return &(_time);}
+	int16_t *GetEthIndex(){return m_pEthIndex;}
 
-    char * GetPkt(){return m_pPkt;};
-    u_int16_t GetPktLen(){return m_uPktLen;};
+	char * GetPkt(){return m_pPkt;};
+	u_int16_t GetPktLen(){return m_uPktLen;};
 
 
 private:
-    //SRawPacket *m_pPacketData;
-    struct ether_hdr *m_pEthhdr;
-    struct iphdr *m_pIphdr;
-    struct tcphdr *m_pTcphdr;
-    u_int8_t * m_pData;
-    int16_t    m_DataLen;
+	//SRawPacket *m_pPacketData;
+	struct ether_hdr *m_pEthhdr;
+	struct iphdr *m_pIphdr;
+	struct tcphdr *m_pTcphdr;
+	u_int8_t * m_pData;
+	int16_t    m_DataLen;
 
-    int16_t *m_pEthIndex;
-    u_int16_t m_uPktLen;
-    char * m_pPkt;
-    struct timeval _time;
+	int16_t *m_pEthIndex;
+	u_int16_t m_uPktLen;
+	char * m_pPkt;
+	struct timeval _time;
 };
-
-
-
-
-
-
-
 
 
 

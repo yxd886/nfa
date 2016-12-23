@@ -11,12 +11,11 @@
 const uint32_t  MAX_BUFFER_SIZE = 64 * 1024 * 1024;
 const uint32_t  BUFFER_SIZE = 2048;
 
-struct CBuffer
-{
+struct CBuffer{
 
-    uint32_t len;
-    uint32_t _free;
-    char *   buf;
+	uint32_t len;
+	uint32_t _free;
+	char *   buf;
 
 };
 

@@ -11,21 +11,19 @@
 
 
 typedef char* KeyType;// 设关键字域为char*
-typedef struct
-{
- char key[20];
- char value[100];
+typedef struct{
+	char key[20];
+	char value[100];
 }ElemType; // 数据元素类型
 
 
 
 // 开放定址哈希表的存储结构
 
-typedef struct
-{
- ElemType *elem; // 数据元素存储基址，动态分配数组
- int count; // 当前数据元素个数
- int sizeindex; // hashsize[sizeindex]为当前容量
+typedef struct{
+	ElemType *elem; // 数据元素存储基址，动态分配数组
+	int count; // 当前数据元素个数
+	int sizeindex; // hashsize[sizeindex]为当前容量
 }HashTable;
 
 
