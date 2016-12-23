@@ -15,7 +15,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     if(fhs->counter==0)
     {
         //如果不存在，则创建新会话
-  //  	printf("new session created!\n");
+    		printf("new session created!\n");
     	//getchar();
         Create(&packet,pInfo,fhs);
 
@@ -36,7 +36,7 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, http_par
     if(fhs->SeqNo == ntohl(packet.GetTcphdr()->seq))
     {
         //log repeated packet  重复的包
-   // 	printf("repeated packet!\n");
+    	  printf("repeated packet!\n");
         return;
     }
 
