@@ -91,8 +91,8 @@ public:
       &rp->dport,
       &rp->protocol,
       &rp->action);
-      std::cout<<"rule push back"<<std::endl;
-      std::cout<<rp->saddr.addr<<" "<<rp->protocol<<" "<<rp->sport<<std::endl;
+      //std::cout<<"rule push back"<<std::endl;
+      //std::cout<<rp->saddr.addr<<" "<<rp->protocol<<" "<<rp->sport<<std::endl;
      rules.push_back(r);
    }
  //  std::cout<<"begin to close the rule file !"<<std::endl;
