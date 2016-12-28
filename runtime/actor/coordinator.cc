@@ -5,8 +5,9 @@
 
 #include <glog/logging.h>
 
-coordinator::coordinator(flow_actor_allocator* allocator){
+coordinator::coordinator(flow_actor_allocator* allocator, runtime_config_allocator* rt_allocator){
   allocator_ = allocator;
+  rt_allocator_ = rt_allocator;
   htable_.Init(flow_key_size, sizeof(flow_actor*));
   deadend_flow_actor_ = allocator_->allocate();
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);

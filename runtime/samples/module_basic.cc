@@ -1,4 +1,4 @@
-#include <thread>
+/*#include <thread>
 #include <chrono>
 #include <cassert>
 
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
 
   flow_actor_allocator* allocator = flow_actor_allocator::get();
   coordinator coordinator_actor(allocator);
-  LOG(INFO)<<"The size of flow_actor is "<<sizeof(flow_actor);
+  LOG(INFO)<<"The size of flow_actor is "<<sizeof(flow_actor);*/
 
   /*flow_actor* a0 = allocator->allocate();
   flow_actor* a1 = allocator->allocate();
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
 
   LOG(INFO)<<"pass flow_actor_allocator test";*/
 
-  if((string(FLAGS_input_port)=="")||(string(FLAGS_output_port)=="")){
+  /*if((string(FLAGS_input_port)=="")||(string(FLAGS_output_port)=="")){
     LOG(ERROR)<<"The name of intput/output port must be specified";
     exit(EXIT_FAILURE);
   }
@@ -162,4 +162,4 @@ int main(int argc, char* argv[]){
   while(true){
     std::this_thread::sleep_for(std::chrono::seconds(50));
   }
-}
+}*/

@@ -25,9 +25,9 @@ $(shell mkdir -p $(DEPDIR)/nf/pktcounter > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/firewall > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/flowmonitor > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/httpparser > /dev/null)
-$(shell mkdir -p $(DEPDIR)/samples/reliable > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable/base > /dev/null)
+$(shell mkdir -p $(DEPDIR)/samples/real_rpc_basic > /dev/null)
 
 # e.g., 4.9.3 -> 40903
 CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
@@ -119,29 +119,32 @@ SAMPLES_SRCS += $(wildcard samples/*/*.cc)
 SAMPLES_OBJS = $(SAMPLES_SRCS:.cc=.o)
 
 PROCESS_PACKET_EXEC = samples/process_packets
-PROCESS_PACKET_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/process_packets.o,$(SAMPLES_OBJS)),$(OBJS))
+PROCESS_PACKET_OBJS = $(filter-out main.o $(filter-out samples/process_packets.o,$(SAMPLES_OBJS)),$(OBJS))
 
 RPC_TEST_CLIENT_EXEC = samples/simple_rpc_client
-RPC_TEST_CLIENT_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/simple_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
+RPC_TEST_CLIENT_OBJS = $(filter-out main.o $(filter-out samples/simple_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
 
 RPC_TEST_SERVER_EXEC = samples/simple_rpc_server
-RPC_TEST_SERVER_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/simple_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
+RPC_TEST_SERVER_OBJS = $(filter-out main.o $(filter-out samples/simple_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
 
 SIMPLE_RPC_RECURSIVE_EXEC = samples/simple_rpc_recursive_server
-SIMPLE_RPC_RECURSIVE_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/simple_rpc_recursive_server.o,$(SAMPLES_OBJS)),$(OBJS))
+SIMPLE_RPC_RECURSIVE_OBJS = $(filter-out main.o $(filter-out samples/simple_rpc_recursive_server.o,$(SAMPLES_OBJS)),$(OBJS))
 
 NFA_RPC_SERVER_EXEC = samples/nfa_rpc_server
-NFA_RPC_SERVER_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/nfa_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
+NFA_RPC_SERVER_OBJS = $(filter-out main.o $(filter-out samples/nfa_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
 
 NFA_RPC_CLIENT_EXEC = samples/nfa_rpc_client
-NFA_RPC_CLIENT_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/nfa_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
+NFA_RPC_CLIENT_OBJS = $(filter-out main.o $(filter-out samples/nfa_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
 
 MODULE_BASIC_EXEC = samples/module_basic
-MODULE_BASIC_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/module_basic.o,$(SAMPLES_OBJS)),$(OBJS))
+MODULE_BASIC_OBJS = $(filter-out main.o $(filter-out samples/module_basic.o,$(SAMPLES_OBJS)),$(OBJS))
+
+REAL_RPC_BASIC_MAIN_EXEC = samples/real_rpc_basic/server_main
+REAL_RPC_BASIC_MAIN_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_basic/server_main.o,$(SAMPLES_OBJS)),$(OBJS))
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(MODULE_BASIC_EXEC)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -258,6 +261,12 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(MODULE_BASIC_EXEC), \
 	$$(MODULE_BASIC_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(REAL_RPC_BASIC_MAIN_EXEC), \
+	$$(REAL_RPC_BASIC_MAIN_OJBS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
