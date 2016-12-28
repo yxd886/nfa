@@ -140,7 +140,7 @@ private:
     *seq_num_ptr = next_seq_num_;
     next_seq_num_ += 1;
 
-    *magic_num_ptr = 0x12345678;
+    *magic_num_ptr = 0x12340001;
 
     iph->version_ihl = 0x45;
     iph->total_length = rte_cpu_to_be_16(pkt_len);

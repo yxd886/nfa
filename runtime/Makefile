@@ -139,12 +139,9 @@ NFA_RPC_CLIENT_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samp
 MODULE_BASIC_EXEC = samples/module_basic
 MODULE_BASIC_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/module_basic.o,$(SAMPLES_OBJS)),$(OBJS))
 
-RELIABLE_EXEC = samples/reliable/reliable
-RELIABLE_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/reliable/reliable.o,$(SAMPLES_OBJS)),$(OBJS))
-
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(RELIABLE_EXEC)
+all: $(OBJS) $(MODULE_BASIC_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -261,12 +258,6 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(MODULE_BASIC_EXEC), \
 	$$(MODULE_BASIC_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-	
-$(eval $(call BUILD, \
-	LD, \
-	$$(RELIABLE_EXEC), \
-	$$(RELIABLE_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
