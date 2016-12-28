@@ -25,6 +25,9 @@ $(shell mkdir -p $(DEPDIR)/nf/pktcounter > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/firewall > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/flowmonitor > /dev/null)
 $(shell mkdir -p $(DEPDIR)/nf/httpparser > /dev/null)
+$(shell mkdir -p $(DEPDIR)/samples/reliable > /dev/null)
+$(shell mkdir -p $(DEPDIR)/reliable > /dev/null)
+$(shell mkdir -p $(DEPDIR)/reliable/base > /dev/null)
 
 # e.g., 4.9.3 -> 40903
 CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
@@ -96,9 +99,9 @@ PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
 PROTOCFLAGS += --proto_path=$(PROTO_DIR) --proto_path=$(PROTO_DIR) --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
-ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc *.cc rpc/*.cc port/*.cc actor/*.cc actor/base/*.cc module/*.cc nf/*/*.cc samples/*.cc) 
+ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc *.cc rpc/*.cc port/*.cc actor/*.cc actor/base/*.cc module/*.cc nf/*/*.cc reliable/*.cc reliable/*/*.cc samples/*.cc samples/*/*.cc) 
                       
-HEADERS =  $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h bessport/kmod/*.h *.h rpc/*.h port/*.h actor/*.h actor/base/*.h module/*.h nf/*/*.h)
+HEADERS =  $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h bessport/kmod/*.h *.h rpc/*.h port/*.h actor/*.h actor/base/*.h module/*.h nf/*/*.h reliable/*.h reliable/*/*.h)
 
 TEST_SRCS = $(filter %_test.cc gtest_main.cc, $(ALL_SRCS))
 TEST_OBJS = $(TEST_SRCS:.cc=.o)
@@ -112,6 +115,7 @@ GTEST_DIR = /usr/src/gtest
 # The following variables are defined for sample examples.
 
 SAMPLES_SRCS = $(wildcard samples/*.cc)
+SAMPLES_SRCS += $(wildcard samples/*/*.cc)
 SAMPLES_OBJS = $(SAMPLES_SRCS:.cc=.o)
 
 PROCESS_PACKET_EXEC = samples/process_packets
@@ -135,9 +139,12 @@ NFA_RPC_CLIENT_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samp
 MODULE_BASIC_EXEC = samples/module_basic
 MODULE_BASIC_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/module_basic.o,$(SAMPLES_OBJS)),$(OBJS))
 
+RELIABLE_EXEC = samples/reliable/reliable
+RELIABLE_OBJS = $(filter-out main.o rpc/nfa_rpc_server.o $(filter-out samples/reliable/reliable.o,$(SAMPLES_OBJS)),$(OBJS))
+
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(MODULE_BASIC_EXEC)
+all: $(OBJS) $(RELIABLE_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -254,6 +261,12 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(MODULE_BASIC_EXEC), \
 	$$(MODULE_BASIC_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(RELIABLE_EXEC), \
+	$$(RELIABLE_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
