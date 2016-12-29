@@ -63,6 +63,8 @@ class ServerImpl final {
 
   void HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& rpc_server_thread_ready);
 
+  void HandleRpcs();
+
  private:
 
   template<class... T>

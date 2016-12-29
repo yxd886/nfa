@@ -226,6 +226,10 @@ int main(int argc, char** argv) {
   LivenessCheckClient checker_10242(grpc::CreateChannel(
         "localhost:10242", grpc::InsecureChannelCredentials()));
 
+  // LOG(INFO)<<checker_10240.Check();
+  // LOG(INFO)<<checker_10241.Check();
+  // LOG(INFO)<<checker_10242.Check();
+
   // add itself
   // LOG(INFO)<<checker_10240.SingleAddOutputRt(10240);
 
@@ -240,8 +244,8 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10242.DeleteInputRt(10240);
 
   // Test migration
-  // LOG(INFO)<<checker_10240.AddOutputRt();
-  // LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
+  LOG(INFO)<<checker_10240.AddOutputRt();
+  LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
 
   // Test migration between runtimes with different input/output runtimes
   // LOG(INFO)<<checker_10242.DeleteInputRt(10240);
@@ -268,10 +272,10 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10241.DeleteReplica(10242);
   // LOG(INFO)<<checker_10242.DeleteStorage(10241);
 
-  LOG(INFO)<<checker_10240.AddOutputRt();
-  LOG(INFO)<<checker_10240.GetRuntimeState();
-  LOG(INFO)<<checker_10241.GetRuntimeState();
-  LOG(INFO)<<checker_10242.GetRuntimeState();
+  // LOG(INFO)<<checker_10240.AddOutputRt();
+  // LOG(INFO)<<checker_10240.GetRuntimeState();
+  // LOG(INFO)<<checker_10241.GetRuntimeState();
+  // LOG(INFO)<<checker_10242.GetRuntimeState();
 
   return 0;
 }

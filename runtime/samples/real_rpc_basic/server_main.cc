@@ -1,6 +1,7 @@
 #include <thread>
 #include <chrono>
 #include <cassert>
+#include <memory>
 
 #include <glog/logging.h>
 
@@ -20,7 +21,9 @@
 #include "../../actor/flow_actor.h"
 #include "../../actor/flow_actor_allocator.h"
 #include "../../actor/coordinator.h"
-#include "../../rpc/runtime_config_allocator.h"
+#include "../../rpc/llring_holder.h"
+#include "../../rpc/server_impl.h"
+#include "../../module/handle_command.h"
 
 // #include "../../nf/base/network_function_register.h"
 // #include "../../nf/pktcounter/pkt_counter.h"
@@ -29,7 +32,6 @@ using namespace bess;
 using namespace std;
 
 static constexpr int num_flow_actors = 1024*512;
-static constexpr int num_rt_configs = 512;
 
 int main(int argc, char* argv[]){
 
@@ -86,22 +88,42 @@ int main(int argc, char* argv[]){
   }
 
   // create a worker thread
-  int wid = 1; // the worker id inside the program is always 1
+  int wid = 1;
   launch_worker(wid, FLAGS_worker_core);
+
+  // create the llring used for communication
+  llring_holder communication_ring;
 
   // create flow_actor_allocator, coordinator_actor and runtime_config_allocator
   flow_actor_allocator::create(num_flow_actors);
   LOG(INFO)<<"creating "<<num_flow_actors<<" flow actors";
-
-  runtime_config_allocator::create(num_rt_configs);
-  LOG(INFO)<<"creating "<<num_rt_configs<<" runtime_config";
-
   flow_actor_allocator* allocator = flow_actor_allocator::get();
-  runtime_config_allocator* rt_allocator = runtime_config_allocator::get();
-  coordinator coordinator_actor(allocator, rt_allocator);
+  coordinator coordinator_actor(allocator, communication_ring);
 
   // create module and attach modules to the default traffic class of worker 1.
-  // TODO:
+  Module* mod_handle_command = create_module<handle_command>("handle_command", "mod_handle_command", &coordinator_actor);
+  std::unique_ptr<Module> mod_handle_command_ptr(mod_handle_command);
+
+  Task* t = mod_handle_command->tasks()[0];
+  if(t==nullptr){
+    LOG(ERROR)<<"mod_handle_command has no task";
+    exit(-1);
+  }
+
+  bess::LeafTrafficClass* tc =
+            workers[wid]->scheduler()->default_leaf_class();
+  if (!tc) {
+    LOG(ERROR)<<"worker "<<wid<<" has no leaf traffic class";
+    exit(-1);
+  }
+
+  tc->AddTask(t);
+  resume_all_workers();
+
+  // create the rpc server
+  ServerImpl rpc_server(communication_ring.rpc2worker_ring(), communication_ring.worker2rpc_ring());
+  rpc_server.Run(FLAGS_rpc_ip, FLAGS_rpc_port);
+  rpc_server.HandleRpcs();
 }
 
 
