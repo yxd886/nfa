@@ -20,7 +20,7 @@ public:
   }
 
   simple_ring_buffer() :
-    head_pos_(0), tail_pos_(0), cur_size_(0), max_size_(0), ring_buf_(0){
+    head_pos_(0), tail_pos_(0), cur_size_(0), max_size_(0), ring_buf_(nullptr){
   }
 
   inline void init(size_t max_size){
@@ -33,7 +33,9 @@ public:
   }
 
   ~simple_ring_buffer(){
-    mem_free(ring_buf_);
+    if(ring_buf_!=nullptr){
+      mem_free(ring_buf_);
+    }
   }
 
   inline size_t get_cur_size(){

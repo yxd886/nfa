@@ -16,6 +16,7 @@ public:
   void customized_init(coordinator* coordinator_actor);
 
 private:
+
   coordinator* coordinator_actor_;
 };
 

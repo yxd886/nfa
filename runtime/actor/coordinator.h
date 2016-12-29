@@ -29,6 +29,7 @@ public:
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
 
+  // peeker for the pointer to the internal private member
   inline bess::PacketBatch* peek_ec_scheduler_batch(){
     return &ec_scheduler_batch_;
   }
@@ -47,6 +48,30 @@ public:
 
   inline struct llring* peek_worker2rpc_ring(){
     return worker2rpc_ring_;
+  }
+
+  inline std::unordered_map<int32_t, runtime_config>* peek_input_runtimes(){
+    return &input_runtimes_;
+  }
+
+  inline std::unordered_map<int32_t, runtime_config>* peek_output_runtimes(){
+    return &output_runtimes_;
+  }
+
+  inline std::unordered_map<int32_t, runtime_config>* peek_replicas(){
+    return &replicas_;
+  }
+
+  inline std::unordered_map<int32_t, runtime_config>* peek_storages(){
+    return &storages_;
+  }
+
+  inline runtime_config* peek_migration_target(){
+    return &migration_target_;
+  }
+
+  inline uint64_t* peek_migration_qouta(){
+    return &migration_qouta_;
   }
 
 private:

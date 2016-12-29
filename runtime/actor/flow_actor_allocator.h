@@ -20,7 +20,9 @@ public:
   }
 
   ~flow_actor_allocator(){
-    delete[] flow_actor_array_;
+    if(flow_actor_array_ != nullptr){
+      delete[] flow_actor_array_;
+    }
   }
 
   inline flow_actor* allocate(){

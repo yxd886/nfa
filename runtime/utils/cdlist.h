@@ -3,7 +3,7 @@
 
 #include <cstddef> /* offsetof */
 
-#include "common.h"
+#include "../bessport/utils/common.h"
 
 /* Circular, doubly linked list implementation. The idea is very similar to
  * the one in Linux kernel, while we distinguish head and item types.
@@ -138,6 +138,17 @@ static inline int cdlist_is_empty(const struct cdlist_head *head) {
 
 static inline int cdlist_is_single(const struct cdlist_head *head) {
   return !cdlist_is_empty(head) && (head->next == head->prev);
+}
+
+static inline struct cdlist_item *cdlist_peek_first_item(struct cdlist_head *head) {
+  struct cdlist_item *item;
+
+  if (cdlist_is_empty(head))
+      return NULL;
+
+  item = head->next;
+
+  return item;
 }
 
 static inline struct cdlist_item *cdlist_pop_head(struct cdlist_head *head) {

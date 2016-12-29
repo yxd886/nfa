@@ -28,6 +28,7 @@ $(shell mkdir -p $(DEPDIR)/nf/httpparser > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable/base > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/real_rpc_basic > /dev/null)
+$(shell mkdir -p $(DEPDIR)/utils > /dev/null)
 
 # e.g., 4.9.3 -> 40903
 CXXVERSION := $(shell $(CXX) -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/')
@@ -99,9 +100,9 @@ PROTO_SRCS += $(patsubst %.proto,%.grpc.pb.cc, $(PROTOS))
 PROTO_HEADERS = $(patsubst %.cc,%.h, $(PROTO_SRCS))
 PROTOCFLAGS += --proto_path=$(PROTO_DIR) --proto_path=$(PROTO_DIR) --cpp_out=$(PROTO_DIR) --grpc_out=$(PROTO_DIR) --plugin=protoc-gen-grpc=`which grpc_cpp_plugin`
 
-ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc *.cc rpc/*.cc port/*.cc actor/*.cc actor/base/*.cc module/*.cc nf/*/*.cc reliable/*.cc reliable/*/*.cc samples/*.cc samples/*/*.cc) 
+ALL_SRCS = $(wildcard bessport/*.cc bessport/hooks/*.cc bessport/utils/*.cc *.cc rpc/*.cc port/*.cc actor/*.cc actor/base/*.cc module/*.cc nf/*/*.cc reliable/*.cc reliable/*/*.cc utils/*.cc samples/*.cc samples/*/*.cc) 
                       
-HEADERS =  $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h bessport/kmod/*.h *.h rpc/*.h port/*.h actor/*.h actor/base/*.h module/*.h nf/*/*.h reliable/*.h reliable/*/*.h)
+HEADERS =  $(wildcard bessport/*.h bessport/hooks/*.h bessport/utils/*.h bessport/kmod/*.h *.h rpc/*.h port/*.h actor/*.h actor/base/*.h module/*.h nf/*/*.h reliable/*.h reliable/*/*.h utils/*.h)
 
 TEST_SRCS = $(filter %_test.cc gtest_main.cc, $(ALL_SRCS))
 TEST_OBJS = $(TEST_SRCS:.cc=.o)

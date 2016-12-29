@@ -28,6 +28,54 @@ struct task_result handle_command::RunTask(void *arg){
     LOG(INFO) << "migration_qouta-> "<<item->migration_qouta;
     print_stat(item->op_code, item->stat);
 
+    switch(item->op_code){
+      case rpc_operation::add_input_runtime :{
+        coordinator_actor_->peek_input_runtimes()->emplace(item->rt_config.runtime_id, item->rt_config);
+        break;
+      }
+      case rpc_operation::add_output_runtime :{
+        coordinator_actor_->peek_output_runtimes()->emplace(item->rt_config.runtime_id, item->rt_config);
+        break;
+      }
+      case rpc_operation::delete_input_runtime :{
+        coordinator_actor_->peek_input_runtimes()->erase(item->rt_config.runtime_id);
+        break;
+      }
+      case rpc_operation::delete_output_runtime :{
+        coordinator_actor_->peek_output_runtimes()->erase(item->rt_config.runtime_id);
+        break;
+      }
+      case rpc_operation::set_migration_target :{
+        *(coordinator_actor_->peek_migration_target()) = item->rt_config;
+        *(coordinator_actor_->peek_migration_qouta()) = item->migration_qouta;
+        break;
+      }
+      case rpc_operation::migration_negotiate :{
+        break;
+      }
+      case rpc_operation::add_replica :{
+        coordinator_actor_->peek_replicas()->emplace(item->rt_config.runtime_id, item->rt_config);
+        break;
+      }
+      case rpc_operation::add_storage :{
+        coordinator_actor_->peek_storages()->emplace(item->rt_config.runtime_id, item->rt_config);
+        break;
+      }
+      case rpc_operation::remove_replica :{
+        coordinator_actor_->peek_replicas()->erase(item->rt_config.runtime_id);
+        break;
+      }
+      case rpc_operation::remove_storage :{
+        coordinator_actor_->peek_storages()->erase(item->rt_config.runtime_id);
+        break;
+      }
+      case rpc_operation::get_stats :{
+        break;
+      }
+      default :
+        break;
+    }
+
     llring_sp_enqueue(coordinator_actor_->peek_worker2rpc_ring(), static_cast<void*>(item));
   }
 
