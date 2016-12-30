@@ -705,4 +705,137 @@ void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
   }
 }
 
+
+// RPC implementation for AddInputMac
+
+template<>
+void derived_call_data<AddInputMacReq, AddInputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestAddInputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+  //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
+    string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
+                                                  std::to_string(request_.rpc_port()));
+    auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
+    if(runtime_to_find!=input_runtimes_.end()){
+
+      llring_item item(rpc_operation::add_input_mac, *runtime_to_find, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+// RPC implementation for AddOutputMac
+
+template<>
+void derived_call_data<AddOutputMacReq, AddOutputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestAddOutputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+  //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
+    string output_runtime_addr = concat_with_colon(request_.rpc_ip(),
+                                                  std::to_string(request_.rpc_port()));
+    auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
+    if(runtime_to_find!=output_runtimes_.end()){
+
+      llring_item item(rpc_operation::add_output_mac, *runtime_to_find, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+
+// RPC implementation for DeleteInputMac
+
+template<>
+void derived_call_data<DeleteInputMacReq, DeleteInputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteInputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+  //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
+    string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
+                                                  std::to_string(request_.rpc_port()));
+    auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
+    if(runtime_to_find!=input_runtimes_.end()){
+
+      llring_item item(rpc_operation::delete_input_mac, *runtime_to_find, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+
+
+
+// RPC implementation for DeleteOutputMac
+
+template<>
+void derived_call_data<DeleteOutputMacReq, DeleteOutputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteOutputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+  //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
+    string output_runtime_addr = concat_with_colon(request_.rpc_ip(),
+                                                  std::to_string(request_.rpc_port()));
+    auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
+    if(runtime_to_find!=output_runtimes_.end()){
+
+      llring_item item(rpc_operation::delete_output_mac, *runtime_to_find, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
 #endif
