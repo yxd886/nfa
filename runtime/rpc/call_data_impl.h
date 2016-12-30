@@ -722,7 +722,7 @@ void derived_call_data<AddInputMacReq, AddInputMacRep>::Proceed(){
     auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
     if(runtime_to_find!=input_runtimes_.end()){
 
-      llring_item item(rpc_operation::add_input_mac, *runtime_to_find, 0, 0);
+      llring_item item(rpc_operation::add_input_mac, runtime_to_find->second(), 0, 0);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
@@ -754,7 +754,7 @@ void derived_call_data<AddOutputMacReq, AddOutputMacRep>::Proceed(){
     auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
     if(runtime_to_find!=output_runtimes_.end()){
 
-      llring_item item(rpc_operation::add_output_mac, *runtime_to_find, 0, 0);
+      llring_item item(rpc_operation::add_output_mac, runtime_to_find->second(), 0, 0);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
@@ -787,7 +787,7 @@ void derived_call_data<DeleteInputMacReq, DeleteInputMacRep>::Proceed(){
     auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
     if(runtime_to_find!=input_runtimes_.end()){
 
-      llring_item item(rpc_operation::delete_input_mac, *runtime_to_find, 0, 0);
+      llring_item item(rpc_operation::delete_input_mac, runtime_to_find->second(), 0, 0);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
@@ -822,7 +822,7 @@ void derived_call_data<DeleteOutputMacReq, DeleteOutputMacRep>::Proceed(){
     auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
     if(runtime_to_find!=output_runtimes_.end()){
 
-      llring_item item(rpc_operation::delete_output_mac, *runtime_to_find, 0, 0);
+      llring_item item(rpc_operation::delete_output_mac, runtime_to_find->second(), 0, 0);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
