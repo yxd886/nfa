@@ -22,7 +22,7 @@ class flow_actor;
 class flow_actor_allocator;
 
 class coordinator : public local_batch, public timer_list, public rpcworker_llring, public local_runtime_info,
-                    public input_output_runtime_info, public migration_target_source_holder,
+                    public active_flows, public input_output_runtime_info, public migration_target_source_holder,
                     public replicas_holder, public storages_holder, public reliables_holder{
 public:
   using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;

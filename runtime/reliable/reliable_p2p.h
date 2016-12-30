@@ -7,7 +7,7 @@ class reliable_p2p{
 public:
   int get();
 
-  reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac) {}
+  reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac) : ref_cnt_(0) {}
 
   inline void recv(bess::PacketBatch* batch){
     for(int i=0; i<batch->cnt(); i++){
@@ -40,6 +40,23 @@ public:
 
   }
 
+  inline void inc_ref_cnt(){
+    ref_cnt_+=1;
+  }
+
+  inline void dec_ref_cnt(){
+    ref_cnt_-=1;
+  }
+
+  inline bool is_ref_cnt_zero(){
+    if(ref_cnt_==0){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+
 private:
   struct ether_addr local_runtime_mac_addr_;
   struct ether_addr dst_runtime_mac_addr_;
@@ -47,6 +64,8 @@ private:
   reliable_send_queue<64, bess::Packet> send_queue_;
 
   uint32_t next_seq_num_to_recv_;
+
+  int ref_cnt_;
 };
 
 #endif

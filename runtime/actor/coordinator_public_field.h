@@ -31,8 +31,12 @@ struct local_runtime_info{
   runtime_config local_runtime_;
 };
 
+struct active_flows{
+  round_rubin_list<flow_actor> active_flows_rrlist_;
+};
+
 struct input_output_runtime_info{
-  std::unordered_map<int32_t, runtime_config> rtid_to_input_output_rt_config_;
+  // std::unordered_map<int32_t, runtime_config> rtid_to_input_output_rt_config_;
   std::unordered_map<uint64_t, runtime_config> mac_addr_to_rt_configs_;
   round_rubin_list<generic_list_item> output_runtime_mac_rrlist_;
   round_rubin_list<generic_list_item> input_runtime_mac_rrlist_;

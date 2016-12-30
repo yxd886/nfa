@@ -195,6 +195,8 @@ enum class rpc_operation{
   can_migrate,
   set_migration_target,
   migration_negotiate,
+  delete_migration_target,
+  delete_migration_source,
   add_replica,
   add_storage,
   remove_replica,
@@ -253,6 +255,12 @@ inline string opcode2string(rpc_operation code){
       break;
     case rpc_operation::migration_negotiate:
       return_val = "migration_negotiate";
+      break;
+    case rpc_operation::delete_migration_source:
+      return_val = "delete_migration_source";
+      break;
+    case rpc_operation::delete_migration_target:
+      return_val = "delete_migration_target";
       break;
     case rpc_operation::add_replica:
       return_val = "add_replica";
