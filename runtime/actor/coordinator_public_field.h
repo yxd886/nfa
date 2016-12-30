@@ -27,26 +27,31 @@ struct rpcworker_llring{
   struct llring* worker2rpc_ring_;
 };
 
+struct local_runtime_info{
+  runtime_config local_runtime_;
+};
+
 struct input_output_runtime_info{
-  round_rubin_list<generic_list_item> output_runtime_mac_rrlist_;
-  round_rubin_list<generic_list_item> input_runtime_mac_rrlist_;
   std::unordered_map<int32_t, runtime_config> rtid_to_input_output_rt_config_;
   std::unordered_map<uint64_t, runtime_config> mac_addr_to_rt_configs_;
+  round_rubin_list<generic_list_item> output_runtime_mac_rrlist_;
+  round_rubin_list<generic_list_item> input_runtime_mac_rrlist_;
 };
 
 struct migration_target_source_holder{
-  int32_t migration_target_rt_id_;
   uint64_t migration_qouta_;
-  std::list<int32_t> migration_source_list_;
+
+  int32_t migration_target_rt_id_;
+  round_rubin_list<flow_actor> migrate_out_rrlist_;
+
+  std::unordered_map<int32_t, round_rubin_list<flow_actor>> rtid_to_migrate_in_rrlist_;
 };
 
 struct replicas_holder{
-  std::unordered_map<int32_t, runtime_config> rtid_to_replica_rt_config_;
   round_rubin_list<generic_list_item> replicas_rrlist_;
 };
 
 struct storages_holder{
-  std::unordered_map<int32_t, runtime_config> rtid_to_storage_rt_config_;
   std::unordered_map<int32_t, round_rubin_list<flow_actor>> storage_;
 };
 

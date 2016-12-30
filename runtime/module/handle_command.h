@@ -5,6 +5,7 @@
 
 #include "../bessport/module.h"
 #include "../actor/coordinator.h"
+#include "../rpc/ring_msg.h"
 
 class handle_command final : public Module{
 
@@ -18,6 +19,10 @@ public:
 private:
 
   coordinator* coordinator_actor_;
+
+  void add_input_output_runtime(llring_item* item);
+
+  void delete_input_output_runtime(llring_item* item);
 };
 
 #endif

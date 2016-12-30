@@ -21,7 +21,7 @@
 class flow_actor;
 class flow_actor_allocator;
 
-class coordinator : public local_batch, public timer_list, public rpcworker_llring,
+class coordinator : public local_batch, public timer_list, public rpcworker_llring, public local_runtime_info,
                     public input_output_runtime_info, public migration_target_source_holder,
                     public replicas_holder, public storages_holder, public reliables_holder{
 public:
@@ -35,6 +35,10 @@ public:
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
 
+  inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
+    return mac_list_item_allocator_;
+  }
+
 private:
   flow_actor_allocator* allocator_;
 
@@ -45,8 +49,6 @@ private:
   nfa_ipv4_field fields_[3];
 
   std::vector<network_function_base*> service_chain_;
-
-  runtime_config local_runtime_;
 
   generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
 

@@ -19,6 +19,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   static_nf_register::get_register().init(allocator->get_max_actor());
   service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
 
+  mac_list_item_allocator_ = mac_list_item_allocator;
+
   local_runtime_.runtime_id = FLAGS_runtime_id;
   local_runtime_.input_port_mac = convert_string_mac(FLAGS_input_port_mac);
   local_runtime_.output_port_mac = convert_string_mac(FLAGS_output_port_mac);
@@ -26,10 +28,7 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   local_runtime_.rpc_ip = convert_string_ip(FLAGS_rpc_ip);
   local_runtime_.rpc_port = FLAGS_rpc_port;
 
-  mac_list_item_allocator_ = mac_list_item_allocator;
-
   rpc2worker_ring_ = holder.rpc2worker_ring();
-
   worker2rpc_ring_ = holder.worker2rpc_ring();
 
   migration_target_rt_id_ = -1;

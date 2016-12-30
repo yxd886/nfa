@@ -314,54 +314,58 @@ void derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>::Proceed(){
   } else if (status_ == PROCESS) {
     create_itself();
 
-    string dest_addr = concat_with_colon(request_.addr().rpc_ip(),
-                                         std::to_string(request_.addr().rpc_port()));
-    string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
-                                         std::to_string(local_runtime_.rpc_port));
-    if((dest_addr==local_addr)||(request_.quota()==0)){
-      status_ = FINISH;
-      responder_.Finish(reply_, Status::OK, this);
-      return;
-    }
+    llring_item tmp_item(rpc_operation::can_migrate, local_runtime_, 0, 0);
+    llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&tmp_item));
+    poll_worker2rpc_ring();
 
-    std::unique_ptr<Runtime_RPC::Stub> stub(Runtime_RPC::NewStub(
-        grpc::CreateChannel(dest_addr, grpc::InsecureChannelCredentials())));
+    if(tmp_item.migration_qouta==0){
+      string dest_addr = concat_with_colon(request_.addr().rpc_ip(),
+                                           std::to_string(request_.addr().rpc_port()));
+      string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
+                                           std::to_string(local_runtime_.rpc_port));
+      if((dest_addr==local_addr)||(request_.quota()==0)){
+        status_ = FINISH;
+        responder_.Finish(reply_, Status::OK, this);
+        return;
+      }
 
-    MigrationNegotiateReq req;
-    req.set_quota(request_.quota());
-    for(auto it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
-      auto addr_ptr = req.add_input_runtime_addrs();
-      addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
-      addr_ptr->set_rpc_port(it->second.rpc_port);
+      std::unique_ptr<Runtime_RPC::Stub> stub(Runtime_RPC::NewStub(
+          grpc::CreateChannel(dest_addr, grpc::InsecureChannelCredentials())));
 
-    }
-    for(auto it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
-      auto addr_ptr = req.add_output_runtime_addrs();
-      addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
-      addr_ptr->set_rpc_port(it->second.rpc_port);
+      MigrationNegotiateReq req;
+      req.set_quota(request_.quota());
+      for(auto it=input_runtimes_.begin();it!=input_runtimes_.end();it++){
+        auto addr_ptr = req.add_input_runtime_addrs();
+        addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+        addr_ptr->set_rpc_port(it->second.rpc_port);
 
-    }
-    req.mutable_migration_source_config()->CopyFrom(local2protobuf(local_runtime_));
-    MigrationNegotiateRep rep;
+      }
+      for(auto it=output_runtimes_.begin();it!=output_runtimes_.end();it++){
+        auto addr_ptr = req.add_output_runtime_addrs();
+        addr_ptr->set_rpc_ip(convert_uint32t_ip(it->second.rpc_ip));
+        addr_ptr->set_rpc_port(it->second.rpc_port);
 
-    ClientContext context;
-    std::chrono::system_clock::time_point deadline =
-            std::chrono::system_clock::now() + std::chrono::seconds(FLAGS_rpc_timeout);
-    context.set_deadline(deadline);
+      }
+      req.mutable_migration_source_config()->CopyFrom(local2protobuf(local_runtime_));
+      MigrationNegotiateRep rep;
 
-    Status status = stub->MigrationNegotiate(&context, req, &rep);
+      ClientContext context;
+      std::chrono::system_clock::time_point deadline =
+              std::chrono::system_clock::now() + std::chrono::seconds(FLAGS_rpc_timeout);
+      context.set_deadline(deadline);
 
-    if(status.ok() && rep.has_migration_target_runtime()){
+      Status status = stub->MigrationNegotiate(&context, req, &rep);
 
-      runtime_config migration_target_runtime = protobuf2local(rep.migration_target_runtime());
+      if(status.ok() && rep.has_migration_target_runtime()){
 
-      llring_item item(rpc_operation::set_migration_target, migration_target_runtime, rep.quota(), 0);
+        runtime_config migration_target_runtime = protobuf2local(rep.migration_target_runtime());
 
-      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+        llring_item item(rpc_operation::set_migration_target, migration_target_runtime, rep.quota(), 0);
 
-      poll_worker2rpc_ring();
+        llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
-      if(item.migration_qouta!=0){
+        poll_worker2rpc_ring();
+
         migration_target_ = migration_target_runtime;
       }
     }
@@ -636,7 +640,7 @@ void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
   } else if (status_ == PROCESS) {
     create_itself();
 
-    llring_item item(rpc_operation::get_stats, local_runtime_, 0, replicas_.size());
+    llring_item item(rpc_operation::get_stats, local_runtime_, 0, storages_.size());
 
     llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 

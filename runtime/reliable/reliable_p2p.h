@@ -7,6 +7,8 @@ class reliable_p2p{
 public:
   int get();
 
+  reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac) {}
+
   inline void recv(bess::PacketBatch* batch){
     for(int i=0; i<batch->cnt(); i++){
       char* data_start = reinterpret_cast<char *>(batch->pkts()[i]->buffer()) +
@@ -32,6 +34,10 @@ public:
         next_seq_num_to_recv_ += 1;
       }
     }
+  }
+
+  inline void reset(){
+
   }
 
 private:

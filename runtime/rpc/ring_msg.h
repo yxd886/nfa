@@ -192,6 +192,7 @@ enum class rpc_operation{
   add_output_mac,
   delete_input_mac,
   delete_output_mac,
+  can_migrate,
   set_migration_target,
   migration_negotiate,
   add_replica,
@@ -231,6 +232,21 @@ inline string opcode2string(rpc_operation code){
       break;
     case rpc_operation::delete_output_runtime:
       return_val = "delete_output_runtime";
+      break;
+    case rpc_operation::add_input_mac:
+      return_val = "add_input_mac";
+      break;
+    case rpc_operation::add_output_mac:
+      return_val = "add_output_mac";
+      break;
+    case rpc_operation::delete_input_mac:
+      return_val = "delete_input_mac";
+      break;
+    case rpc_operation::delete_output_mac:
+      return_val = "delete_output_mac";
+      break;
+    case rpc_operation::can_migrate:
+      return_val = "can_migrate";
       break;
     case rpc_operation::set_migration_target:
       return_val = "set_migration_target";
