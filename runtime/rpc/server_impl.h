@@ -90,6 +90,8 @@ class ServerImpl final {
 
   runtime_config migration_target_;
 
+  unordered_map<string, runtime_config> migration_sources_;
+
   runtime_config local_runtime_;
 };
 

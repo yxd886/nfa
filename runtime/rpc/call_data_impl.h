@@ -29,6 +29,7 @@ public:
                     unordered_map<string, runtime_config>& replicas,
                     unordered_map<string, runtime_config>& storages,
                     runtime_config& migration_target,
+                    unordered_map<string, runtime_config>& migration_sources,
                     runtime_config& local_runtime)
     : call_data_base(service, cq),
       responder_(&ctx_),
@@ -39,6 +40,7 @@ public:
       replicas_(replicas),
       storages_(storages),
       migration_target_(migration_target),
+      migration_sources_(migration_sources),
       local_runtime_(local_runtime){
     Proceed();
   }
@@ -58,6 +60,7 @@ private:
                                       replicas_,
                                       storages_,
                                       migration_target_,
+                                      migration_sources_,
                                       local_runtime_);
   }
 
@@ -108,6 +111,8 @@ private:
   unordered_map<string, runtime_config>& storages_;
 
   runtime_config& migration_target_;
+
+  unordered_map<string, runtime_config>& migration_sources_;
 
   runtime_config& local_runtime_;
 
@@ -304,6 +309,127 @@ void derived_call_data<DeleteInputRtReq, DeleteInputRtRep>::Proceed(){
   }
 }
 
+// RPC implementation for AddInputMac
+
+template<>
+void derived_call_data<AddInputMacReq, AddInputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestAddInputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
+    auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
+
+    if(runtime_to_find!=input_runtimes_.end()){
+
+      llring_item item(rpc_operation::add_input_mac, runtime_to_find->second, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+// RPC implementation for AddOutputMac
+
+template<>
+void derived_call_data<AddOutputMacReq, AddOutputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestAddOutputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string output_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
+    auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
+    if(runtime_to_find!=output_runtimes_.end()){
+
+      llring_item item(rpc_operation::add_output_mac, runtime_to_find->second, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+// RPC implementation for DeleteInputMac
+
+template<>
+void derived_call_data<DeleteInputMacReq, DeleteInputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteInputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
+    auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
+    if(runtime_to_find!=input_runtimes_.end()){
+
+      llring_item item(rpc_operation::delete_input_mac, runtime_to_find->second, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+// RPC implementation for DeleteOutputMac
+
+template<>
+void derived_call_data<DeleteOutputMacReq, DeleteOutputMacRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteOutputMac(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string output_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
+    auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
+    if(runtime_to_find!=output_runtimes_.end()){
+
+      llring_item item(rpc_operation::delete_output_mac, runtime_to_find->second, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
 //RPC implementation for SetMigrationTarget
 
 template<>
@@ -426,6 +552,75 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
     if(item.migration_qouta > 0){
       reply_.mutable_migration_target_runtime()->CopyFrom(local2protobuf(local_runtime_));
       reply_.set_quota(item.migration_qouta);
+
+      string migration_source_addr = concat_with_colon(request_.migration_source_config().rpc_ip(),
+                                               std::to_string(request_.migration_source_config().rpc_port()));
+      if(migration_sources_.find(migration_source_addr) != migration_sources_.end()){
+        migration_sources_.emplace(migration_source_addr, migration_source_config);
+      }
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+//RPC implementation of DeleteMigrationTarget
+
+template<>
+void derived_call_data<DeleteMigrationTargetReq, DeleteMigrationTargetRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteMigrationTarget(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    if(migration_target_.runtime_id != -1){
+
+      // Where the actual handling is done.
+      llring_item item(rpc_operation::delete_migration_target, migration_target_, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
+
+      if(item.rt_config.runtime_id == -1){
+        migration_target_.runtime_id = -1;
+      }
+    }
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+//RPC implementation of DeleteMigrationSource
+
+template<>
+void derived_call_data<DeleteMigrationSourceReq, DeleteMigrationSourceRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestDeleteMigrationSource(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+    string migration_source_addr = concat_with_colon(request_.addr().rpc_ip(),
+                                                     std::to_string(request_.addr().rpc_port()));
+    if(migration_sources_.find(migration_source_addr)!=migration_sources_.end()){
+
+      runtime_config& migration_source_config = migration_sources_.find(migration_source_addr)->second;
+
+      llring_item item(rpc_operation::delete_migration_source, migration_source_config, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+      poll_worker2rpc_ring();
     }
 
     status_ = FINISH;

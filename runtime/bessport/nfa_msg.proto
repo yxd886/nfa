@@ -5,16 +5,22 @@ package nfa_msg;
 service Runtime_RPC {
   // Sends a greeting
   rpc LivenessCheck (LivenessRequest) returns (LivenessReply) {}
+  
   rpc AddOutputRts (AddOutputRtsReq) returns (AddOutputRtsRes) {} 
   rpc AddInputRt (AddInputRtReq) returns (AddInputRtRep) {}
   rpc DeleteOutputRt (DeleteOutputRtReq) returns (DeleteOutputRtRep) {}
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
+  
   rpc AddOutputMac (AddOutputMacReq) returns (AddOutputMacRep) {}
   rpc AddInputMac (AddInputMacReq) returns (AddInputMacRep) {}
   rpc DeleteInputMac (DeleteInputMacReq) returns (DeleteInputMacRep) {}
   rpc DeleteOutputMac (DeleteOutputMacReq) returns (DeleteOutputMacRep) {}
+  
   rpc SetMigrationTarget (SetMigrationTargetReq) returns (SetMigrationTargetRep){}
   rpc MigrationNegotiate (MigrationNegotiateReq) returns (MigrationNegotiateRep){}
+  rpc DeleteMigrationTarget (DeleteMigrationTargetReq) returns (DeleteMigrationTargetRep){}
+  rpc DeleteMigrationSource (DeleteMigrationSourceReq) returns (DeleteMigrationSourceRep){}
+  
   rpc AddReplicas (AddReplicasReq) returns (AddReplicasRep){}
   rpc ReplicaNegotiate(ReplicaNegotiateReq) returns (ReplicaNegotiateRep){}
   rpc DeleteReplica(DeleteReplicaReq) returns (DeleteReplicaRep){}
@@ -119,6 +125,19 @@ message MigrationNegotiateReq{
 message MigrationNegotiateRep{
   RuntimeConfig migration_target_runtime = 1;
   uint64 quota = 2;
+}
+
+message DeleteMigrationTargetReq{
+}
+
+message DeleteMigrationTargetRep{
+}
+
+message DeleteMigrationSourceReq{
+  Address addr = 1;
+}
+
+message DeleteMigrationSourceRep{
 }
 
 message AddReplicasReq{

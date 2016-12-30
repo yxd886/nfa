@@ -64,11 +64,31 @@ struct task_result handle_command::RunTask(void *arg){
       case rpc_operation::delete_input_runtime :{
         delete_input_output_runtime(item);
         coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+
+        cdlist_item *c_item = nullptr;
+        cdlist_for_each(c_item, coordinator_actor_->input_runtime_mac_rrlist_.get_list_head()){
+          generic_list_item* g_item = reinterpret_cast<generic_list_item*>(c_item);
+          if(g_item->dst_mac_addr == item->rt_config.output_port_mac){
+            coordinator_actor_->input_runtime_mac_rrlist_.list_item_delete(c_item);
+            coordinator_actor_->get_list_item_allocator()->deallocate(g_item);
+            break;
+          }
+        }
         break;
       }
       case rpc_operation::delete_output_runtime :{
         delete_input_output_runtime(item);
         coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+
+        cdlist_item *c_item = nullptr;
+        cdlist_for_each(c_item, coordinator_actor_->output_runtime_mac_rrlist_.get_list_head()){
+          generic_list_item* g_item = reinterpret_cast<generic_list_item*>(c_item);
+          if(g_item->dst_mac_addr == item->rt_config.input_port_mac){
+            coordinator_actor_->output_runtime_mac_rrlist_.list_item_delete(c_item);
+            coordinator_actor_->get_list_item_allocator()->deallocate(g_item);
+            break;
+          }
+        }
         break;
       }
       case rpc_operation::add_input_mac :{
@@ -152,6 +172,7 @@ struct task_result handle_command::RunTask(void *arg){
         if(coordinator_actor_->migration_qouta_==0){
           coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
           coordinator_actor_->migration_target_rt_id_ = -1;
+          item->rt_config.runtime_id = -1;
         }
         break;
       }
