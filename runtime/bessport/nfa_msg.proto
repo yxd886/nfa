@@ -9,6 +9,10 @@ service Runtime_RPC {
   rpc AddInputRt (AddInputRtReq) returns (AddInputRtRep) {}
   rpc DeleteOutputRt (DeleteOutputRtReq) returns (DeleteOutputRtRep) {}
   rpc DeleteInputRt (DeleteInputRtReq) returns (DeleteInputRtRep) {}
+  rpc AddOutputMac (AddOutputMacReq) returns (AddOutputMacRep) {}
+  rpc AddInputMac (AddInputMacReq) returns (AddInputMacRep) {}
+  rpc DeleteInputMac (DeleteInputMacReq) returns (DeleteInputMacRep) {}
+  rpc DeleteOutputMac (DeleteOutputMacReq) returns (DeleteOutputMacRep) {}
   rpc SetMigrationTarget (SetMigrationTargetReq) returns (SetMigrationTargetRep){}
   rpc MigrationNegotiate (MigrationNegotiateReq) returns (MigrationNegotiateRep){}
   rpc AddReplicas (AddReplicasReq) returns (AddReplicasRep){}
@@ -67,6 +71,34 @@ message DeleteInputRtReq{
 }
 
 message DeleteInputRtRep{
+}
+
+message AddOutputMacReq{
+  Address addrs = 1;
+}
+
+message AddOutputMacRep{
+}
+
+message AddInputMacReq{
+  Address addrs = 1;
+}
+
+message AddInputMacRep{
+}
+
+message DeleteOutputMacReq{
+  Address addrs = 1;
+}
+
+message DeleteOutputMacRep{
+}
+
+message DeleteInputMacReq{
+  Address addrs = 1;
+}
+
+message DeleteInputMacRep{
 }
 
 message SetMigrationTargetReq{

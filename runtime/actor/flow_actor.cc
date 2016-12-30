@@ -34,7 +34,7 @@ void flow_actor::handle_message(flow_actor_init_t,
     fs_size_.nf_flow_state_size[i] = service_chain[i]->get_nf_state_size();
   }
 
-  add_timer(coordinator_actor_->peek_idle_flow_check_list(),
+  add_timer(&(coordinator_actor_->idle_flow_check_list_),
             ctx.current_ns(), static_cast<void*>(this), fixed_timer_messages::empty_msg);
 }
 
@@ -49,9 +49,9 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
     nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
   }
 
-  int next_available_pos = coordinator_actor_->peek_ec_scheduler_batch()->cnt();
-  coordinator_actor_->peek_ec_scheduler_gates()[next_available_pos] = 0;
-  coordinator_actor_->peek_ec_scheduler_batch()->add(pkt);
+  int next_available_pos = coordinator_actor_->ec_scheduler_batch_.cnt();
+  coordinator_actor_->es_scheduler_gates_[next_available_pos] = 0;
+  coordinator_actor_->ec_scheduler_batch_.add(pkt);
 }
 
 void flow_actor::handle_message(check_idle_t){
@@ -64,14 +64,14 @@ void flow_actor::handle_message(check_idle_t){
       send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
     }
     else{
-      add_timer(coordinator_actor_->peek_idle_flow_check_list(),
+      add_timer(&(coordinator_actor_->idle_flow_check_list_),
                     ctx.current_ns(), static_cast<void*>(this), fixed_timer_messages::empty_msg);
     }
   }
   else{
     idle_counter_ = 0;
     sample_counter_ = pkt_counter_;
-    add_timer(coordinator_actor_->peek_idle_flow_check_list(),
+    add_timer(&(coordinator_actor_->idle_flow_check_list_),
               ctx.current_ns(), static_cast<void*>(this), fixed_timer_messages::empty_msg);
   }
 }

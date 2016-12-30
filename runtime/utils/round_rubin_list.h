@@ -2,7 +2,6 @@
 #define ROUND_RUBIN_LIST_H
 
 #include "cdlist.h"
-#include "generic_ring_allocator.h"
 
 template<class T>
 class round_rubin_list{
@@ -12,7 +11,7 @@ public:
   }
 
   inline void add_to_tail(T* obj_ptr){
-    cdlist_add_tail(&rr_list_head_, &(obj_ptr->list_item));
+    cdlist_add_tail(&rr_list_head_, reinterpret_cast<struct cdlist_item*>(obj_ptr));
   }
 
   inline T* peek_head(){
@@ -21,7 +20,7 @@ public:
       return nullptr;
     }
     else{
-      return container_of(item, T, list_item);
+      return reinterpret_cast<T*>(item);
     }
   }
 
@@ -31,7 +30,7 @@ public:
       return nullptr;
     }
     else{
-      return container_of(item, T, list_item);
+      return reinterpret_cast<T*>(item);
     }
   }
 
@@ -41,7 +40,7 @@ public:
       return nullptr;
     }
     else{
-      return container_of(item, T, list_item);
+      return reinterpret_cast<T*>(item);
     }
   }
 
@@ -51,6 +50,8 @@ public:
 
 private:
   struct cdlist_head rr_list_head_;
+
+  static_assert(std::is_pod<T>::value, "The type argument passed to round_rubin_list is not POD");
 
 };
 

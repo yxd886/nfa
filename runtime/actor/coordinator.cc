@@ -5,20 +5,19 @@
 
 #include <glog/logging.h>
 
-coordinator::coordinator(flow_actor_allocator* allocator, llring_holder& holder){
+coordinator::coordinator(flow_actor_allocator* allocator,
+                         generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
+                         llring_holder& holder){
   allocator_ = allocator;
+
   htable_.Init(flow_key_size, sizeof(flow_actor*));
+
   deadend_flow_actor_ = allocator_->allocate();
+
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
 
   static_nf_register::get_register().init(allocator->get_max_actor());
   service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
-
-  rpc2worker_ring_ = holder.rpc2worker_ring();
-
-  worker2rpc_ring_ = holder.worker2rpc_ring();
-
-  migration_qouta_ = 0;
 
   local_runtime_.runtime_id = FLAGS_runtime_id;
   local_runtime_.input_port_mac = convert_string_mac(FLAGS_input_port_mac);
@@ -26,6 +25,15 @@ coordinator::coordinator(flow_actor_allocator* allocator, llring_holder& holder)
   local_runtime_.control_port_mac = convert_string_mac(FLAGS_control_port_mac);
   local_runtime_.rpc_ip = convert_string_ip(FLAGS_rpc_ip);
   local_runtime_.rpc_port = FLAGS_rpc_port;
+
+  mac_list_item_allocator_ = mac_list_item_allocator;
+
+  rpc2worker_ring_ = holder.rpc2worker_ring();
+
+  worker2rpc_ring_ = holder.worker2rpc_ring();
+
+  migration_target_rt_id_ = -1;
+  migration_qouta_ = 0;
 }
 
 void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch){

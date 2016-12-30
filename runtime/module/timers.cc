@@ -15,8 +15,8 @@ struct task_result timers::RunTask(void *arg) {
 
   for(size_t i=0; i<bess::PacketBatch::kMaxBurst; i++){
     //trigger at most kMaxBurst timers on each invoke.
-    if(unlikely(timeout_occur(coordinator_actor_->peek_idle_flow_check_list(), ctx.current_ns()))){
-      trigger_timer(coordinator_actor_->peek_idle_flow_check_list());
+    if(unlikely(timeout_occur(&(coordinator_actor_->idle_flow_check_list_), ctx.current_ns()))){
+      trigger_timer(&(coordinator_actor_->idle_flow_check_list_));
     }
     else{
       break;

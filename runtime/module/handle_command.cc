@@ -16,7 +16,7 @@ struct task_result handle_command::RunTask(void *arg){
 
   void* dequeue_output[1];
 
-  int flag = llring_sc_dequeue(coordinator_actor_->peek_rpc2worker_ring(), dequeue_output);
+  int flag = llring_sc_dequeue(coordinator_actor_->rpc2worker_ring_, dequeue_output);
 
   if(unlikely(flag == 0)){
     // do the processing
@@ -30,43 +30,61 @@ struct task_result handle_command::RunTask(void *arg){
 
     switch(item->op_code){
       case rpc_operation::add_input_runtime :{
-        coordinator_actor_->peek_input_runtimes()->emplace(item->rt_config.runtime_id, item->rt_config);
+        coordinator_actor_->rtid_to_input_output_rt_config_.emplace(item->rt_config.runtime_id,
+                                                                    item->rt_config);
+
+        coordinator_actor_->mac_addr_to_rt_configs_.emplace(item->rt_config.input_port_mac,
+                                                            item->rt_config);
+
+        coordinator_actor_->mac_addr_to_rt_configs_.emplace(item->rt_config.output_port_mac,
+                                                            item->rt_config);
         break;
       }
       case rpc_operation::add_output_runtime :{
-        coordinator_actor_->peek_output_runtimes()->emplace(item->rt_config.runtime_id, item->rt_config);
+        coordinator_actor_->rtid_to_input_output_rt_config_.emplace(item->rt_config.runtime_id,
+                                                                    item->rt_config);
+
+        coordinator_actor_->mac_addr_to_rt_configs_.emplace(item->rt_config.input_port_mac,
+                                                            item->rt_config);
+
+        coordinator_actor_->mac_addr_to_rt_configs_.emplace(item->rt_config.output_port_mac,
+                                                            item->rt_config);
         break;
       }
       case rpc_operation::delete_input_runtime :{
-        coordinator_actor_->peek_input_runtimes()->erase(item->rt_config.runtime_id);
+        coordinator_actor_->rtid_to_input_output_rt_config_.erase(item->rt_config.runtime_id);
+        coordinator_actor_->mac_addr_to_rt_configs_.erase(item->rt_config.input_port_mac);
+        coordinator_actor_->mac_addr_to_rt_configs_.erase(item->rt_config.output_port_mac);
         break;
       }
       case rpc_operation::delete_output_runtime :{
-        coordinator_actor_->peek_output_runtimes()->erase(item->rt_config.runtime_id);
+        coordinator_actor_->rtid_to_input_output_rt_config_.erase(item->rt_config.runtime_id);
+        coordinator_actor_->mac_addr_to_rt_configs_.erase(item->rt_config.input_port_mac);
+        coordinator_actor_->mac_addr_to_rt_configs_.erase(item->rt_config.output_port_mac);
         break;
       }
       case rpc_operation::set_migration_target :{
-        *(coordinator_actor_->peek_migration_target()) = item->rt_config;
-        *(coordinator_actor_->peek_migration_qouta()) = item->migration_qouta;
+        coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
+        coordinator_actor_->migration_qouta_ = item->migration_qouta;
         break;
       }
       case rpc_operation::migration_negotiate :{
         break;
       }
       case rpc_operation::add_replica :{
-        coordinator_actor_->peek_replicas()->emplace(item->rt_config.runtime_id, item->rt_config);
+
         break;
       }
       case rpc_operation::add_storage :{
-        coordinator_actor_->peek_storages()->emplace(item->rt_config.runtime_id, item->rt_config);
+
         break;
       }
       case rpc_operation::remove_replica :{
-        coordinator_actor_->peek_replicas()->erase(item->rt_config.runtime_id);
+
         break;
       }
       case rpc_operation::remove_storage :{
-        coordinator_actor_->peek_storages()->erase(item->rt_config.runtime_id);
+
         break;
       }
       case rpc_operation::get_stats :{
@@ -76,7 +94,7 @@ struct task_result handle_command::RunTask(void *arg){
         break;
     }
 
-    llring_sp_enqueue(coordinator_actor_->peek_worker2rpc_ring(), static_cast<void*>(item));
+    llring_sp_enqueue(coordinator_actor_->worker2rpc_ring_, static_cast<void*>(item));
   }
 
   return ret;

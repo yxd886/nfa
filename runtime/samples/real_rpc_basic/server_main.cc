@@ -24,6 +24,9 @@
 #include "../../rpc/llring_holder.h"
 #include "../../rpc/server_impl.h"
 #include "../../module/handle_command.h"
+#include "../../utils/mac_list_item.h"
+#include "../../utils/generic_ring_allocator.h"
+#include "../../utils/round_rubin_list.h"
 
 // #include "../../nf/base/network_function_register.h"
 // #include "../../nf/pktcounter/pkt_counter.h"
@@ -32,6 +35,8 @@ using namespace bess;
 using namespace std;
 
 static constexpr int num_flow_actors = 1024*512;
+
+static constexpr int max_runtime = 64;
 
 int main(int argc, char* argv[]){
 
@@ -94,11 +99,12 @@ int main(int argc, char* argv[]){
   // create the llring used for communication
   llring_holder communication_ring;
 
+  // create the allocator for mac_list_item
+  generic_ring_allocator<generic_list_item> mac_list_item_allocator(max_runtime*3);
+
   // create flow_actor_allocator, coordinator_actor and runtime_config_allocator
-  flow_actor_allocator::create(num_flow_actors);
-  LOG(INFO)<<"creating "<<num_flow_actors<<" flow actors";
-  flow_actor_allocator* allocator = flow_actor_allocator::get();
-  coordinator coordinator_actor(allocator, communication_ring);
+  flow_actor_allocator allocator(num_flow_actors);
+  coordinator coordinator_actor(&allocator, &mac_list_item_allocator, communication_ring);
 
   // create module and attach modules to the default traffic class of worker 1.
   Module* mod_handle_command = create_module<handle_command>("handle_command", "mod_handle_command", &coordinator_actor);

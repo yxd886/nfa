@@ -10,13 +10,12 @@
 class flow_actor_allocator{
 
 public:
-  static void create(int max_actors){
-    assert(ptr_==nullptr);
-    ptr_.reset(new flow_actor_allocator(max_actors));
-  }
-
-  static flow_actor_allocator* get(){
-    return ptr_.get();
+  flow_actor_allocator(size_t max_actors) : max_actors_(max_actors), ring_buf_(max_actors) {
+    flow_actor_array_ = static_cast<flow_actor*>(mem_alloc(sizeof(flow_actor)*max_actors));
+    for(size_t i=0; i<max_actors; i++){
+      flow_actor_array_[i].set_id(i);
+      ring_buf_.push(&flow_actor_array_[i]);
+    }
   }
 
   ~flow_actor_allocator(){
@@ -38,15 +37,6 @@ public:
   }
 
 private:
-  static std::unique_ptr<flow_actor_allocator> ptr_;
-
-  flow_actor_allocator(size_t max_actors) : max_actors_(max_actors), ring_buf_(max_actors) {
-    flow_actor_array_ = static_cast<flow_actor*>(mem_alloc(sizeof(flow_actor)*max_actors));
-    for(size_t i=0; i<max_actors; i++){
-      flow_actor_array_[i].set_id(i);
-      ring_buf_.push(&flow_actor_array_[i]);
-    }
-  }
 
   size_t max_actors_;
 

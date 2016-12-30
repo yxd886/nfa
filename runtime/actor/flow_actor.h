@@ -12,6 +12,7 @@
 #include "fixed_timer.h"
 #include "../nf/base/network_function_base.h"
 #include "../nf/base/nf_item.h"
+#include "../utils/cdlist.h"
 
 using namespace std;
 
@@ -38,6 +39,8 @@ public:
   }
 
 private:
+  struct cdlist_item list_item;
+
   flow_actor_id_t actor_id_;
 
   uint64_t pkt_counter_;
