@@ -717,8 +717,8 @@ void derived_call_data<AddInputMacReq, AddInputMacRep>::Proceed(){
     create_itself();
 
   //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
-    string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
-                                                  std::to_string(request_.rpc_port()));
+    string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
     auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
     if(runtime_to_find!=input_runtimes_.end()){
 
@@ -749,8 +749,8 @@ void derived_call_data<AddOutputMacReq, AddOutputMacRep>::Proceed(){
     create_itself();
 
   //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
-    string output_runtime_addr = concat_with_colon(request_.rpc_ip(),
-                                                  std::to_string(request_.rpc_port()));
+    string output_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
     auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
     if(runtime_to_find!=output_runtimes_.end()){
 
@@ -782,8 +782,8 @@ void derived_call_data<DeleteInputMacReq, DeleteInputMacRep>::Proceed(){
     create_itself();
 
   //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
-    string input_runtime_addr = concat_with_colon(request_.rpc_ip(),
-                                                  std::to_string(request_.rpc_port()));
+    string input_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
     auto runtime_to_find=input_runtimes_.find(input_runtime_addr);
     if(runtime_to_find!=input_runtimes_.end()){
 
@@ -817,8 +817,8 @@ void derived_call_data<DeleteOutputMacReq, DeleteOutputMacRep>::Proceed(){
     create_itself();
 
   //  runtime_config input_runtime = protobuf2local(request_.input_runtime());
-    string output_runtime_addr = concat_with_colon(request_.rpc_ip(),
-                                                  std::to_string(request_.rpc_port()));
+    string output_runtime_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                  std::to_string(request_.addrs().rpc_port()));
     auto runtime_to_find=output_runtimes_.find(output_runtime_addr);
     if(runtime_to_find!=output_runtimes_.end()){
 
