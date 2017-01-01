@@ -172,12 +172,18 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
     string local_addr = concat_with_colon(protobuf_local_runtime.rpc_ip(),
                                           std::to_string(protobuf_local_runtime.rpc_port()));
-
+    string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
+                                          std::to_string(migration_target_.rpc_port));
     for(int i=0; i<request_.addrs_size(); i++){
       string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
                                            std::to_string(request_.addrs(i).rpc_port()));
       if((output_runtimes_.find(dest_addr)!=output_runtimes_.end()) ||
-          (dest_addr == local_addr)){
+         (dest_addr == local_addr) ||
+         (replicas_.find(dest_addr)!=replicas_.end()) ||
+         (storages_.find(dest_addr)!=storages_.end()) ||
+         (migration_sources_.find(dest_addr)!=migration_sources_.end()) ||
+         (dest_addr == migration_target_addr)
+         ){
         continue;
       }
 
@@ -449,7 +455,12 @@ void derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>::Proceed(){
                                            std::to_string(request_.addr().rpc_port()));
       string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
                                            std::to_string(local_runtime_.rpc_port));
-      if((dest_addr==local_addr)||(request_.quota()==0)){
+      if( (dest_addr==local_addr) ||
+          (request_.quota()==0) ||
+          (replicas_.find(dest_addr) != replicas_.end()) ||
+          (storages_.find(dest_addr) != storages_.end()) ||
+          (input_runtimes_.find(dest_addr) != input_runtimes_.end()) ||
+          (output_runtimes_.find(dest_addr) != output_runtimes_.end()) ){
         status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
         return;
@@ -641,15 +652,25 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
   } else if (status_ == PROCESS) {
     create_itself();
 
+    llring_item tmp_item(rpc_operation::can_migrate, local_runtime_, 0, 0);
+    llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&tmp_item));
+    poll_worker2rpc_ring();
+
     string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
                                          std::to_string(local_runtime_.rpc_port));
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
+    string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
+                                              std::to_string(migration_target_.rpc_port));
 
     for(int i=0; i<request_.addrs_size(); i++){
       string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
                                            std::to_string(request_.addrs(i).rpc_port()));
 
-      if(replicas_.find(dest_addr)!=replicas_.end()||dest_addr==local_addr){
+      if((replicas_.find(dest_addr)!=replicas_.end()) ||
+         (dest_addr == local_addr) ||
+         (dest_addr==migration_target_addr && tmp_item.migration_qouta>0) ||
+         (input_runtimes_.find(dest_addr) != input_runtimes_.end()) ||
+         (output_runtimes_.find(dest_addr) != output_runtimes_.end()) ){
         continue;
       }
 
@@ -744,6 +765,17 @@ void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>::Proceed(){
 
     string source_addr = concat_with_colon(convert_uint32t_ip(source_runtime.rpc_ip),
                                            std::to_string(source_runtime.rpc_port));
+
+    llring_item tmp_item(rpc_operation::can_migrate, local_runtime_, 0, 0);
+    llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&tmp_item));
+    poll_worker2rpc_ring();
+    string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
+                                                  std::to_string(migration_target_.rpc_port));
+    if(migration_target_addr==source_addr && tmp_item.migration_qouta>0){
+      status_ = FINISH;
+      responder_.Finish(reply_, Status::OK, this);
+      return;
+    }
 
     storages_.emplace(source_addr,source_runtime);
 

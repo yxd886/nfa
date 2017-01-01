@@ -78,15 +78,26 @@ void ServerImpl::HandleRpcs(){
 template<class... T>
 void ServerImpl::create_call_data(T&&... arg){
   new derived_call_data<LivenessRequest, LivenessReply>(std::forward<T>(arg)...);
+
   new derived_call_data<AddOutputRtsReq, AddOutputRtsRes>(std::forward<T>(arg)...);
   new derived_call_data<AddInputRtReq, AddInputRtRep>(std::forward<T>(arg)...);
   new derived_call_data<DeleteOutputRtReq, DeleteOutputRtRep>(std::forward<T>(arg)...);
   new derived_call_data<DeleteInputRtReq, DeleteInputRtRep>(std::forward<T>(arg)...);
+
+  new derived_call_data<AddInputMacReq, AddInputMacRep>(std::forward<T>(arg)...);
+  new derived_call_data<AddOutputMacReq, AddOutputMacRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteInputMacReq, DeleteInputMacRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteOutputMacReq, DeleteOutputMacRep>(std::forward<T>(arg)...);
+
   new derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>(std::forward<T>(arg)...);
   new derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteMigrationTargetReq, DeleteMigrationTargetRep>(std::forward<T>(arg)...);
+  new derived_call_data<DeleteMigrationSourceReq, DeleteMigrationSourceRep>(std::forward<T>(arg)...);
+
   new derived_call_data<AddReplicasReq, AddReplicasRep>(std::forward<T>(arg)...);
   new derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>(std::forward<T>(arg)...);
   new derived_call_data<DeleteReplicaReq, DeleteReplicaRep>(std::forward<T>(arg)...);
   new derived_call_data<DeleteStorageReq, DeleteStorageRep>(std::forward<T>(arg)...);
+
   new derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>(std::forward<T>(arg)...);
 }

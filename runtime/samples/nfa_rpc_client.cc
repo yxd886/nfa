@@ -119,6 +119,78 @@ class LivenessCheckClient {
     }
   }
 
+  std::string AddOutputMac(int32_t port_num){
+    AddOutputMacReq request;
+    AddOutputMacRep reply;
+    ClientContext context;
+
+    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_port(port_num);
+
+    Status status = stub_->AddOutputMac(&context, request, &reply);
+
+    if(status.ok()){
+      return "AddOutputMac finishes.";
+    }
+    else{
+      return "AddOutputMac fails.";
+    }
+  }
+
+  std::string AddInputMac(int32_t port_num){
+    AddInputMacReq request;
+    AddInputMacRep reply;
+    ClientContext context;
+
+    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_port(port_num);
+
+    Status status = stub_->AddInputMac(&context, request, &reply);
+
+    if(status.ok()){
+      return "AddInputMac finishes.";
+    }
+    else{
+      return "AddInputMac fails.";
+    }
+  }
+
+  std::string DeleteOutputMac(int32_t port_num){
+    DeleteOutputMacReq request;
+    DeleteOutputMacRep reply;
+    ClientContext context;
+
+    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_port(port_num);
+
+    Status status = stub_->DeleteOutputMac(&context, request, &reply);
+
+    if(status.ok()){
+      return "DeleteOutputMac finishes.";
+    }
+    else{
+      return "DeleteOutputMac fails.";
+    }
+  }
+
+  std::string DeleteInputMac(int32_t port_num){
+    DeleteInputMacReq request;
+    DeleteInputMacRep reply;
+    ClientContext context;
+
+    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_port(port_num);
+
+    Status status = stub_->DeleteInputMac(&context, request, &reply);
+
+    if(status.ok()){
+      return "DeleteInputMac finishes.";
+    }
+    else{
+      return "DeleteInputMac fails.";
+    }
+  }
+
   std::string SetMigrationTarget(int32_t port_num, int32_t qouta){
     SetMigrationTargetReq request;
     SetMigrationTargetRep reply;
@@ -238,14 +310,25 @@ int main(int argc, char** argv) {
 
   // Test add/delete input/output runtimes.
   // LOG(INFO)<<checker_10240.AddOutputRt();
-  // LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
-  // LOG(INFO)<<checker_10240.DeleteOutputRt(10242);
-  // LOG(INFO)<<checker_10241.DeleteInputRt(10240);
-  // LOG(INFO)<<checker_10242.DeleteInputRt(10240);
+
+  // LOG(INFO)<<checker_10240.AddOutputMac(10241);
+  // LOG(INFO)<<checker_10240.AddOutputMac(10242);
+  // LOG(INFO)<<checker_10241.AddInputMac(10240);
+  // LOG(INFO)<<checker_10242.AddInputMac(10240);
+
+  // LOG(INFO)<<checker_10240.DeleteOutputMac(10241);
+  // LOG(INFO)<<checker_10240.DeleteOutputMac(10242);
+  // LOG(INFO)<<checker_10241.DeleteInputMac(10240);
+  // LOG(INFO)<<checker_10242.DeleteInputMac(10240);
+
+  //LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
+  //LOG(INFO)<<checker_10240.DeleteOutputRt(10242);
+  //LOG(INFO)<<checker_10241.DeleteInputRt(10240);
+  //LOG(INFO)<<checker_10242.DeleteInputRt(10240);
 
   // Test migration
-  LOG(INFO)<<checker_10240.AddOutputRt();
-  LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
+  // LOG(INFO)<<checker_10240.AddOutputRt();
+  // LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
 
   // Test migration between runtimes with different input/output runtimes
   // LOG(INFO)<<checker_10242.DeleteInputRt(10240);
@@ -258,8 +341,13 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10242.DeleteInputRt(10240);
 
   // Test set replication
-  // LOG(INFO)<<checker_10240.AddOutputRt();
-  // LOG(INFO)<<checker_10241.AddReplicas(10242);
+  LOG(INFO)<<checker_10240.AddOutputRt();
+  LOG(INFO)<<checker_10241.AddReplicas(10242);
+  LOG(INFO)<<checker_10242.AddReplicas(10241);
+  LOG(INFO)<<checker_10241.DeleteReplica(10242);
+  LOG(INFO)<<checker_10241.DeleteStorage(10242);
+  LOG(INFO)<<checker_10242.DeleteReplica(10241);
+  LOG(INFO)<<checker_10242.DeleteStorage(10241);
 
   // Test set replicas between runtimes with different input/output runtimes
   // LOG(INFO)<<checker_10240.AddOutputRt();
