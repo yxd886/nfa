@@ -19,10 +19,6 @@ public:
 private:
 
   coordinator* coordinator_actor_;
-
-  void add_input_output_runtime(llring_item* item);
-
-  void delete_input_output_runtime(llring_item* item);
 };
 
 #endif
