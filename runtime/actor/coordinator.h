@@ -37,11 +37,16 @@ public:
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
 
+  void handle_message(recv_reliable_msg_t, reliable_single_msg* msg_ptr);
+
+  void handle_message(control_pkts_batch_t, bess::PacketBatch* batch);
+
   inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
     return mac_list_item_allocator_;
   }
 
 private:
+
   flow_actor_allocator* allocator_;
 
   htable_t htable_;

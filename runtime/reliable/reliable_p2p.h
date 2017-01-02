@@ -42,6 +42,20 @@ public:
     return true;
   }
 
+  inline bess::Packet* get_ack_pkt(){
+    bess::Packet* ack_pkt = bess::Packet::Alloc();
+    ack_pkt->set_data_off(SNBUF_HEADROOM);
+    ack_pkt->set_total_len(sizeof(reliable_header));
+    ack_pkt->set_data_len(sizeof(reliable_header));
+
+    ack_header_.seq_num = next_seq_num_to_recv_;
+
+    char* data_start = ack_pkt->head_data<char*>();
+    rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
+
+    return ack_pkt;
+  }
+
   void reset();
 
   inline void inc_ref_cnt(){
@@ -82,6 +96,8 @@ private:
 
   bess::PacketBatch batch_;
   reliable_single_msg cur_msg_;
+
+  reliable_header ack_header_;
 };
 
 #endif

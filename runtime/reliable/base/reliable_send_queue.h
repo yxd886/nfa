@@ -34,6 +34,7 @@ public:
     rh_.iph.next_proto_id = 0xFF;
     rh_.iph.src_addr = 0x0A0A0101;
     rh_.iph.dst_addr = 0x0A0A0102;
+    rh_.magic_num = msg_magic_num;
   }
 
   void reset(garbage_pkt_collector* gp_collector){
@@ -82,6 +83,7 @@ public:
 
   inline bess::PacketBatch pop(uint32_t ack_seq_num){
     bess::PacketBatch batch;
+    batch.clear();
     assert(batch.cnt()==0);
 
     if(unlikely(cur_size_ == 0)){
@@ -147,7 +149,6 @@ private:
 
     rh_.iph.total_length = rte_cpu_to_be_16(pkt_len);
     rh_.iph.hdr_checksum = rte_ipv4_cksum(&(rh_.iph));
-    rh_.magic_num = msg_magic_num;
     rh_.seq_num = next_seq_num_;
     next_seq_num_ += 1;
 

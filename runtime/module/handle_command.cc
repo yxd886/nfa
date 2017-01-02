@@ -39,6 +39,9 @@ struct task_result handle_command::RunTask(void *arg){
                                   coordinator_actor_->local_runtime_.runtime_id,
                                   item->rt_config.runtime_id,
                                   coordinator_actor_));
+
+        reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
+        coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
         break;
       }
       case rpc_operation::add_output_runtime :{
@@ -52,11 +55,15 @@ struct task_result handle_command::RunTask(void *arg){
                                   coordinator_actor_->local_runtime_.runtime_id,
                                   item->rt_config.runtime_id,
                                   coordinator_actor_));
+
+        reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
+        coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
         break;
       }
       case rpc_operation::delete_input_runtime :{
         coordinator_actor_->mac_addr_to_rt_configs_.erase(item->rt_config.output_port_mac);
         coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+        coordinator_actor_->mac_to_reliables_.erase(item->rt_config.runtime_id);
 
         cdlist_item *c_item = nullptr;
         cdlist_for_each(c_item, coordinator_actor_->input_runtime_mac_rrlist_.get_list_head()){
@@ -72,6 +79,7 @@ struct task_result handle_command::RunTask(void *arg){
       case rpc_operation::delete_output_runtime :{
         coordinator_actor_->mac_addr_to_rt_configs_.erase(item->rt_config.input_port_mac);
         coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+        coordinator_actor_->mac_to_reliables_.erase(item->rt_config.runtime_id);
 
         cdlist_item *c_item = nullptr;
         cdlist_for_each(c_item, coordinator_actor_->output_runtime_mac_rrlist_.get_list_head()){
@@ -131,6 +139,8 @@ struct task_result handle_command::RunTask(void *arg){
         }
         else{
           coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
+          coordinator_actor_->mac_to_reliables_.erase(coordinator_actor_->migration_target_rt_id_);
+
           coordinator_actor_->reliables_.emplace(
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
@@ -139,6 +149,9 @@ struct task_result handle_command::RunTask(void *arg){
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
                                             coordinator_actor_));
+
+          reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
         }
         break;
       }
@@ -160,6 +173,10 @@ struct task_result handle_command::RunTask(void *arg){
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
                                             coordinator_actor_));
+
+          reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+
           coordinator_actor_->rtid_to_migrate_in_rrlist_.emplace(
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
@@ -170,6 +187,7 @@ struct task_result handle_command::RunTask(void *arg){
       case rpc_operation::delete_migration_target :{
         if(coordinator_actor_->migration_qouta_==0){
           coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
+          coordinator_actor_->mac_to_reliables_.erase(coordinator_actor_->migration_target_rt_id_);
           coordinator_actor_->migration_target_rt_id_ = -1;
           item->rt_config.runtime_id = -1;
         }
@@ -180,6 +198,7 @@ struct task_result handle_command::RunTask(void *arg){
 
         coordinator_actor_->rtid_to_migrate_in_rrlist_.erase(item->rt_config.runtime_id);
         coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+        coordinator_actor_->mac_to_reliables_.erase(item->rt_config.runtime_id);
         break;
       }
       case rpc_operation::add_replica :{
@@ -197,6 +216,10 @@ struct task_result handle_command::RunTask(void *arg){
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
                                             coordinator_actor_));
+
+          reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+
           coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second.inc_ref_cnt();
         }
         else{
@@ -220,6 +243,10 @@ struct task_result handle_command::RunTask(void *arg){
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
                                             coordinator_actor_));
+
+          reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+
           coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second.inc_ref_cnt();
         }
         else{
@@ -242,6 +269,7 @@ struct task_result handle_command::RunTask(void *arg){
         r.dec_ref_cnt();
         if(r.is_ref_cnt_zero()){
           coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+          coordinator_actor_->mac_to_reliables_.erase(item->rt_config.runtime_id);
         }
 
         break;
@@ -253,6 +281,7 @@ struct task_result handle_command::RunTask(void *arg){
         r.dec_ref_cnt();
         if(r.is_ref_cnt_zero()){
           coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+          coordinator_actor_->mac_to_reliables_.erase(item->rt_config.runtime_id);
         }
 
         break;

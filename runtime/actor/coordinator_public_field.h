@@ -66,6 +66,7 @@ struct storages_holder{
 
 struct reliables_holder{
   std::unordered_map<int32_t, reliable_p2p> reliables_;
+  std::unordered_map<uint64_t, reliable_p2p&> mac_to_reliables_;
 };
 
 #endif

@@ -8,6 +8,21 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
   local_runtime_mac_addr_ = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
   dst_runtime_mac_addr_ = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
   cur_msg_.send_runtime_id = dest_rtid;
+
+  ack_header_.ethh.d_addr = dst_runtime_mac_addr_;
+  ack_header_.ethh.s_addr = local_runtime_mac_addr_;
+  ack_header_.ethh.ether_type = 0x0800;
+
+  ack_header_.iph.version_ihl = 0x45;
+  ack_header_.iph.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr)+2);
+  ack_header_.iph.fragment_offset = rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
+  ack_header_.iph.time_to_live = 64;
+  ack_header_.iph.next_proto_id = 0xFF;
+  ack_header_.iph.src_addr = 0x0A0A0102;
+  ack_header_.iph.dst_addr = 0x0A0A0101;
+  ack_header_.iph.hdr_checksum = rte_ipv4_cksum(&(ack_header_.iph));
+
+  ack_header_.magic_num = ack_magic_num;
 }
 
 reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
