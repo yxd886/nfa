@@ -3,8 +3,10 @@
 
 #include "./base/local_message.h"
 
-enum class coordinator_messages{
-  es_scheduler_pkt_batch,
+static constexpr uint16_t coordinator_messages_start = 0x0001;
+
+enum class coordinator_messages : uint16_t{
+  es_scheduler_pkt_batch = coordinator_messages_start,
   remove_flow
 };
 

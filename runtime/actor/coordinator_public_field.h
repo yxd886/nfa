@@ -10,8 +10,13 @@
 #include "fixed_timer.h"
 #include "../bessport/kmod/llring.h"
 #include "../rpc/ring_msg.h"
-#include "../reliable/reliable_p2p.h"
 #include "../actor/flow_actor.h"
+#include "../reliable/reliable_p2p.h"
+#include "./base/garbage_pkt_collector.h"
+
+struct garbage{
+  garbage_pkt_collector gp_collector_;
+};
 
 struct local_batch{
   bess::PacketBatch ec_scheduler_batch_;

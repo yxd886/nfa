@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <iostream>
 
 #include <glog/logging.h>
 
@@ -42,18 +43,29 @@ struct runtime_config{
   }
 };
 
+inline int ring_msg_parse_mac_addr(const char *str, char *addr){
+  if (str != NULL && addr != NULL) {
+    int r = sscanf(str,
+             "%2hhx:%2hhx:%2hhx:%2hhx:%2hhx:%2hhx",
+             addr,
+             addr+1,
+             addr+2,
+             addr+3,
+             addr+4,
+             addr+5);
+
+    if (r != 6)
+      return -EINVAL;
+  }
+
+  return 0;
+}
+
 inline uint64_t convert_string_mac(const string& mac){
-  stringstream ss(mac);
-  uint64_t a,b,c,d,e,f;
-  char ch;
-  ss >> a >> ch >> b >> ch >> c >> ch >> d >> ch >> e >>ch >> f;
-  return  (
-           ((a<<40)&0xFF0000000000) |
-           ((b<<32)&0x00FF00000000) |
-           ((c<<24)&0x0000FF000000) |
-           ((d<<16)&0x000000FF0000) |
-           ((e<< 8)&0x00000000FF00) |
-           ( f     &0x0000000000FF));
+  char char_mac[8];
+  ring_msg_parse_mac_addr(mac.c_str(), char_mac);
+  uint64_t *addrp = reinterpret_cast<uint64_t *>(char_mac);
+  return (*addrp & 0x0000FFffFFffFFfflu);
 }
 
 inline uint32_t convert_string_ip(const string& ip){
@@ -77,7 +89,7 @@ inline string convert_uint64t_mac(uint64_t mac){
   f = mac&0x000000FF;
   stringstream ss("");
 
-  ss<<a<<":"<<b<<":"<<c<<":"<<d<<":"<<e<<":"<<f;
+  ss<<f<<":"<<e<<":"<<d<<":"<<c<<":"<<a<<":"<<b;
   string ret(istreambuf_iterator<char>(ss), {});
   return ret;
 }

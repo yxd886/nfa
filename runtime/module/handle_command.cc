@@ -35,7 +35,10 @@ struct task_result handle_command::RunTask(void *arg){
             std::piecewise_construct,
             std::forward_as_tuple(item->rt_config.runtime_id),
             std::forward_as_tuple(coordinator_actor_->local_runtime_.input_port_mac,
-                                  item->rt_config.output_port_mac));
+                                  item->rt_config.output_port_mac,
+                                  coordinator_actor_->local_runtime_.runtime_id,
+                                  item->rt_config.runtime_id,
+                                  coordinator_actor_));
         break;
       }
       case rpc_operation::add_output_runtime :{
@@ -45,7 +48,10 @@ struct task_result handle_command::RunTask(void *arg){
             std::piecewise_construct,
             std::forward_as_tuple(item->rt_config.runtime_id),
             std::forward_as_tuple(coordinator_actor_->local_runtime_.output_port_mac,
-                                  item->rt_config.input_port_mac));
+                                  item->rt_config.input_port_mac,
+                                  coordinator_actor_->local_runtime_.runtime_id,
+                                  item->rt_config.runtime_id,
+                                  coordinator_actor_));
         break;
       }
       case rpc_operation::delete_input_runtime :{
@@ -129,7 +135,10 @@ struct task_result handle_command::RunTask(void *arg){
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
                       std::forward_as_tuple(coordinator_actor_->local_runtime_.control_port_mac,
-                                            item->rt_config.control_port_mac));
+                                            item->rt_config.control_port_mac,
+                                            coordinator_actor_->local_runtime_.runtime_id,
+                                            item->rt_config.runtime_id,
+                                            coordinator_actor_));
         }
         break;
       }
@@ -147,7 +156,10 @@ struct task_result handle_command::RunTask(void *arg){
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
                       std::forward_as_tuple(coordinator_actor_->local_runtime_.control_port_mac,
-                                            item->rt_config.control_port_mac));
+                                            item->rt_config.control_port_mac,
+                                            coordinator_actor_->local_runtime_.runtime_id,
+                                            item->rt_config.runtime_id,
+                                            coordinator_actor_));
           coordinator_actor_->rtid_to_migrate_in_rrlist_.emplace(
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
@@ -181,7 +193,10 @@ struct task_result handle_command::RunTask(void *arg){
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
                       std::forward_as_tuple(coordinator_actor_->local_runtime_.control_port_mac,
-                                            item->rt_config.control_port_mac));
+                                            item->rt_config.control_port_mac,
+                                            coordinator_actor_->local_runtime_.runtime_id,
+                                            item->rt_config.runtime_id,
+                                            coordinator_actor_));
           coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second.inc_ref_cnt();
         }
         else{
@@ -201,7 +216,10 @@ struct task_result handle_command::RunTask(void *arg){
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
                       std::forward_as_tuple(coordinator_actor_->local_runtime_.control_port_mac,
-                                            item->rt_config.control_port_mac));
+                                            item->rt_config.control_port_mac,
+                                            coordinator_actor_->local_runtime_.runtime_id,
+                                            item->rt_config.runtime_id,
+                                            coordinator_actor_));
           coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second.inc_ref_cnt();
         }
         else{

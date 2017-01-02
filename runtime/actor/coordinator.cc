@@ -5,6 +5,17 @@
 
 #include <glog/logging.h>
 
+/*
+ * void handle_message(remote_msg_type_one_t, cstruct* cstruct_ptr)
+ *
+ * void handle_message(need_to_give_a_response_t,
+ *                     uint32_t send_runtime_id,
+ *                     uint32_t send_actor_id,
+ *                     cstruct* cstruct_ptr);
+ *
+ *
+ * */
+
 coordinator::coordinator(flow_actor_allocator* allocator,
                          generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
                          llring_holder& holder){
@@ -46,9 +57,7 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
     if(unlikely( ((*((uint16_t*)(data_start+14)) & 0x00f0) != 0x0040) ||
                  ( ((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x0006) &&
                    ((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x0011) ) ) ){
-      int next_available_pos = ec_scheduler_batch_.cnt();
-      es_scheduler_gates_[next_available_pos] = 1;
-      ec_scheduler_batch_.add(batch->pkts()[i]);
+      gp_collector_.collect(batch->pkts()[i]);
       continue;
     }
 

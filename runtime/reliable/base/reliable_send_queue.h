@@ -3,10 +3,8 @@
 
 #include "../../bessport/mem_alloc.h"
 #include "../../bessport/packet.h"
-
-#include <rte_udp.h>
-#include <rte_ether.h>
-#include <rte_ip.h>
+#include "reliable_message_misc.h"
+#include "../../actor/base/garbage_pkt_collector.h"
 
 static constexpr bool is_power_of_two(uint32_t val){
   return (val!=0) &&
@@ -14,23 +12,48 @@ static constexpr bool is_power_of_two(uint32_t val){
            ( ((val&(0x00000001))==0) && is_power_of_two(val>>1) ) );
 }
 
-template<uint64_t N, class T>
-class reliable_send_queue{
-};
-
 template<uint64_t N>
-class reliable_send_queue<N, bess::Packet>{
+class reliable_send_queue{
 public:
   static const uint64_t mask = N-1;
 
   static_assert(is_power_of_two(N), "N is not power of 2");
 
-  reliable_send_queue() :
+  reliable_send_queue(uint64_t local_rt_mac, uint64_t dest_rt_mac) :
     head_pos_(0), head_seq_num_(1),
     tail_pos_(0), next_seq_num_(1),
     cur_size_(0),
     window_pos_(0), window_pos_seq_num_(1),
-    pending_send_num_(0){}
+    pending_send_num_(0){
+    rh_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
+    rh_.ethh.s_addr = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
+    rh_.ethh.ether_type = 0x0800;
+    rh_.iph.version_ihl = 0x45;
+    rh_.iph.fragment_offset = rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
+    rh_.iph.time_to_live = 64;
+    rh_.iph.next_proto_id = 0xFF;
+    rh_.iph.src_addr = 0x0A0A0101;
+    rh_.iph.dst_addr = 0x0A0A0102;
+  }
+
+  void reset(garbage_pkt_collector* gp_collector){
+    for(uint64_t i=0; i<cur_size_; i++){
+      gp_collector->collect(ring_buf_[(head_pos_+i)&mask]);
+    }
+
+    head_pos_ = 0;
+    head_seq_num_ = 1;
+
+    tail_pos_ = 0;
+    next_seq_num_ = 1;
+
+    cur_size_ = 0;
+
+    window_pos_ = 0;
+    window_pos_seq_num_ = 1;
+
+    pending_send_num_ = 0;
+  }
 
   inline bool push(bess::Packet* obj_ptr){
     if(cur_size_==N){
@@ -122,38 +145,15 @@ private:
                   sizeof(struct ipv4_hdr)+
                   2*sizeof(uint32_t);
 
-    struct ether_hdr *ethh;
-    struct ipv4_hdr *iph;
-    uint32_t* magic_num_ptr;
-    uint32_t* seq_num_ptr;
-
-    ethh = static_cast<struct ether_hdr*>(
-                   pkt->append( sizeof(struct ether_hdr) + // ethernet header
-                                sizeof(struct ipv4_hdr) +  // ipv4 header
-                                sizeof(uint32_t) +         // the magic number for raw msg
-                                sizeof(uint32_t) ) );      // the msg sequential number
-
-    iph = reinterpret_cast<struct ipv4_hdr*>(ethh+1);
-    magic_num_ptr = reinterpret_cast<uint32_t*>(iph+1);
-    seq_num_ptr = magic_num_ptr+1;
-
-    *seq_num_ptr = next_seq_num_;
+    rh_.iph.total_length = rte_cpu_to_be_16(pkt_len);
+    rh_.iph.hdr_checksum = rte_ipv4_cksum(&(rh_.iph));
+    rh_.magic_num = msg_magic_num;
+    rh_.seq_num = next_seq_num_;
     next_seq_num_ += 1;
 
-    *magic_num_ptr = 0x12340001;
-
-    iph->version_ihl = 0x45;
-    iph->total_length = rte_cpu_to_be_16(pkt_len);
-    iph->fragment_offset = rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
-    iph->time_to_live = 64;
-    iph->next_proto_id = 0xFF;
-    iph->src_addr = 0x0A0A0101;
-    iph->dst_addr = 0x0A0A0102;
-    iph->hdr_checksum = rte_ipv4_cksum(iph);
-
-    ethh->d_addr = dst_runtime_mac_addr_;
-    ethh->s_addr = local_runtime_mac_addr_;
-    ethh->ether_type = 0x0800;
+    reliable_header* rh = reinterpret_cast<reliable_header*>(pkt->prepend(sizeof(reliable_header)));
+    assert(rh!=nullptr);
+    rte_memcpy(rh, &rh_, sizeof(reliable_header));
   }
 
   uint64_t head_pos_;
@@ -168,8 +168,7 @@ private:
 
   bess::Packet* ring_buf_[N];
 
-  struct ether_addr local_runtime_mac_addr_;
-  struct ether_addr dst_runtime_mac_addr_;
+  reliable_header rh_;
 };
 
 #endif
