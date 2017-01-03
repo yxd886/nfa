@@ -18,6 +18,9 @@
 #include "../../module/sink.h"
 #include "../../module/timers.h"
 #include "../../module/create.h"
+#include "../../module/recv_reliable_msgack.h"
+#include "../../module/send_reliable_msg.h"
+#include "../../module/send_reliable_ack.h"
 #include "../../actor/flow_actor.h"
 #include "../../actor/flow_actor_allocator.h"
 #include "../../actor/coordinator.h"
@@ -107,12 +110,89 @@ int main(int argc, char* argv[]){
   coordinator coordinator_actor(&allocator, &mac_list_item_allocator, communication_ring);
 
   // create module and attach modules to the default traffic class of worker 1.
-  Module* mod_handle_command = create_module<handle_command>("handle_command", "mod_handle_command", &coordinator_actor);
-  std::unique_ptr<Module> mod_handle_command_ptr(mod_handle_command);
+  // std::unique_ptr<Module> mod_handle_command_ptr(mod_handle_command);
 
-  Task* t = mod_handle_command->tasks()[0];
-  if(t==nullptr){
-    LOG(ERROR)<<"mod_handle_command has no task";
+  Module* mod_iport_port_inc = create_module<PortInc>("PortInc", "mod_iport_port_inc", &input_port, 0, 32);
+  Module* mod_iport_port_out = create_module<PortOut>("PortOut", "mod_iport_port_out", &input_port);
+
+  Module* mod_oport_port_inc = create_module<PortInc>("PortInc", "mod_oport_port_inc", &output_port, 0, 32);
+  Module* mod_oport_port_out = create_module<PortOut>("PortOut", "mod_oport_port_out", &output_port);
+
+  Module* mod_cport_port_inc = create_module<PortInc>("PortInc", "mod_cport_port_inc", &control_port, 0, 32);
+  Module* mod_cport_port_out = create_module<PortOut>("PortOut", "mod_cport_port_out", &control_port);
+
+  Module* mod_ec_scheduler = create_module<ec_scheduler>("ec_scheduler", "mod_ec_scheduler", &coordinator_actor);
+
+  Module* mod_timers = create_module<timers>("timers", "mod_timer", &coordinator_actor);
+
+  Module* mod_handle_command = create_module<handle_command>("handle_command",
+                                                             "mod_handle_command",
+                                                             &coordinator_actor);
+
+  Module* mod_recv_reliable_msgack = create_module<recv_reliable_msgack>("recv_reliable_msgack",
+                                                                         "mod_recv_reliable_msgack",
+                                                                         &coordinator_actor);
+
+  Module* mod_send_reliable_ack = create_module<send_reliable_ack>("send_reliable_ack",
+                                                                   "mod_send_reliable_ack",
+                                                                   &coordinator_actor);
+
+  Module* mod_send_reliable_msg = create_module<send_reliable_msg>("send_reliable_msg",
+                                                                   "mod_send_reliable_msg",
+                                                                   &coordinator_actor);
+
+  int f1 = mod_iport_port_inc->ConnectModules(0, mod_ec_scheduler, 0);
+  int f2 = mod_ec_scheduler->ConnectModules(0, mod_oport_port_out, 0);
+  if(f1!=0 || f2!=0 ){
+    LOG(ERROR)<<"Error connecting mod_iport_port_inc->mod_ec_scheduler->mod_oport_port_out";
+    exit(-1);
+  }
+
+  int f3 = mod_oport_port_inc->ConnectModules(0, mod_ec_scheduler, 0);
+  int f4 = mod_ec_scheduler->ConnectModules(1, mod_iport_port_out, 0);
+  if(f3!=0 || f4!=0){
+    LOG(ERROR)<<"Error connecting mod_oport_port_inc->mod_ec_scheduler->mod_iport_port_out";
+    exit(-1);
+  }
+
+  int f5 = mod_cport_port_inc->ConnectModules(0, mod_recv_reliable_msgack, 0);
+  if(f5!=0){
+    LOG(ERROR)<<"Error connecting mod_cport_port_inc->mod_recv_reliable_msgack";
+    exit(-1);
+  }
+
+  int f6 = mod_send_reliable_msg->ConnectModules(0, mod_iport_port_out, 0);
+  int f7 = mod_send_reliable_msg->ConnectModules(1, mod_oport_port_out, 0);
+  int f8 = mod_send_reliable_msg->ConnectModules(2, mod_cport_port_out, 0);
+  if(f6!=0 || f7!=0 || f8!=0){
+    LOG(ERROR)<<"Error connecting mod_send_reliable_msg->mod_i/o/cport_port_out";
+    exit(-1);
+  }
+
+  int f9  = mod_send_reliable_ack->ConnectModules(0, mod_iport_port_out, 0);
+  int f10 = mod_send_reliable_ack->ConnectModules(1, mod_oport_port_out, 0);
+  int f11 = mod_send_reliable_ack->ConnectModules(2, mod_cport_port_out, 0);
+  if(f9!=0 || f10!=0 || f11!=0){
+    LOG(ERROR)<<"Error connecting mod_send_reliable_ack->mod_i/o/cport_port_out";
+    exit(-1);
+  }
+
+  Task* t_iport_inc = mod_iport_port_inc->tasks()[0];
+  Task* t_oport_inc = mod_oport_port_inc->tasks()[0];
+  Task* t_cport_inc = mod_cport_port_inc->tasks()[0];
+  Task* t_rmsg = mod_send_reliable_msg->tasks()[0];
+  Task* t_rack = mod_send_reliable_ack->tasks()[0];
+  Task* t_hc = mod_handle_command->tasks()[0];
+  Task* t_timer = mod_timers->tasks()[0];
+
+  if(t_iport_inc==nullptr ||
+     t_oport_inc==nullptr ||
+     t_cport_inc==nullptr ||
+     t_rmsg==nullptr ||
+     t_rack==nullptr ||
+     t_hc==nullptr ||
+     t_timer==nullptr){
+    LOG(ERROR)<<"some tasks are missing";
     exit(-1);
   }
 
@@ -123,7 +203,13 @@ int main(int argc, char* argv[]){
     exit(-1);
   }
 
-  tc->AddTask(t);
+  tc->AddTask(t_iport_inc);
+  tc->AddTask(t_oport_inc);
+  tc->AddTask(t_cport_inc);
+  tc->AddTask(t_rmsg);
+  tc->AddTask(t_rack);
+  tc->AddTask(t_hc);
+  tc->AddTask(t_timer);
   resume_all_workers();
 
   // create the rpc server

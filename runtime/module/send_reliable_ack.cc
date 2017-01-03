@@ -29,3 +29,5 @@ struct task_result send_reliable_ack::RunTask(void *arg){
 
   return ret;
 }
+
+ADD_MODULE(send_reliable_ack, "send_reliable_ack", "send out all the ack packets")

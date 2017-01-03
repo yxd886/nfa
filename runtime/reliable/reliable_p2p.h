@@ -51,7 +51,7 @@ public:
 
   inline bess::Packet* get_ack_pkt(){
     bess::Packet* ack_pkt = bess::Packet::Alloc();
-    if(unlikely(ack_pkt == nullptr)){
+    if(unlikely(ack_pkt == nullptr || next_seq_num_to_recv_snapshot_ == next_seq_num_to_recv_)){
       return nullptr;
     }
 
@@ -60,6 +60,7 @@ public:
     ack_pkt->set_data_len(sizeof(reliable_header));
 
     ack_header_.seq_num = next_seq_num_to_recv_;
+    next_seq_num_to_recv_snapshot_ = next_seq_num_to_recv_;
 
     char* data_start = ack_pkt->head_data<char*>();
     rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
@@ -117,6 +118,8 @@ private:
   reliable_header ack_header_;
 
   uint16_t output_gate_;
+
+  uint32_t next_seq_num_to_recv_snapshot_;
 };
 
 #endif

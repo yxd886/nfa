@@ -10,3 +10,5 @@ void recv_reliable_msgack::customized_init(coordinator* coordinator_actor){
 void recv_reliable_msgack::ProcessBatch(bess::PacketBatch *batch){
   send(coordinator_actor_, control_pkts_batch_t::value, batch);
 }
+
+ADD_MODULE(recv_reliable_msgack, "recv_reliable_msgack", "this module handles packets received from the control port")

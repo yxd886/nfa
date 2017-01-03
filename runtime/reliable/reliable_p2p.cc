@@ -25,6 +25,8 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
   ack_header_.magic_num = ack_magic_num;
 
   output_gate_ = 0;
+
+  next_seq_num_to_recv_snapshot_ = 1;
 }
 
 reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){

@@ -51,3 +51,5 @@ struct task_result send_reliable_msg::RunTask(void *arg){
 
   return ret;
 }
+
+ADD_MODULE(send_reliable_msg, "send_reliable_msg", "send out all the message packets")

@@ -5,16 +5,9 @@
 
 #include <glog/logging.h>
 
-/*
- * void handle_message(remote_msg_type_one_t, cstruct* cstruct_ptr)
- *
- * void handle_message(need_to_give_a_response_t,
- *                     uint32_t send_runtime_id,
- *                     uint32_t send_actor_id,
- *                     cstruct* cstruct_ptr);
- *
- *
- * */
+inline void process_recv_reliable_msg(reliable_single_msg* msg_ptr){
+
+}
 
 coordinator::coordinator(flow_actor_allocator* allocator,
                          generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
@@ -76,7 +69,7 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
         continue;
       }
 
-      handle_message(recv_reliable_msg_t::value, msg_ptr);
+      process_recv_reliable_msg(msg_ptr);
       msg_ptr->clean(&gp_collector_);
       continue;
     }
@@ -122,10 +115,6 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
   }
 }
 
-void coordinator::handle_message(recv_reliable_msg_t, reliable_single_msg* msg_ptr){
-
-}
-
 void coordinator::handle_message(control_pkts_batch_t, bess::PacketBatch* batch){
   ec_scheduler_batch_.clear();
 
@@ -152,7 +141,7 @@ void coordinator::handle_message(control_pkts_batch_t, bess::PacketBatch* batch)
        continue;
      }
 
-     handle_message(recv_reliable_msg_t::value, msg_ptr);
+     process_recv_reliable_msg(msg_ptr);
      msg_ptr->clean(&gp_collector_);
    }
 }
