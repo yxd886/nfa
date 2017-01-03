@@ -1,5 +1,5 @@
 //
-#include "msg_test.h"
+#include "msg_test_mod.h"
 #include "../bessport/kmod/llring.h"
 #include <string.h>
 

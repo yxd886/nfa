@@ -22,7 +22,7 @@
 #include "../../module/send_reliable_ack.h"
 #include "../../module/forward_ec_scheduler.h"
 #include "../../module/reverse_ec_scheduler.h"
-#include "../../module/msg_test.h"
+#include "../../module/msg_test_mod.h"
 #include "../../actor/flow_actor.h"
 #include "../../actor/flow_actor_allocator.h"
 #include "../../actor/coordinator.h"
