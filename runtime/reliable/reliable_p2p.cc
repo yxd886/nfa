@@ -91,30 +91,6 @@ void reliable_p2p::add_to_reliable_send_list(int pkt_num){
   last_item->pkt_num += pkt_num;
 }
 
-template<class T>
-bess::Packet* reliable_p2p::create_cstruct_sub_msg(T* cstruct_msg){
-  static_assert(std::is_pod<T>::value, "The type of cstruct_msg is not POD");
-  static_assert(sizeof(T)<pkt_sub_msg_cutting_thresh,
-                "The size of cstruct_msg is too large to fit into a single packet");
-
-  bess::Packet* msg_pkt = bess::Packet::Alloc();
-  if(msg_pkt == nullptr){
-    return nullptr;
-  }
-
-  msg_pkt->set_data_off(SNBUF_HEADROOM);
-  msg_pkt->set_total_len(sizeof(T)+sizeof(uint8_t));
-  msg_pkt->set_data_len(sizeof(T)+sizeof(uint8_t));
-
-  char* sub_msg_tag =  reinterpret_cast<char *>(msg_pkt->buffer()) +
-                       static_cast<size_t>(SNBUF_HEADROOM);
-  *sub_msg_tag = static_cast<char>(sub_message_type_enum::cstruct);
-
-  char* cstruct_msg_start = sub_msg_tag+1;
-  rte_memcpy(cstruct_msg_start, cstruct_msg, sizeof(T));
-
-  return msg_pkt;
-}
 
 void reliable_p2p::encode_binary_fs_sub_msg(bess::PacketBatch* batch){
   // the batch contains binary flow states created by the network functions.
