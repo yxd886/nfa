@@ -2,6 +2,7 @@
 #include "msg_test_mod.h"
 #include "../bessport/kmod/llring.h"
 #include <string.h>
+#include <stdio.h>
 
 void msg_test::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
@@ -16,6 +17,7 @@ struct task_result msg_test::RunTask(void *arg){
   test_msg msg;
   memset(msg.msg,0,sizeof(msg.msg));
   strcpy(msg.msg,"hello world!");
+  getchar();
   coordinator_actor_->reliables_.find(1)->second.reliable_send(0,1,1,es_scheduler_pkt_batch_t::value,&msg);
   return ret;
 }
