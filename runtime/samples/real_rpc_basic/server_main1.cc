@@ -229,10 +229,10 @@ int main(int argc, char* argv[]){
 
   // create the rpc server
   ServerImpl rpc_server(communication_ring.rpc2worker_ring(), communication_ring.worker2rpc_ring());
+  LOG(INFO)<<"create server success";
   rpc_server.Run(FLAGS_rpc_ip, FLAGS_rpc_port);
+  LOG(INFO)<<"run server success";
   rpc_server.HandleRpcs();
-
-
 
 }
 
