@@ -143,11 +143,9 @@ MODULE_BASIC_OBJS = $(filter-out main.o $(filter-out samples/module_basic.o,$(SA
 REAL_RPC_BASIC_MAIN_EXEC = samples/real_rpc_basic/server_main
 REAL_RPC_BASIC_MAIN_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_basic/server_main.o,$(SAMPLES_OBJS)),$(OBJS))
 
-REAL_RPC_BASIC_MAIN1_EXEC = samples/real_rpc_basic/server_main1
-REAL_RPC_BASIC_MAIN1_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_basic/server_main1.o,$(SAMPLES_OBJS)),$(OBJS))
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(REAL_RPC_BASIC_MAIN1_EXEC) $(NFA_RPC_CLIENT_EXEC)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(NFA_RPC_CLIENT_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -272,12 +270,6 @@ $(eval $(call BUILD, \
 	$$(REAL_RPC_BASIC_MAIN_OJBS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 	
-$(eval $(call BUILD, \
-	LD, \
-	$$(REAL_RPC_BASIC_MAIN1_EXEC), \
-	$$(REAL_RPC_BASIC_MAIN1_OJBS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-
 %.d: ;
 
 .PRECIOUS: %.d $(PROTO_HEADERS)
