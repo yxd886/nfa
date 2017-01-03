@@ -149,7 +149,7 @@ int main(int argc, char* argv[]){
                                                                    &coordinator_actor);
 
 
-  Module* mod_msg_test = create_module<msg_test>("msg_test", "msg_test", &coordinator_actor);
+  Module* mod_msg_test = create_module<msg_test>("msg_test", "mod_msg_test", &coordinator_actor);
 
   int f1 = mod_iport_port_inc->ConnectModules(0, mod_forward_ec_scheduler, 0);
   int f2 = mod_forward_ec_scheduler->ConnectModules(0, mod_oport_port_out, 0);
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]){
      t_rack==nullptr ||
      t_hc==nullptr ||
      t_timer==nullptr||
-		 t_msg_test){
+		 t_msg_test==nullptr){
     LOG(ERROR)<<"some tasks are missing";
     exit(-1);
   }
