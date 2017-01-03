@@ -271,6 +271,12 @@ $(eval $(call BUILD, \
 	$$(REAL_RPC_BASIC_MAIN_EXEC), \
 	$$(REAL_RPC_BASIC_MAIN_OJBS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(REAL_RPC_BASIC_MAIN1_EXEC), \
+	$$(REAL_RPC_BASIC_MAIN1_OJBS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
 
