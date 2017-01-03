@@ -16,7 +16,7 @@ struct task_result msg_test::RunTask(void *arg){
   test_msg msg;
   memset(msg.msg,0,sizeof(msg.msg));
   strcpy(msg.msg,"hello world!");
-  coordinator_actor_->reliables_.find(1)->second.reliable_send<test_msg>(0,1,1,es_scheduler_pkt_batch_t::value,&msg);
+  coordinator_actor_->reliables_.find(1)->second.reliable_send<test_msg,coordinator_messages::es_scheduler_pkt_batch>(0,1,1,es_scheduler_pkt_batch_t::value,&msg);
   return ret;
 }
 
