@@ -100,6 +100,7 @@ int main(int argc, char* argv[]){
   // create a worker thread
   int wid = 1;
   launch_worker(wid, FLAGS_worker_core);
+  launch_worker(2, 6);
 
   // create the llring used for communication
   llring_holder communication_ring;

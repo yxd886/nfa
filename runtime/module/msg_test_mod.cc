@@ -5,7 +5,11 @@
 #include <stdio.h>
 
 void msg_test::customized_init(coordinator* coordinator_actor){
-  RegisterTask(nullptr);
+ // RegisterTask(nullptr);
+  Worker *w = workers[2];
+  bess::LeafTrafficClass *c = w->scheduler()->default_leaf_class();
+
+  tasks_.push_back(new Task(this, nullptr, c));
   coordinator_actor_ = coordinator_actor;
 }
 
