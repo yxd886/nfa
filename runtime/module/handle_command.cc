@@ -1,6 +1,9 @@
 //
 #include "handle_command.h"
 #include "../bessport/kmod/llring.h"
+struct test_msg{
+	int i;
+};
 
 void handle_command::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
@@ -58,7 +61,8 @@ struct task_result handle_command::RunTask(void *arg){
 
         reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
         coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
-        r.reliable_send(0,1,1,es_scheduler_pkt_batch_t::value,nullptr);
+        test_msg a;
+        r.reliable_send(0,1,1,es_scheduler_pkt_batch_t::value,&a);
         break;
       }
       case rpc_operation::delete_input_runtime :{
