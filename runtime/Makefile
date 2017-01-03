@@ -147,7 +147,7 @@ REAL_RPC_BASIC_MAIN1_EXEC = samples/real_rpc_basic/server_main1
 REAL_RPC_BASIC_MAIN1_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_basic/server_main1.o,$(SAMPLES_OBJS)),$(OBJS))
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC)$(REAL_RPC_BASIC_MAIN1_EXEC) $(NFA_RPC_CLIENT_EXEC)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(REAL_RPC_BASIC_MAIN1_EXEC) $(NFA_RPC_CLIENT_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
