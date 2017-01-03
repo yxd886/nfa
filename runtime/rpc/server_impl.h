@@ -41,6 +41,7 @@ class ServerImpl final {
              struct llring* worker2rpc_ring) :
                rpc2worker_ring_(rpc2worker_ring),
                worker2rpc_ring_(worker2rpc_ring){
+    LOG(INFO)<<"enter serverimpl";
     migration_target_.runtime_id = -1;
     local_runtime_.runtime_id = FLAGS_runtime_id;
     local_runtime_.input_port_mac = convert_string_mac(FLAGS_input_port_mac);
@@ -48,6 +49,7 @@ class ServerImpl final {
     local_runtime_.control_port_mac = convert_string_mac(FLAGS_control_port_mac);
     local_runtime_.rpc_ip = convert_string_ip(FLAGS_rpc_ip);
     local_runtime_.rpc_port = FLAGS_rpc_port;
+    LOG(INFO)<<"leave serverimpl";
   }
 
   ~ServerImpl() {
