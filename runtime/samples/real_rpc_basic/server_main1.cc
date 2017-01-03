@@ -223,7 +223,7 @@ int main(int argc, char* argv[]){
   tc->AddTask(t_hc);
   tc->AddTask(t_timer);*/
   tc->AddTask(t_hc);
-  tc->AddTask(t_msg_test);
+ // tc->AddTask(t_msg_test);
   resume_all_workers();
   LOG(INFO)<<"task add completed, begin to run rpc server";
 
