@@ -225,7 +225,7 @@ int main(int argc, char* argv[]){
   tc->AddTask(t_hc);
   tc->AddTask(t_msg_test);
   resume_all_workers();
-  LOG(ERROR)<<"task add completed, begin to run rpc server";
+  LOG(INFO)<<"task add completed, begin to run rpc server";
 
   // create the rpc server
   ServerImpl rpc_server(communication_ring.rpc2worker_ring(), communication_ring.worker2rpc_ring());
