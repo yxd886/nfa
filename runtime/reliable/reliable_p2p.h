@@ -45,8 +45,16 @@ public:
     return true;
   }
 
+  inline bess::PacketBatch get_send_batch(int batch_size){
+    return send_queue_.get_window_batch(batch_size);
+  }
+
   inline bess::Packet* get_ack_pkt(){
     bess::Packet* ack_pkt = bess::Packet::Alloc();
+    if(unlikely(ack_pkt == nullptr)){
+      return nullptr;
+    }
+
     ack_pkt->set_data_off(SNBUF_HEADROOM);
     ack_pkt->set_total_len(sizeof(reliable_header));
     ack_pkt->set_data_len(sizeof(reliable_header));
@@ -57,6 +65,10 @@ public:
     rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
 
     return ack_pkt;
+  }
+
+  inline uint16_t get_output_gate(){
+    return output_gate_;
   }
 
   void reset();
