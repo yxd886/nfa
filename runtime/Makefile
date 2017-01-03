@@ -143,6 +143,8 @@ MODULE_BASIC_OBJS = $(filter-out main.o $(filter-out samples/module_basic.o,$(SA
 REAL_RPC_BASIC_MAIN_EXEC = samples/real_rpc_basic/server_main
 REAL_RPC_BASIC_MAIN_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_basic/server_main.o,$(SAMPLES_OBJS)),$(OBJS))
 
+REAL_RPC_BASIC_MAIN_EXEC = samples/real_rpc_basic/server_main1
+REAL_RPC_BASIC_MAIN_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_basic/server_main1.o,$(SAMPLES_OBJS)),$(OBJS))
 .PHONY: all clean tests protobuf
 
 all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(NFA_RPC_CLIENT_EXEC)

@@ -6,6 +6,7 @@
 #include <glog/logging.h>
 
 inline void process_recv_reliable_msg(reliable_single_msg* msg_ptr){
+  LOG(INFO)<<"received the msg from rtm: "<<msg_ptr->send_runtime_id;
 
 }
 
