@@ -23,6 +23,8 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
   ack_header_.iph.hdr_checksum = rte_ipv4_cksum(&(ack_header_.iph));
 
   ack_header_.magic_num = ack_magic_num;
+
+  output_gate_ = 0;
 }
 
 reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
@@ -67,6 +69,24 @@ void reliable_p2p::reset(){
   next_seq_num_to_recv_ = 1;
   cur_msg_.clean(&(coordinator_actor_->gp_collector_));
   batch_.clear();
+}
+
+void reliable_p2p::add_to_reliable_send_list(int pkt_num){
+  generic_list_item* last_item = coordinator_actor_->reliable_send_list_.peek_tail();
+
+  if(unlikely(last_item->reliable_rtid != local_rtid_)){
+    generic_list_item* list_item = coordinator_actor_->get_list_item_allocator()->allocate();
+
+    list_item->pkt_num = pkt_num;
+    list_item->reliable_rtid = local_rtid_;
+    list_item->output_gate = output_gate_;
+
+    coordinator_actor_->reliable_send_list_.add_to_tail(list_item);
+
+    return;
+  }
+
+  last_item->pkt_num += pkt_num;
 }
 
 template<class T>

@@ -69,4 +69,8 @@ struct reliables_holder{
   std::unordered_map<uint64_t, reliable_p2p&> mac_to_reliables_;
 };
 
+struct reliable_send_record{
+  round_rubin_list<generic_list_item> reliable_send_list_;
+};
+
 #endif

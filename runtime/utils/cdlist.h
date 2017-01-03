@@ -151,6 +151,17 @@ static inline struct cdlist_item *cdlist_peek_first_item(struct cdlist_head *hea
   return item;
 }
 
+static inline struct cdlist_item *cdlist_peek_last_item(struct cdlist_head *head) {
+  struct cdlist_item *item;
+
+  if (cdlist_is_empty(head))
+      return NULL;
+
+  item = head->prev;
+
+  return item;
+}
+
 static inline struct cdlist_item *cdlist_pop_head(struct cdlist_head *head) {
   struct cdlist_item *item;
 

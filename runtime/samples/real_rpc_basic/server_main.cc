@@ -100,7 +100,7 @@ int main(int argc, char* argv[]){
   llring_holder communication_ring;
 
   // create the allocator for mac_list_item
-  generic_ring_allocator<generic_list_item> mac_list_item_allocator(max_runtime*3);
+  generic_ring_allocator<generic_list_item> mac_list_item_allocator(512*40);
 
   // create flow_actor_allocator, coordinator_actor and runtime_config_allocator
   flow_actor_allocator allocator(num_flow_actors);

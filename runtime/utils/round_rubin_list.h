@@ -26,6 +26,16 @@ public:
     }
   }
 
+  inline T* peek_tail(){
+    struct cdlist_item* item = cdlist_peek_last_item(&rr_list_head_);
+    if(item == nullptr){
+      return nullptr;
+    }
+    else{
+      return reinterpret_cast<T*>(item);
+    }
+  }
+
   inline T* pop_head(){
     struct cdlist_item* item = cdlist_pop_head(&rr_list_head_);
     if(item == nullptr){
@@ -65,7 +75,6 @@ private:
   uint64_t cnt_;
 
   static_assert(std::is_pod<T>::value, "The type argument passed to round_rubin_list is not POD");
-
 };
 
 #endif

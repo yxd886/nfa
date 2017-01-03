@@ -4,6 +4,7 @@
 #include "./base/reliable_send_queue.h"
 #include "../actor/base/local_message.h"
 #include "./base/reliable_message_misc.h"
+#include "../bessport/worker.h"
 
 static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
@@ -38,6 +39,8 @@ public:
     msg_header->msg_pkt_num = 1;
 
     send_queue_.push(cstruct_msg_pkt);
+
+    add_to_reliable_send_list(1);
 
     return true;
   }
@@ -76,6 +79,8 @@ public:
   }
 
 private:
+  void add_to_reliable_send_list(int pkt_num);
+
   template<class T>
   bess::Packet* create_cstruct_sub_msg(T* cstruct_msg);
 
@@ -98,6 +103,8 @@ private:
   reliable_single_msg cur_msg_;
 
   reliable_header ack_header_;
+
+  uint16_t output_gate_;
 };
 
 #endif
