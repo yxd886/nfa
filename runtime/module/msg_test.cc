@@ -10,9 +10,9 @@ void msg_test::customized_init(coordinator* coordinator_actor){
 
 struct task_result msg_test::RunTask(void *arg){
   struct task_result ret;
- // ret = (struct task_result){
- //     .packets = 0, .bits = 0,
-//  };
+  ret = (struct task_result){
+      .packets = 0, .bits = 0,
+  };
   test_msg msg;
   memset(msg.msg,0,sizeof(msg.msg));
   strcpy(msg.msg,"hello world!");
@@ -20,4 +20,4 @@ struct task_result msg_test::RunTask(void *arg){
   return ret;
 }
 
-ADD_MODULE(msg_test, "msg_test", "test msg")
+ADD_MODULE(msg_test, "msgtest", "test msg")
