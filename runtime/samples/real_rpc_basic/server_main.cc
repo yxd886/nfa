@@ -66,7 +66,11 @@ int main(int argc, char* argv[]){
   }
 
   // initialize dpdk environment
-  nfa_init_dpdk(argv[0]);
+  // nfa_init_dpdk(argv[0]);
+  char unique_name[512];
+  init_bess(1 << 2, unique_name);
+  LOG(INFO)<<"INIT OK!";
+  exit(0);
 
   // create the ZeroCopyVPort in the runtime program
   sn_port input_port;
@@ -162,7 +166,9 @@ int main(int argc, char* argv[]){
   }
 
   int f5 = mod_cport_port_inc->ConnectModules(0, mod_recv_reliable_msgack, 0);
-  if(f5!=0){
+  int f5_1 = mod_recv_reliable_msgack->ConnectModules(0, mod_iport_port_out, 0);
+  int f5_2 = mod_recv_reliable_msgack->ConnectModules(1, mod_oport_port_out, 0);
+  if(f5!=0 || f5_1!=0 || f5_2!=0){
     LOG(ERROR)<<"Error connecting mod_cport_port_inc->mod_recv_reliable_msgack";
     exit(-1);
   }
@@ -183,7 +189,7 @@ int main(int argc, char* argv[]){
     exit(-1);
   }
 
-  Task* t_iport_inc = mod_iport_port_inc->tasks()[0];
+  /*Task* t_iport_inc = mod_iport_port_inc->tasks()[0];
   Task* t_oport_inc = mod_oport_port_inc->tasks()[0];
   Task* t_cport_inc = mod_cport_port_inc->tasks()[0];
   Task* t_rmsg = mod_send_reliable_msg->tasks()[0];
@@ -209,14 +215,13 @@ int main(int argc, char* argv[]){
     exit(-1);
   }
 
-  /*tc->AddTask(t_iport_inc);
+  tc->AddTask(t_iport_inc);
   tc->AddTask(t_oport_inc);
   tc->AddTask(t_cport_inc);
   tc->AddTask(t_rmsg);
   tc->AddTask(t_rack);
   tc->AddTask(t_hc);
   tc->AddTask(t_timer);*/
-  tc->AddTask(t_hc);
   resume_all_workers();
 
   // create the rpc server

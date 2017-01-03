@@ -2,6 +2,8 @@
 #include "handle_command.h"
 #include "../bessport/kmod/llring.h"
 
+#include <glog/logging.h>
+
 void handle_command::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
   coordinator_actor_ = coordinator_actor;
@@ -22,10 +24,10 @@ struct task_result handle_command::RunTask(void *arg){
 
     llring_item* item = static_cast<llring_item*>(dequeue_output[0]);
 
-    // loginfo << "Receive "<<opcode2string(item->op_code)<<" ring message.";
-    // print_config(item->rt_config);
-    // loginfo << "migration_qouta-> "<<item->migration_qouta;
-    // print_stat(item->op_code, item->stat);
+    LOG(INFO) << "Receive "<<opcode2string(item->op_code)<<" ring message.";
+    print_config(item->rt_config);
+    LOG(INFO) << "migration_qouta-> "<<item->migration_qouta;
+    print_stat(item->op_code, item->stat);
 
     switch(item->op_code){
       case rpc_operation::add_input_runtime :{

@@ -1,6 +1,8 @@
 //
 #include "send_reliable_ack.h"
 
+#include <glog/logging.h>
+
 void send_reliable_ack::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
   coordinator_actor_ = coordinator_actor;
@@ -25,7 +27,9 @@ struct task_result send_reliable_ack::RunTask(void *arg){
     batch.add(ack_pkt);
   }
 
-  RunSplit(out_gates, &batch);
+  if(batch.cnt()>0){
+    RunSplit(out_gates, &batch);
+  }
 
   return ret;
 }

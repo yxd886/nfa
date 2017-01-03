@@ -3,4 +3,6 @@
 
 void nfa_init_dpdk(const char* argv0);
 
+void init_bess(uint32_t lcore, char *name);
+
 #endif

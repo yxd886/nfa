@@ -50,8 +50,13 @@ public:
   }
 
   inline bess::Packet* get_ack_pkt(){
+
+    if(unlikely(next_seq_num_to_recv_snapshot_ == next_seq_num_to_recv_)){
+      return nullptr;
+    }
+
     bess::Packet* ack_pkt = bess::Packet::Alloc();
-    if(unlikely(ack_pkt == nullptr || next_seq_num_to_recv_snapshot_ == next_seq_num_to_recv_)){
+    if(unlikely(ack_pkt == nullptr)){
       return nullptr;
     }
 

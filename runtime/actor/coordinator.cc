@@ -6,7 +6,6 @@
 #include <glog/logging.h>
 
 inline void process_recv_reliable_msg(reliable_single_msg* msg_ptr){
-
 }
 
 coordinator::coordinator(flow_actor_allocator* allocator,
@@ -39,40 +38,12 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   migration_qouta_ = 0;
 }
 
-void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* batch){
+void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
   ec_scheduler_batch_.clear();
   char keys[bess::PacketBatch::kMaxBurst][flow_key_size] __ymm_aligned;
 
   for(int i=0; i<batch->cnt(); i++){
-    char* data_start = reinterpret_cast<char *>(batch->pkts()[i]->buffer());
-    data_start += batch->pkts()[i]->data_off();
-
-    if(unlikely( ((*((uint16_t*)(data_start+14)) & 0x00f0) != 0x0040) ||
-                 ( ((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x0006) &&
-                   ((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x0011) &&
-                   ((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x00FF)) ) ){
-      gp_collector_.collect(batch->pkts()[i]);
-      continue;
-    }
-
-    if(unlikely(((*((uint16_t*)(data_start+23)) & 0x00ff) == 0x00FF))){
-      uint64_t mac_addr = ((*(reinterpret_cast<uint64_t *>(data_start))) & 0x0000FFffFFffFFfflu);
-
-      auto it = mac_to_reliables_.find(mac_addr);
-      if(unlikely(it == mac_to_reliables_.end())){
-        gp_collector_.collect(batch->pkts()[i]);
-        continue;
-      }
-
-      reliable_single_msg* msg_ptr = it->second.recv(batch->pkts()[i]);
-
-      if(unlikely(msg_ptr != nullptr)){
-        process_recv_reliable_msg(msg_ptr);
-        msg_ptr->clean(&gp_collector_);
-      }
-
-      continue;
-    }
+    char* data_start = batch->pkts()[i]->head_data<char*>();
 
     memset(&keys[i][flow_key_size-8], 0, sizeof(uint64_t));
     for(int j=0; j<3; j++){
@@ -104,31 +75,11 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
   }
 }
 
-void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key){
-
-  htable_.Del(flow_key);
-
-  if(flow_actor!=deadend_flow_actor_){
-    allocator_->deallocate(flow_actor);
-  }
-  else{
-  }
-}
-
-void coordinator::handle_message(control_pkts_batch_t, bess::PacketBatch* batch){
+void coordinator::handle_message(cp_pkt_batch_t, bess::PacketBatch* batch){
   ec_scheduler_batch_.clear();
-
   for(int i=0; i<batch->cnt(); i++){
-    char* data_start = reinterpret_cast<char *>(batch->pkts()[i]->buffer());
-    data_start += batch->pkts()[i]->data_off();
-
-    if(unlikely( ((*((uint16_t*)(data_start+14)) & 0x00f0) != 0x0040) ||
-                 (((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x00FF)) ) ){
-      gp_collector_.collect(batch->pkts()[i]);
-      continue;
-    }
-
-    uint64_t mac_addr = ((*(reinterpret_cast<uint64_t *>(data_start))) & 0x0000FFffFFffFFfflu);
+    char* data_start = batch->pkts()[i]->head_data<char*>();
+    uint64_t mac_addr = ((*(reinterpret_cast<uint64_t *>(data_start+6))) & 0x0000FFffFFffFFfflu);
 
     auto it = mac_to_reliables_.find(mac_addr);
     if(unlikely(it == mac_to_reliables_.end())){
@@ -143,5 +94,17 @@ void coordinator::handle_message(control_pkts_batch_t, bess::PacketBatch* batch)
 
     process_recv_reliable_msg(msg_ptr);
     msg_ptr->clean(&gp_collector_);
+  }
+}
+
+
+void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key){
+
+  htable_.Del(flow_key);
+
+  if(flow_actor!=deadend_flow_actor_){
+    allocator_->deallocate(flow_actor);
+  }
+  else{
   }
 }

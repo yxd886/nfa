@@ -9,7 +9,7 @@ class coordinator;
 class recv_reliable_msgack final : public Module{
 
 public:
-  static const gate_idx_t kNumOGates = 0;
+  static const gate_idx_t kNumOGates = 2;
   static const gate_idx_t kNumIGates = 1;
 
   recv_reliable_msgack() : Module(), coordinator_actor_(0){}
@@ -21,6 +21,7 @@ public:
 private:
 
   coordinator* coordinator_actor_;
+  bess::PacketBatch cp_pkt_batch;
 };
 
 #endif

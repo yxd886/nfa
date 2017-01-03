@@ -342,12 +342,12 @@ int main(int argc, char** argv) {
 
   // Test set replication
   LOG(INFO)<<checker_10240.AddOutputRt();
-  LOG(INFO)<<checker_10241.AddReplicas(10242);
-  LOG(INFO)<<checker_10242.AddReplicas(10241);
-  LOG(INFO)<<checker_10241.DeleteReplica(10242);
-  LOG(INFO)<<checker_10241.DeleteStorage(10242);
-  LOG(INFO)<<checker_10242.DeleteReplica(10241);
-  LOG(INFO)<<checker_10242.DeleteStorage(10241);
+  //LOG(INFO)<<checker_10241.AddReplicas(10242);
+  //LOG(INFO)<<checker_10242.AddReplicas(10241);
+  //LOG(INFO)<<checker_10241.DeleteReplica(10242);
+  //LOG(INFO)<<checker_10241.DeleteStorage(10242);
+  //LOG(INFO)<<checker_10242.DeleteReplica(10241);
+  //LOG(INFO)<<checker_10242.DeleteStorage(10241);
 
   // Test set replicas between runtimes with different input/output runtimes
   // LOG(INFO)<<checker_10240.AddOutputRt();

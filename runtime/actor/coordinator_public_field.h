@@ -20,7 +20,7 @@ struct garbage{
 
 struct local_batch{
   bess::PacketBatch ec_scheduler_batch_;
-  gate_idx_t es_scheduler_gates_[bess::PacketBatch::kMaxBurst];
+  uint16_t ec_scheduler_gates_[bess::PacketBatch::kMaxBurst];
 };
 
 struct timer_list{

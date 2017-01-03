@@ -49,8 +49,6 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
     nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
   }
 
-  int next_available_pos = coordinator_actor_->ec_scheduler_batch_.cnt();
-  coordinator_actor_->es_scheduler_gates_[next_available_pos] = 0;
   coordinator_actor_->ec_scheduler_batch_.add(pkt);
 }
 

@@ -22,6 +22,8 @@ public:
 
 private:
   coordinator* coordinator_actor_;
+  bess::PacketBatch dp_pkt_batch;
+  bess::PacketBatch cp_pkt_batch;
 };
 
 #endif

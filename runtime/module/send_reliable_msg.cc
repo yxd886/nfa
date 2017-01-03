@@ -1,6 +1,8 @@
 //
 #include "send_reliable_msg.h"
 
+#include <glog/logging.h>
+
 void send_reliable_msg::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
   coordinator_actor_ = coordinator_actor;
@@ -22,7 +24,7 @@ struct task_result send_reliable_msg::RunTask(void *arg){
     int residual_batch_size = bess::PacketBatch::kMaxBurst - batch.cnt();
     reliable_p2p& r = coordinator_actor_->reliables_.find(first_item->reliable_rtid)->second;
 
-    if(first_item->pkt_num > residual_batch_size){
+    if(first_item->pkt_num >= residual_batch_size){
       bess::PacketBatch send_batch = r.get_send_batch(residual_batch_size);
 
       for(int i=batch.cnt(); i<batch.cnt()+send_batch.cnt(); i++){
@@ -31,6 +33,11 @@ struct task_result send_reliable_msg::RunTask(void *arg){
       batch.CopyAddr(send_batch.pkts(), send_batch.cnt());
 
       first_item->pkt_num -= residual_batch_size;
+
+      if(first_item->pkt_num == 0){
+        coordinator_actor_->reliable_send_list_.pop_head();
+        coordinator_actor_->get_list_item_allocator()->deallocate(first_item);
+      }
     }
     else{
       bess::PacketBatch send_batch = r.get_send_batch(first_item->pkt_num);
@@ -47,7 +54,9 @@ struct task_result send_reliable_msg::RunTask(void *arg){
     }
   }
 
-  RunSplit(out_gates, &batch);
+  if(batch.cnt()>0){
+    RunSplit(out_gates, &batch);
+  }
 
   return ret;
 }
