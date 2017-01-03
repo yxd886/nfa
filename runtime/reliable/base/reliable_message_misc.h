@@ -31,6 +31,10 @@ struct reliable_message_header {
   uint16_t msg_pkt_num;
 };
 
+/*
+ * uint8_t
+ * */
+
 static constexpr uint8_t msg_magic_num = 0xA1;
 
 static constexpr uint8_t ack_magic_num = 0xB2;

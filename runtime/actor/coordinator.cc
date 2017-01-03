@@ -65,12 +65,12 @@ void coordinator::handle_message(es_scheduler_pkt_batch_t, bess::PacketBatch* ba
       }
 
       reliable_single_msg* msg_ptr = it->second.recv(batch->pkts()[i]);
-      if(unlikely(msg_ptr == nullptr)){
-        continue;
+
+      if(unlikely(msg_ptr != nullptr)){
+        process_recv_reliable_msg(msg_ptr);
+        msg_ptr->clean(&gp_collector_);
       }
 
-      process_recv_reliable_msg(msg_ptr);
-      msg_ptr->clean(&gp_collector_);
       continue;
     }
 
@@ -119,29 +119,29 @@ void coordinator::handle_message(control_pkts_batch_t, bess::PacketBatch* batch)
   ec_scheduler_batch_.clear();
 
   for(int i=0; i<batch->cnt(); i++){
-     char* data_start = reinterpret_cast<char *>(batch->pkts()[i]->buffer());
-     data_start += batch->pkts()[i]->data_off();
+    char* data_start = reinterpret_cast<char *>(batch->pkts()[i]->buffer());
+    data_start += batch->pkts()[i]->data_off();
 
-     if(unlikely( ((*((uint16_t*)(data_start+14)) & 0x00f0) != 0x0040) ||
-                  (((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x00FF)) ) ){
-       gp_collector_.collect(batch->pkts()[i]);
-       continue;
-     }
+    if(unlikely( ((*((uint16_t*)(data_start+14)) & 0x00f0) != 0x0040) ||
+                 (((*((uint16_t*)(data_start+23)) & 0x00ff) != 0x00FF)) ) ){
+      gp_collector_.collect(batch->pkts()[i]);
+      continue;
+    }
 
-     uint64_t mac_addr = ((*(reinterpret_cast<uint64_t *>(data_start))) & 0x0000FFffFFffFFfflu);
+    uint64_t mac_addr = ((*(reinterpret_cast<uint64_t *>(data_start))) & 0x0000FFffFFffFFfflu);
 
-     auto it = mac_to_reliables_.find(mac_addr);
-     if(unlikely(it == mac_to_reliables_.end())){
-       gp_collector_.collect(batch->pkts()[i]);
-       continue;
-     }
+    auto it = mac_to_reliables_.find(mac_addr);
+    if(unlikely(it == mac_to_reliables_.end())){
+      gp_collector_.collect(batch->pkts()[i]);
+      continue;
+    }
 
-     reliable_single_msg* msg_ptr = it->second.recv(batch->pkts()[i]);
-     if(unlikely(msg_ptr == nullptr)){
-       continue;
-     }
+    reliable_single_msg* msg_ptr = it->second.recv(batch->pkts()[i]);
+    if(unlikely(msg_ptr == nullptr)){
+      continue;
+    }
 
-     process_recv_reliable_msg(msg_ptr);
-     msg_ptr->clean(&gp_collector_);
-   }
+    process_recv_reliable_msg(msg_ptr);
+    msg_ptr->clean(&gp_collector_);
+  }
 }
