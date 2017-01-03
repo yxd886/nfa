@@ -215,13 +215,13 @@ int main(int argc, char* argv[]){
     exit(-1);
   }
 
-  tc->AddTask(t_iport_inc);
+  /*tc->AddTask(t_iport_inc);
   tc->AddTask(t_oport_inc);
   tc->AddTask(t_cport_inc);
   tc->AddTask(t_rmsg);
   tc->AddTask(t_rack);
   tc->AddTask(t_hc);
-  tc->AddTask(t_timer);
+  tc->AddTask(t_timer);*/
   tc->AddTask(t_hc);
   tc->AddTask(t_msg_test);
   resume_all_workers();
