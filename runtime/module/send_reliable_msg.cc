@@ -55,7 +55,10 @@ struct task_result send_reliable_msg::RunTask(void *arg){
   }
 
   if(batch.cnt()>0){
-    LOG(INFO)<<"call runsplit to send msg packets out";
+    LOG(INFO)<<"print output reliable messages:";
+    for(int i=0; i<batch.cnt(); i++){
+      LOG(INFO)<<batch.pkts()[i]->Dump();
+    }
     RunSplit(out_gates, &batch);
   }
 

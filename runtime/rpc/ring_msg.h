@@ -61,11 +61,15 @@ inline int ring_msg_parse_mac_addr(const char *str, char *addr){
   return 0;
 }
 
-inline uint64_t convert_string_mac(const string& mac){
-  char char_mac[8];
-  ring_msg_parse_mac_addr(mac.c_str(), char_mac);
-  uint64_t *addrp = reinterpret_cast<uint64_t *>(char_mac);
+inline uint64_t l2_addr_to_u64(char *addr) {
+  uint64_t *addrp = reinterpret_cast<uint64_t *>(addr);
   return (*addrp & 0x0000FFffFFffFFfflu);
+}
+
+inline uint64_t convert_string_mac(const string& mac){
+  char char_mac[6];
+  ring_msg_parse_mac_addr(mac.c_str(), char_mac);
+  return l2_addr_to_u64(char_mac);
 }
 
 inline uint32_t convert_string_ip(const string& ip){
@@ -80,18 +84,12 @@ inline uint32_t convert_string_ip(const string& ip){
 }
 
 inline string convert_uint64t_mac(uint64_t mac){
-  uint32_t a,b,c,d,e,f;
-  a = (mac>>40)&0x000000FF;
-  b = (mac>>32)&0x000000FF;
-  c = (mac>>24)&0x000000FF;
-  d = (mac>>16)&0x000000FF;
-  e = (mac>>8)&0x000000FF;
-  f = mac&0x000000FF;
-  stringstream ss("");
+  char str[19];
+  char* array = reinterpret_cast<char*>(&mac);
+  sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x",array[0],
+          array[1], array[2], array[3], array[4],array[5]);
 
-  ss<<f<<":"<<e<<":"<<d<<":"<<c<<":"<<a<<":"<<b;
-  string ret(istreambuf_iterator<char>(ss), {});
-  return ret;
+  return string(str);
 }
 
 inline string convert_uint32t_ip(uint32_t ip){

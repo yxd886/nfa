@@ -146,7 +146,7 @@ struct task_result handle_command::RunTask(void *arg){
           coordinator_actor_->mac_to_reliables_.erase(coordinator_actor_->migration_target_rt_id_);
 
           coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
-
+          LOG(INFO)<<"The destination mac address is "<<convert_uint64t_mac(item->rt_config.control_port_mac);
           coordinator_actor_->reliables_.emplace(
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),

@@ -6,6 +6,9 @@
 #include "reliable_message_misc.h"
 #include "../../actor/base/garbage_pkt_collector.h"
 
+#include <glog/logging.h>
+#include "../../rpc/ring_msg.h"
+
 static constexpr bool is_power_of_two(uint32_t val){
   return (val!=0) &&
          ( (val==1) ||
@@ -25,6 +28,7 @@ public:
     cur_size_(0),
     window_pos_(0), window_pos_seq_num_(1),
     pending_send_num_(0){
+
     rh_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
     rh_.ethh.s_addr = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
     rh_.ethh.ether_type = 0x0800;
