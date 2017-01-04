@@ -146,14 +146,12 @@ int nfa_load_mempool(){
     }
   }
 
-  return num_loaded_mempool;
-}
-
-void nfa_try_allocate(){
-  struct rte_mbuf* mbuf = rte_pktmbuf_alloc(pframe_pool[0]);
-  if(mbuf!=nullptr){
-    LOG(INFO)<<"Allocation succeed";
+  if(num_loaded_mempool>0){
+    init_templates();
+    LOG(INFO)<<"Template initialization OK";
   }
+
+  return num_loaded_mempool;
 }
 
 void close_mempool(void) {

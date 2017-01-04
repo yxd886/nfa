@@ -52,8 +52,6 @@ void close_mempool(void);
 
 int nfa_load_mempool();
 
-void nfa_try_allocate();
-
 // For the layout of snbuf, see snbuf_layout.h
 class Packet {
  public:
