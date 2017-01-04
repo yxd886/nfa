@@ -40,7 +40,8 @@ struct task_result handle_command::RunTask(void *arg){
                                   item->rt_config.output_port_mac,
                                   coordinator_actor_->local_runtime_.runtime_id,
                                   item->rt_config.runtime_id,
-                                  coordinator_actor_));
+                                  coordinator_actor_,
+                                  0));
 
         reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
         coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
@@ -56,7 +57,8 @@ struct task_result handle_command::RunTask(void *arg){
                                   item->rt_config.input_port_mac,
                                   coordinator_actor_->local_runtime_.runtime_id,
                                   item->rt_config.runtime_id,
-                                  coordinator_actor_));
+                                  coordinator_actor_,
+                                  1));
 
         reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
         coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
@@ -150,7 +152,8 @@ struct task_result handle_command::RunTask(void *arg){
                                             item->rt_config.control_port_mac,
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
-                                            coordinator_actor_));
+                                            coordinator_actor_,
+                                            2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
           coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
@@ -174,7 +177,8 @@ struct task_result handle_command::RunTask(void *arg){
                                             item->rt_config.control_port_mac,
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
-                                            coordinator_actor_));
+                                            coordinator_actor_,
+                                            2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
           coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
@@ -217,7 +221,8 @@ struct task_result handle_command::RunTask(void *arg){
                                             item->rt_config.control_port_mac,
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
-                                            coordinator_actor_));
+                                            coordinator_actor_,
+                                            2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
           coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
@@ -244,7 +249,8 @@ struct task_result handle_command::RunTask(void *arg){
                                             item->rt_config.control_port_mac,
                                             coordinator_actor_->local_runtime_.runtime_id,
                                             item->rt_config.runtime_id,
-                                            coordinator_actor_));
+                                            coordinator_actor_,
+                                            2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
           coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);

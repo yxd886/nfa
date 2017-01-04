@@ -2,17 +2,19 @@
 #include "../actor/coordinator.h"
 
 reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
-                           int local_rtid, int dest_rtid, coordinator* coordinator_actor) :
+                           int local_rtid, int dest_rtid, coordinator* coordinator_actor,
+                           uint16_t output_gate) :
   send_queue_(local_rt_mac, dest_rt_mac), next_seq_num_to_recv_(1), ref_cnt_(0),
   local_rtid_(local_rtid), dest_rtid_(dest_rtid), coordinator_actor_(coordinator_actor){
+
   local_runtime_mac_addr_ = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
   dst_runtime_mac_addr_ = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
+
   cur_msg_.send_runtime_id = dest_rtid;
 
   ack_header_.ethh.d_addr = dst_runtime_mac_addr_;
   ack_header_.ethh.s_addr = local_runtime_mac_addr_;
   ack_header_.ethh.ether_type = 0x0800;
-
   ack_header_.iph.version_ihl = 0x45;
   ack_header_.iph.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr)+2);
   ack_header_.iph.fragment_offset = rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
@@ -24,7 +26,7 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
 
   ack_header_.magic_num = ack_magic_num;
 
-  output_gate_ = 0;
+  output_gate_ = output_gate;
 
   next_seq_num_to_recv_snapshot_ = 1;
 }
@@ -89,31 +91,6 @@ void reliable_p2p::add_to_reliable_send_list(int pkt_num){
   }
 
   last_item->pkt_num += pkt_num;
-}
-
-template<class T>
-bess::Packet* reliable_p2p::create_cstruct_sub_msg(T* cstruct_msg){
-  static_assert(std::is_pod<T>::value, "The type of cstruct_msg is not POD");
-  static_assert(sizeof(T)<pkt_sub_msg_cutting_thresh,
-                "The size of cstruct_msg is too large to fit into a single packet");
-
-  bess::Packet* msg_pkt = bess::Packet::Alloc();
-  if(msg_pkt == nullptr){
-    return nullptr;
-  }
-
-  msg_pkt->set_data_off(SNBUF_HEADROOM);
-  msg_pkt->set_total_len(sizeof(T)+sizeof(uint8_t));
-  msg_pkt->set_data_len(sizeof(T)+sizeof(uint8_t));
-
-  char* sub_msg_tag =  reinterpret_cast<char *>(msg_pkt->buffer()) +
-                       static_cast<size_t>(SNBUF_HEADROOM);
-  *sub_msg_tag = static_cast<char>(sub_message_type_enum::cstruct);
-
-  char* cstruct_msg_start = sub_msg_tag+1;
-  rte_memcpy(cstruct_msg_start, cstruct_msg, sizeof(T));
-
-  return msg_pkt;
 }
 
 void reliable_p2p::encode_binary_fs_sub_msg(bess::PacketBatch* batch){

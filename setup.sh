@@ -4,7 +4,7 @@
 NFA_DIR=`pwd`
 
 # the current working branch of bess
-BESS_BRANCH="c++"
+BESS_BRANCH="c-legacy"
 
 # switch to the deps directory
 cd deps

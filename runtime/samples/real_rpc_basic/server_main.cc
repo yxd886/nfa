@@ -32,9 +32,6 @@
 #include "../../utils/generic_ring_allocator.h"
 #include "../../utils/round_rubin_list.h"
 
-// #include "../../nf/base/network_function_register.h"
-// #include "../../nf/pktcounter/pkt_counter.h"
-
 using namespace bess;
 using namespace std;
 
