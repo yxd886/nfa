@@ -78,12 +78,16 @@ void reliable_p2p::reset(){
 void reliable_p2p::add_to_reliable_send_list(int pkt_num){
   generic_list_item* last_item = coordinator_actor_->reliable_send_list_.peek_tail();
 
-  if(unlikely(last_item->reliable_rtid != local_rtid_)){
+  if(unlikely(last_item==nullptr || last_item->reliable_rtid != dest_rtid_)){
     generic_list_item* list_item = coordinator_actor_->get_list_item_allocator()->allocate();
 
     list_item->pkt_num = pkt_num;
-    list_item->reliable_rtid = local_rtid_;
+    list_item->reliable_rtid = dest_rtid_;
     list_item->output_gate = output_gate_;
+
+    LOG(INFO)<<"add an item with pkt_num="<<pkt_num<<" "
+             <<"reliable_rtid="<<dest_rtid_<<" "
+             <<"output_gate="<<output_gate_<<" to reliable_send_list_";
 
     coordinator_actor_->reliable_send_list_.add_to_tail(list_item);
 

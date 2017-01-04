@@ -83,6 +83,7 @@ static void init_templates(void) {
     }
 
     pkt = reinterpret_cast<Packet *>(rte_pktmbuf_alloc(pframe_pool[i]));
+    assert(pkt!=nullptr);
     pframe_template = *pkt;
     Packet::Free(pkt);
   }
@@ -111,6 +112,10 @@ void init_mempool(void) {
   }
 
   init_templates();
+}
+
+struct rte_mempool* nfa_get_mempool(int socket_id){
+  return pframe_pool[socket_id];
 }
 
 int nfa_load_mempool(){

@@ -95,8 +95,7 @@ int main(int argc, char* argv[]){
   }
 
   // create a worker thread
-  int wid = 1;
-  launch_worker(wid, FLAGS_worker_core);
+  launch_worker(FLAGS_worker_core, FLAGS_worker_core);
 
   // create the llring used for communication
   llring_holder communication_ring;
@@ -190,6 +189,7 @@ int main(int argc, char* argv[]){
   resume_all_workers();
 
   // create the rpc server
+  LOG(INFO)<<"Prepare server";
   ServerImpl rpc_server(communication_ring.rpc2worker_ring(), communication_ring.worker2rpc_ring());
   rpc_server.Run(FLAGS_rpc_ip, FLAGS_rpc_port);
   rpc_server.HandleRpcs();

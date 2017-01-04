@@ -16,6 +16,10 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
+  bess::Packet* pkt = bess::Packet::Alloc();
+  assert(pkt != nullptr);
+  bess::Packet::Free(pkt);
+
   if(coordinator_actor_->migration_target_rt_id_ != -1 && send_flag==false){
     LOG(INFO)<<"Send message to migration target";
 

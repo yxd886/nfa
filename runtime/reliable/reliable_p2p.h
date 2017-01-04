@@ -6,6 +6,8 @@
 #include "./base/reliable_message_misc.h"
 #include "../bessport/worker.h"
 
+#include <glog/logging.h>
+
 static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
 class coordinator;
@@ -27,9 +29,10 @@ public:
                      T* cstruct_ptr){
     bess::Packet* cstruct_msg_pkt = create_cstruct_sub_msg(cstruct_ptr);
     if(unlikely(cstruct_msg_pkt == nullptr)){
+      LOG(INFO)<<"no cstruct_msg_pkt";
       return false;
     }
-
+    LOG(INFO)<<"cstruct_msg_pkt allocation succeed";
     reliable_message_header* msg_header = reinterpret_cast<reliable_message_header*>(
                                           cstruct_msg_pkt->prepend(sizeof(reliable_message_header)));
 
@@ -39,6 +42,7 @@ public:
     msg_header->msg_type = N;
     msg_header->msg_pkt_num = 1;
 
+    LOG(INFO)<<"enquened to the send_queue";
     send_queue_.push(cstruct_msg_pkt);
 
     add_to_reliable_send_list(1);
