@@ -34,11 +34,15 @@ public:
               generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
               llring_holder& holder);
 
+  void process_recv_reliable_msg(reliable_single_msg* msg_ptr);
+
   void handle_message(dp_pkt_batch_t, bess::PacketBatch* batch);
 
   void handle_message(cp_pkt_batch_t, bess::PacketBatch* batch);
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
+
+  void handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id);
 
   inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
     return mac_list_item_allocator_;

@@ -3,10 +3,8 @@
 
 #include "./base/local_message.h"
 
-static constexpr uint16_t flow_actor_messages_start = 0x8001;
-
 enum class flow_actor_messages : uint16_t{
-  pkt_msg = flow_actor_messages_start,
+  pkt_msg,
   flow_actor_init,
   check_idle
 };

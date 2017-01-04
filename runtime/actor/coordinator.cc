@@ -5,7 +5,25 @@
 
 #include <glog/logging.h>
 
-inline void process_recv_reliable_msg(reliable_single_msg* msg_ptr){
+void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
+  if(msg_ptr->rmh.recv_actor_id == 1){
+    switch(static_cast<coordinator_messages>(msg_ptr->rmh.msg_type)){
+      case coordinator_messages::ping : {
+        handle_message(ping_t::value, msg_ptr->send_runtime_id, msg_ptr->rmh.send_actor_id);
+        break;
+      }
+      default : {
+        break;
+      }
+    }
+  }
+  else{
+    switch(static_cast<flow_actor_messages>(msg_ptr->rmh.msg_type)){
+      default : {
+        break;
+      }
+    }
+  }
 }
 
 coordinator::coordinator(flow_actor_allocator* allocator,
@@ -107,4 +125,8 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
   }
   else{
   }
+}
+
+void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id){
+  LOG(INFO)<<"Receive ping message sent from actor "<<sender_actor_id<<" on runtime "<<sender_rtid;
 }
