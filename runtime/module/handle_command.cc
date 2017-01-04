@@ -62,6 +62,7 @@ struct task_result handle_command::RunTask(void *arg){
 
         reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
         coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+        r.reliable_send(1,1,1,dp_pkt_batch_t::value,(void*)0);
         break;
       }
       case rpc_operation::delete_input_runtime :{
