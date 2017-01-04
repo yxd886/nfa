@@ -16,11 +16,12 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
-  auto it = coordinator_actor_->reliables_.find(3);
+  if(coordinator_actor_->migration_target_rt_id_ != -1 && send_flag==false){
+    LOG(INFO)<<"Send message to migration target";
 
-  if(it!=coordinator_actor_->reliables_.end() && send_flag==false){
     ping_cstruct cstruct;
-    it->second.reliable_send(2, 1, 1, ping_t::value, &cstruct);
+    coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second
+                                  .reliable_send(2, 1, 1, ping_t::value, &cstruct);
     send_flag = true;
   }
 
