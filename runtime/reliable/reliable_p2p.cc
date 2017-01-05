@@ -47,7 +47,7 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
-    LOG(INFO)<<rh->seq_num<<" "<<next_seq_num_to_recv_<<", discard";
+    // LOG(INFO)<<rh->seq_num<<" "<<next_seq_num_to_recv_<<", discard";
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
@@ -77,13 +77,13 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
 void reliable_p2p::check(){
   if(unlikely(next_check_time_<ctx.current_ns())){
     if(last_check_head_seq_num_==send_queue_.peek_head_seq_num() && send_queue_.peek_cur_size()>0){
-      LOG(INFO)<<send_queue_.peek_head_seq_num();
-      LOG(INFO)<<last_check_head_seq_num_;
-      LOG(INFO)<<send_queue_.peek_cur_size();
+      // LOG(INFO)<<send_queue_.peek_head_seq_num();
+      // LOG(INFO)<<last_check_head_seq_num_;
+      // LOG(INFO)<<send_queue_.peek_cur_size();
 
-      // uint64_t num_to_send = send_queue_.reset_window_pos();
-      // prepend_to_reliable_send_list(num_to_send);
-      assert(1==0);
+      uint64_t num_to_send = send_queue_.reset_window_pos();
+      prepend_to_reliable_send_list(num_to_send);
+      // assert(1==0);
     }
 
     next_check_time_ = ctx.current_ns() + next_check_times*send_queue_.peek_rtt();
