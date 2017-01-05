@@ -76,7 +76,7 @@ public:
 
     char* data_start = ack_pkt->head_data<char*>();
     rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
-    LOG(INFO)<<"sending ack "<<next_seq_num_to_recv_;
+    // LOG(INFO)<<"sending ack "<<next_seq_num_to_recv_;
     return ack_pkt;
   }
 
@@ -135,7 +135,7 @@ private:
 
   bess::PacketBatch create_packet_sub_msg(bess::Packet* pkt);
 
-  reliable_send_queue<512> send_queue_;
+  reliable_send_queue<4096*2> send_queue_;
   uint32_t next_seq_num_to_recv_;
   int ref_cnt_;
 

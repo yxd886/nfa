@@ -7,7 +7,7 @@
 void coordinator_mp::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
   coordinator_actor_ = coordinator_actor;
-  num_to_send = 1000;
+  num_to_send = 500000;
   successful_send = 0;
   unsuccessful_send= 0;
   send_end_flag = false;
@@ -19,23 +19,25 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
-  bess::Packet* pkt = bess::Packet::Alloc();
-  assert(pkt != nullptr);
-  bess::Packet::Free(pkt);
-
   if(coordinator_actor_->migration_target_rt_id_ != -1 && num_to_send>0){
 
     ping_cstruct cstruct;
     cstruct.val = num_to_send;
-    bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second
-                                  .reliable_send(77363, 1, 1, ping_t::value, &cstruct);
-    num_to_send-=1;
+    for(int i=0; i<32; i++){
+      if(num_to_send==0){
+        break;
+      }
 
-    if(flag==false){
-      unsuccessful_send+=1;
-    }
-    else{
-      successful_send+=1;
+      bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second
+                                    .reliable_send(77363, 1, 1, ping_t::value, &cstruct);
+      num_to_send-=1;
+
+      if(flag==false){
+        unsuccessful_send+=1;
+      }
+      else{
+        successful_send+=1;
+      }
     }
   }
 

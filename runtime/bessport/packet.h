@@ -182,7 +182,7 @@ class Packet {
     DCHECK_EQ(ret, 0);
   }
 
-  Packet *copy(Packet *src) {
+  static Packet *copy(Packet *src) {
     Packet *dst;
 
     DCHECK(src->is_linear());
