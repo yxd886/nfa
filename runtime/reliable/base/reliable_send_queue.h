@@ -9,6 +9,10 @@
 #include <glog/logging.h>
 #include "../../rpc/ring_msg.h"
 
+static constexpr uint64_t default_rtt = 5000;
+
+static constexpr uint64_t default_rtt_count_times = 1;
+
 static constexpr bool is_power_of_two(uint32_t val){
   return (val!=0) &&
          ( (val==1) ||
@@ -27,7 +31,8 @@ public:
     tail_pos_(0), next_seq_num_(1),
     cur_size_(0),
     window_pos_(0), window_pos_seq_num_(1),
-    pending_send_num_(0){
+    pending_send_num_(0),
+    rtt_(default_rtt), rtt_count_times_(default_rtt_count_times){
 
     rh_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
     rh_.ethh.s_addr = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
@@ -106,6 +111,9 @@ public:
       batch.CopyAddr(ring_buf_+head_pos_, pop_num);
     }
 
+    rtt_ += (ctx.current_ns() - send_time_[head_pos_]);
+    rtt_count_times_ += 1;
+
     head_pos_ = (head_pos_+pop_num)&mask;
     cur_size_ -= pop_num;
     head_seq_num_ = ack_seq_num;
@@ -133,9 +141,11 @@ public:
     if(unlikely(window_pos_+window_size>=N)){
       for(uint64_t i=window_pos_; i<N; i++ ){
         batch.add(bess::Packet::copy(ring_buf_[i]));
+        send_time_[i] = ctx.current_ns();
       }
       for(uint64_t i=0; i<(window_size-N+window_pos_); i++){
         batch.add(bess::Packet::copy(ring_buf_[i]));
+        send_time_[i] = ctx.current_ns();
       }
 
       // batch.CopyAddr(ring_buf_+window_pos_, N-window_pos_);
@@ -144,6 +154,7 @@ public:
     else{
       for(uint64_t i=window_pos_; i<(window_pos_+window_size); i++){
         batch.add(bess::Packet::copy(ring_buf_[i]));
+        send_time_[i] = ctx.current_ns();
       }
       // batch.CopyAddr(ring_buf_+window_pos_, window_size);
     }
@@ -157,6 +168,23 @@ public:
     window_pos_seq_num_ += window_size;
 
     return batch;
+  }
+
+  inline uint64_t peek_rtt(){
+    return rtt_/rtt_count_times_;
+  }
+
+  inline uint64_t peek_head_seq_num(){
+    return head_seq_num_;
+  }
+
+  inline uint64_t peek_cur_size(){
+    return cur_size_;
+  }
+
+  inline void reset_rtt(){
+    rtt_ = default_rtt;
+    rtt_count_times_ = default_rtt_count_times;
   }
 
 private:
@@ -190,6 +218,12 @@ private:
   uint64_t pending_send_num_;
 
   bess::Packet* ring_buf_[N];
+
+  uint64_t send_time_[N];
+
+  uint64_t rtt_;
+
+  uint64_t rtt_count_times_;
 
   reliable_header rh_;
 };

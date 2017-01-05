@@ -45,6 +45,9 @@ struct task_result coordinator_mp::RunTask(void *arg){
     send_end_flag = true;
     LOG(INFO)<<"Unsuccessful send "<<unsuccessful_send;
     LOG(INFO)<<"Successful send "<<successful_send;
+    LOG(INFO)<<"The rtt is "
+             <<coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second.peek_rtt()
+             <<"ns";
   }
 
   return ret;

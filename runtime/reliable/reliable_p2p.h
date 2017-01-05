@@ -80,6 +80,10 @@ public:
     return ack_pkt;
   }
 
+  inline uint64_t peek_rtt(){
+    return send_queue_.peek_rtt();
+  }
+
   inline uint16_t get_output_gate(){
     return output_gate_;
   }
