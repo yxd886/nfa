@@ -21,6 +21,8 @@ public:
 private:
 
   coordinator* coordinator_actor_;
+
+  double ns_per_cycle_;
 };
 
 #endif

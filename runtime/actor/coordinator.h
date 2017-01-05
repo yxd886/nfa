@@ -63,6 +63,8 @@ private:
 
   generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
 
+  int counter = 0;
+  uint64_t start_time = 0;
 };
 
 #endif

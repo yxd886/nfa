@@ -1,11 +1,13 @@
 //
 #include "send_reliable_ack.h"
+#include "../bessport/utils/time.h"
 
 #include <glog/logging.h>
 
 void send_reliable_ack::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
   coordinator_actor_ = coordinator_actor;
+  ns_per_cycle_ = 1e9 / tsc_hz;
 }
 
 struct task_result send_reliable_ack::RunTask(void *arg){
@@ -17,9 +19,9 @@ struct task_result send_reliable_ack::RunTask(void *arg){
   bess::PacketBatch batch;
   batch.clear();
   uint16_t out_gates[bess::PacketBatch::kMaxBurst];
-
+  uint64_t current_ns = rdtsc()*ns_per_cycle_;
   for(auto it=coordinator_actor_->reliables_.begin(); it!=coordinator_actor_->reliables_.end(); it++){
-    it->second.check();
+    it->second.check(current_ns);
     bess::Packet* ack_pkt = it->second.get_ack_pkt();
     if(unlikely(ack_pkt == nullptr)){
       continue;

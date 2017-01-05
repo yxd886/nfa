@@ -28,6 +28,9 @@ private:
   int unsuccessful_send= 0;
 
   bool send_end_flag = false;
+
+  uint64_t start_time = 0;
+  uint64_t end_time = 0;
 };
 
 #endif

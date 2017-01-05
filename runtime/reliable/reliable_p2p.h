@@ -10,9 +10,9 @@
 
 static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
-static constexpr int initial_check_times = 10;
+static constexpr int initial_check_times = 50;
 
-static constexpr int next_check_times = 10;
+static constexpr int next_check_times = 50;
 
 class coordinator;
 
@@ -84,7 +84,7 @@ public:
     return ack_pkt;
   }
 
-  void check();
+  void check(uint64_t current_ns);
 
   inline uint64_t peek_rtt(){
     return send_queue_.peek_rtt();
@@ -146,7 +146,7 @@ private:
 
   bess::PacketBatch create_packet_sub_msg(bess::Packet* pkt);
 
-  reliable_send_queue<4096*2> send_queue_;
+  reliable_send_queue<4096> send_queue_;
   uint32_t next_seq_num_to_recv_;
   int ref_cnt_;
 
@@ -167,6 +167,7 @@ private:
   uint32_t next_seq_num_to_recv_snapshot_;
 
   uint64_t next_check_time_;
+  uint64_t previous_check_time_;
   uint64_t last_check_head_seq_num_;
 };
 
