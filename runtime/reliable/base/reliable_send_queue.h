@@ -6,6 +6,9 @@
 #include "reliable_message_misc.h"
 #include "../../actor/base/garbage_pkt_collector.h"
 
+#include <glog/logging.h>
+#include "../../rpc/ring_msg.h"
+
 static constexpr bool is_power_of_two(uint32_t val){
   return (val!=0) &&
          ( (val==1) ||
@@ -25,6 +28,7 @@ public:
     cur_size_(0),
     window_pos_(0), window_pos_seq_num_(1),
     pending_send_num_(0){
+
     rh_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
     rh_.ethh.s_addr = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
     rh_.ethh.ether_type = 0x0800;
@@ -117,6 +121,9 @@ public:
 
   inline bess::PacketBatch get_window_batch(uint64_t window_size){
     bess::PacketBatch batch;
+    // bess::PacketBatch return_batch;
+    batch.clear();
+    // return_batch.clear();
     assert(batch.cnt()==0);
 
     if(unlikely(window_size>pending_send_num_)){
@@ -124,16 +131,31 @@ public:
     }
 
     if(unlikely(window_pos_+window_size>=N)){
-      batch.CopyAddr(ring_buf_+window_pos_, N-window_pos_);
-      batch.CopyAddr(ring_buf_, window_size - batch.cnt());
+      for(uint64_t i=window_pos_; i<N; i++ ){
+        batch.add(bess::Packet::copy(ring_buf_[i]));
+      }
+      for(uint64_t i=0; i<(window_size-N+window_pos_); i++){
+        batch.add(bess::Packet::copy(ring_buf_[i]));
+      }
+
+      // batch.CopyAddr(ring_buf_+window_pos_, N-window_pos_);
+      // batch.CopyAddr(ring_buf_, window_size - batch.cnt());
     }
     else{
-      batch.CopyAddr(ring_buf_+window_pos_, window_size);
+      for(uint64_t i=window_pos_; i<(window_pos_+window_size); i++){
+        batch.add(bess::Packet::copy(ring_buf_[i]));
+      }
+      // batch.CopyAddr(ring_buf_+window_pos_, window_size);
     }
+
+    // for(int i=0; i<batch.cnt(); i++){
+    //   return_batch.add(bess::Packet::copy(batch.pkts()[i]));
+    // }
 
     window_pos_ = (window_pos_+window_size)&mask;
     pending_send_num_ -= window_size;
     window_pos_seq_num_ += window_size;
+
     return batch;
   }
 

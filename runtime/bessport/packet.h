@@ -49,7 +49,7 @@ struct rte_mempool *get_pframe_pool_socket(int socket);
 
 void init_mempool(void);
 void close_mempool(void);
-
+struct rte_mempool* nfa_get_mempool(int socket_id);
 int nfa_load_mempool();
 
 // For the layout of snbuf, see snbuf_layout.h
@@ -182,7 +182,7 @@ class Packet {
     DCHECK_EQ(ret, 0);
   }
 
-  Packet *copy(Packet *src) {
+  static Packet *copy(Packet *src) {
     Packet *dst;
 
     DCHECK(src->is_linear());

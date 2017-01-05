@@ -22,6 +22,7 @@
 #include "../../module/send_reliable_ack.h"
 #include "../../module/forward_ec_scheduler.h"
 #include "../../module/reverse_ec_scheduler.h"
+#include "../../module/coordinator_mp.h"
 #include "../../actor/flow_actor.h"
 #include "../../actor/flow_actor_allocator.h"
 #include "../../actor/coordinator.h"
@@ -94,8 +95,7 @@ int main(int argc, char* argv[]){
   }
 
   // create a worker thread
-  int wid = 1;
-  launch_worker(wid, FLAGS_worker_core);
+  launch_worker(FLAGS_worker_core, FLAGS_worker_core);
 
   // create the llring used for communication
   llring_holder communication_ring;
@@ -144,6 +144,10 @@ int main(int argc, char* argv[]){
                                                                    "mod_send_reliable_msg",
                                                                    &coordinator_actor);
 
+  //Module* mod_coordinator_mp = create_module<coordinator_mp>("coordinator_mp",
+                                                             "mod_coordinator_mp",
+                                                             &coordinator_actor);
+
   int f1 = mod_iport_port_inc->ConnectModules(0, mod_forward_ec_scheduler, 0);
   int f2 = mod_forward_ec_scheduler->ConnectModules(0, mod_oport_port_out, 0);
   if(f1!=0 || f2!=0 ){
@@ -185,6 +189,7 @@ int main(int argc, char* argv[]){
   resume_all_workers();
 
   // create the rpc server
+  LOG(INFO)<<"Prepare server";
   ServerImpl rpc_server(communication_ring.rpc2worker_ring(), communication_ring.worker2rpc_ring());
   rpc_server.Run(FLAGS_rpc_ip, FLAGS_rpc_port);
   rpc_server.HandleRpcs();

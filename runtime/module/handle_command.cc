@@ -48,7 +48,7 @@ struct task_result handle_command::RunTask(void *arg){
                                   0));
 
         reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
-        coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+        coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.output_port_mac, r);
         break;
       }
       case rpc_operation::add_output_runtime :{
@@ -65,9 +65,11 @@ struct task_result handle_command::RunTask(void *arg){
                                   1));
 
         reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
-        coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
-        test_msg a;
-        r.reliable_send(1,1,1,dp_pkt_batch_t::value,&a);
+
+        coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.input_port_mac, r);
+        ping_cstruct t;
+        r.reliable_send(0,1,2,ping_t::value,&t);
+
         break;
       }
       case rpc_operation::delete_input_runtime :{
@@ -151,6 +153,8 @@ struct task_result handle_command::RunTask(void *arg){
           coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
           coordinator_actor_->mac_to_reliables_.erase(coordinator_actor_->migration_target_rt_id_);
 
+          coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
+          LOG(INFO)<<"The destination mac address is "<<convert_uint64t_mac(item->rt_config.control_port_mac);
           coordinator_actor_->reliables_.emplace(
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
@@ -162,7 +166,7 @@ struct task_result handle_command::RunTask(void *arg){
                                             2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
-          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.control_port_mac, r);
         }
         break;
       }
@@ -187,7 +191,7 @@ struct task_result handle_command::RunTask(void *arg){
                                             2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
-          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.control_port_mac, r);
 
           coordinator_actor_->rtid_to_migrate_in_rrlist_.emplace(
                       std::piecewise_construct,
@@ -231,7 +235,7 @@ struct task_result handle_command::RunTask(void *arg){
                                             2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
-          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.control_port_mac, r);
 
           coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second.inc_ref_cnt();
         }
@@ -259,7 +263,7 @@ struct task_result handle_command::RunTask(void *arg){
                                             2));
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
-          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.runtime_id, r);
+          coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.control_port_mac, r);
 
           coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second.inc_ref_cnt();
         }

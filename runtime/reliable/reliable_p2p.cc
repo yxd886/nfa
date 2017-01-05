@@ -35,13 +35,16 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   reliable_header* rh = pkt->head_data<reliable_header *>();
 
   if(unlikely(rh->magic_num == ack_magic_num)){
+    // LOG(INFO)<<"receiving ack packet with seq_num "<<rh->seq_num;
     bess::PacketBatch free_batch = send_queue_.pop(rh->seq_num);
+    // LOG(INFO)<<"Get a batch of size "<<free_batch.cnt()<<" to free";
     coordinator_actor_->gp_collector_.collect(&free_batch);
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
+    LOG(INFO)<<rh->seq_num<<" "<<next_seq_num_to_recv_<<", discard";
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
@@ -78,11 +81,11 @@ void reliable_p2p::reset(){
 void reliable_p2p::add_to_reliable_send_list(int pkt_num){
   generic_list_item* last_item = coordinator_actor_->reliable_send_list_.peek_tail();
 
-  if(unlikely(last_item->reliable_rtid != local_rtid_)){
+  if(unlikely(last_item==nullptr || last_item->reliable_rtid != dest_rtid_)){
     generic_list_item* list_item = coordinator_actor_->get_list_item_allocator()->allocate();
 
     list_item->pkt_num = pkt_num;
-    list_item->reliable_rtid = local_rtid_;
+    list_item->reliable_rtid = dest_rtid_;
     list_item->output_gate = output_gate_;
 
     coordinator_actor_->reliable_send_list_.add_to_tail(list_item);

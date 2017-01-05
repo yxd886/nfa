@@ -237,6 +237,16 @@ void *Worker::Run(void *_arg) {
   LOG(INFO) << "Worker " << wid_ << "(" << this << ") "
             << "is running on core " << core_ << " (socket " << socket_ << ")";
 
+  /*bess::Packet* test_pkt = reinterpret_cast<bess::Packet *>(bess::nfa_get_mempool(0));
+  if(test_pkt!=nullptr){
+    LOG(INFO)<<"Worker successfully allocate a packet";
+    bess::Packet::Free(test_pkt);
+    LOG(INFO)<<"Worker successfully frees a packet";
+  }
+  else{
+    LOG(INFO)<<"Worker fails to allocate a packet";
+  }*/
+
   CPU_ZERO(&set);
   scheduler_->ScheduleLoop();
 

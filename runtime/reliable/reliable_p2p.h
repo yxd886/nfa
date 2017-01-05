@@ -6,6 +6,8 @@
 #include "./base/reliable_message_misc.h"
 #include "../bessport/worker.h"
 
+#include <glog/logging.h>
+
 static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
 class coordinator;
@@ -27,6 +29,7 @@ public:
                      T* cstruct_ptr){
     bess::Packet* cstruct_msg_pkt = create_cstruct_sub_msg(cstruct_ptr);
     if(unlikely(cstruct_msg_pkt == nullptr)){
+      LOG(INFO)<<"no cstruct_msg_pkt";
       return false;
     }
 
@@ -39,7 +42,11 @@ public:
     msg_header->msg_type = N;
     msg_header->msg_pkt_num = 1;
 
-    send_queue_.push(cstruct_msg_pkt);
+    bool flag = send_queue_.push(cstruct_msg_pkt);
+    if(unlikely(flag == false)){
+      bess::Packet::Free(cstruct_msg_pkt);
+      return false;
+    }
 
     add_to_reliable_send_list(1);
 
@@ -69,7 +76,7 @@ public:
 
     char* data_start = ack_pkt->head_data<char*>();
     rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
-
+    // LOG(INFO)<<"sending ack "<<next_seq_num_to_recv_;
     return ack_pkt;
   }
 
@@ -128,7 +135,7 @@ private:
 
   bess::PacketBatch create_packet_sub_msg(bess::Packet* pkt);
 
-  reliable_send_queue<512> send_queue_;
+  reliable_send_queue<4096*2> send_queue_;
   uint32_t next_seq_num_to_recv_;
   int ref_cnt_;
 
