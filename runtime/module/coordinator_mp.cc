@@ -7,7 +7,7 @@
 void coordinator_mp::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
   coordinator_actor_ = coordinator_actor;
-  num_to_send = 500000;
+  num_to_send = 1000000;
   successful_send = 0;
   unsuccessful_send= 0;
   send_end_flag = false;

@@ -10,6 +10,10 @@
 
 static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
+static constexpr int initial_check_times = 200;
+
+static constexpr int next_check_times = 100;
+
 class coordinator;
 
 class reliable_p2p{
