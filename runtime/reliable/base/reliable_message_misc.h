@@ -37,11 +37,7 @@ struct reliable_message_header {
 
 static constexpr uint8_t msg_magic_num = 0xA1;
 
-static constexpr uint8_t ack_magic_num_base = 0xB0;
-
-static constexpr uint8_t ack_magic_num = ack_magic_num_base | 0x02;
-
-static constexpr uint8_t ack_adjust_window_magic_num = ack_magic_num_base | 0x03;
+static constexpr uint8_t ack_magic_num = 0xB2;
 
 struct reliable_single_msg{
   int32_t send_runtime_id;

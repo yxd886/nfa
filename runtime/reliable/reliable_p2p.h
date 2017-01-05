@@ -58,7 +58,7 @@ public:
   }
 
   inline bess::Packet* get_ack_pkt(){
-    if(next_seq_num_to_recv_snapshot_==next_seq_num_to_recv_ && outof_order_counter_==0){
+    if(next_seq_num_to_recv_snapshot_ == next_seq_num_to_recv_){
       return nullptr;
     }
 
@@ -73,14 +73,6 @@ public:
 
     ack_header_.seq_num = next_seq_num_to_recv_;
     next_seq_num_to_recv_snapshot_ = next_seq_num_to_recv_;
-    outof_order_counter_  = 0;
-
-    if(next_seq_num_to_recv_snapshot_==next_seq_num_to_recv_ && outof_order_counter_>0){
-      ack_header_.magic_num = ack_adjust_window_magic_num;
-    }
-    else{
-      ack_header_.magic_num = ack_magic_num;
-    }
 
     char* data_start = ack_pkt->head_data<char*>();
     rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
@@ -113,8 +105,6 @@ public:
 
 private:
   void add_to_reliable_send_list(int pkt_num);
-
-  void prepend_to_reliable_send_list(int pkt_num);
 
   template<class T>
   bess::Packet* create_cstruct_sub_msg(T* cstruct_msg){
@@ -164,8 +154,6 @@ private:
   uint16_t output_gate_;
 
   uint32_t next_seq_num_to_recv_snapshot_;
-
-  uint64_t outof_order_counter_;
 };
 
 #endif

@@ -16,11 +16,6 @@ public:
     cnt_ += 1;
   }
 
-  inline void add_to_head(T* obj_ptr){
-    cdlist_add_head(&rr_list_head_, reinterpret_cast<struct cdlist_item*>(obj_ptr));
-    cnt_ += 1;
-  }
-
   inline T* peek_head(){
     struct cdlist_item* item = cdlist_peek_first_item(&rr_list_head_);
     if(item == nullptr){
