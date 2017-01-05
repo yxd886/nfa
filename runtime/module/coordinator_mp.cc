@@ -7,7 +7,10 @@
 void coordinator_mp::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
   coordinator_actor_ = coordinator_actor;
-  send_flag = false;
+  num_to_send = 1000;
+  successful_send = 0;
+  unsuccessful_send= 0;
+  send_end_flag = false;
 }
 
 struct task_result coordinator_mp::RunTask(void *arg){
@@ -20,13 +23,26 @@ struct task_result coordinator_mp::RunTask(void *arg){
   assert(pkt != nullptr);
   bess::Packet::Free(pkt);
 
-  if(coordinator_actor_->migration_target_rt_id_ != -1 && send_flag==false){
-    LOG(INFO)<<"Send message to migration target";
+  if(coordinator_actor_->migration_target_rt_id_ != -1 && num_to_send>0){
 
     ping_cstruct cstruct;
-    coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second
-                                  .reliable_send(2, 1, 1, ping_t::value, &cstruct);
-    send_flag = true;
+    cstruct.val = num_to_send;
+    bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second
+                                  .reliable_send(77363, 1, 1, ping_t::value, &cstruct);
+    num_to_send-=1;
+
+    if(flag==false){
+      unsuccessful_send+=1;
+    }
+    else{
+      successful_send+=1;
+    }
+  }
+
+  if(coordinator_actor_->migration_target_rt_id_ != -1 && num_to_send==0 && send_end_flag==false){
+    send_end_flag = true;
+    LOG(INFO)<<"Unsuccessful send "<<unsuccessful_send;
+    LOG(INFO)<<"Successful send "<<successful_send;
   }
 
   return ret;

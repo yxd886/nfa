@@ -32,7 +32,7 @@ public:
       LOG(INFO)<<"no cstruct_msg_pkt";
       return false;
     }
-    LOG(INFO)<<"cstruct_msg_pkt allocation succeed";
+
     reliable_message_header* msg_header = reinterpret_cast<reliable_message_header*>(
                                           cstruct_msg_pkt->prepend(sizeof(reliable_message_header)));
 
@@ -42,8 +42,11 @@ public:
     msg_header->msg_type = N;
     msg_header->msg_pkt_num = 1;
 
-    LOG(INFO)<<"enquened to the send_queue";
-    send_queue_.push(cstruct_msg_pkt);
+    bool flag = send_queue_.push(cstruct_msg_pkt);
+    if(unlikely(flag == false)){
+      bess::Packet::Free(cstruct_msg_pkt);
+      return false;
+    }
 
     add_to_reliable_send_list(1);
 
@@ -55,7 +58,7 @@ public:
   }
 
   inline bess::Packet* get_ack_pkt(){
-    if(next_seq_num_to_recv_snapshot_ == next_seq_num_to_recv_){
+    if(next_seq_num_to_recv_snapshot_==next_seq_num_to_recv_ && outof_order_counter_==0){
       return nullptr;
     }
 
@@ -70,10 +73,18 @@ public:
 
     ack_header_.seq_num = next_seq_num_to_recv_;
     next_seq_num_to_recv_snapshot_ = next_seq_num_to_recv_;
+    outof_order_counter_  = 0;
+
+    if(next_seq_num_to_recv_snapshot_==next_seq_num_to_recv_ && outof_order_counter_>0){
+      ack_header_.magic_num = ack_adjust_window_magic_num;
+    }
+    else{
+      ack_header_.magic_num = ack_magic_num;
+    }
 
     char* data_start = ack_pkt->head_data<char*>();
     rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
-
+    LOG(INFO)<<"sending ack "<<next_seq_num_to_recv_;
     return ack_pkt;
   }
 
@@ -102,6 +113,8 @@ public:
 
 private:
   void add_to_reliable_send_list(int pkt_num);
+
+  void prepend_to_reliable_send_list(int pkt_num);
 
   template<class T>
   bess::Packet* create_cstruct_sub_msg(T* cstruct_msg){
@@ -151,6 +164,8 @@ private:
   uint16_t output_gate_;
 
   uint32_t next_seq_num_to_recv_snapshot_;
+
+  uint64_t outof_order_counter_;
 };
 
 #endif

@@ -42,7 +42,8 @@ public:
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
 
-  void handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id);
+  void handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
+                      ping_cstruct* cstruct_ptr);
 
   inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
     return mac_list_item_allocator_;

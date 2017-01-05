@@ -11,7 +11,7 @@ public:
   static const gate_idx_t kNumOGates = 1;
   static const gate_idx_t kNumIGates = 0;
 
-  coordinator_mp() : Module(), coordinator_actor_(0){}
+  coordinator_mp() : Module(), coordinator_actor_(0), num_to_send(0){}
 
   virtual struct task_result RunTask(void *arg);
 
@@ -21,7 +21,13 @@ private:
 
   coordinator* coordinator_actor_;
 
-  bool send_flag = false;
+  int num_to_send;
+
+  int successful_send = 0;
+
+  int unsuccessful_send= 0;
+
+  bool send_end_flag = false;
 };
 
 #endif

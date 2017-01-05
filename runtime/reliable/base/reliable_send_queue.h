@@ -141,6 +141,16 @@ public:
     return batch;
   }
 
+  inline uint64_t adjust_window_pos(){
+    uint64_t num_to_send = cur_size_-pending_send_num_;
+
+    window_pos_ = head_pos_;
+    window_pos_seq_num_ = head_seq_num_;
+    pending_send_num_ = cur_size_;
+
+    return num_to_send;
+  }
+
 private:
   inline int smaller(uint64_t first, uint64_t second){
     return (first>second)?second:first;
