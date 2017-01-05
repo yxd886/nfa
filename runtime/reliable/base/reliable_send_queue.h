@@ -129,10 +129,7 @@ public:
 
   inline bess::PacketBatch get_window_batch(uint64_t window_size){
     bess::PacketBatch batch;
-    // bess::PacketBatch return_batch;
     batch.clear();
-    // return_batch.clear();
-    assert(batch.cnt()==0);
 
     if(unlikely(window_size>pending_send_num_)){
       window_size = pending_send_num_;
@@ -147,27 +144,27 @@ public:
         batch.add(bess::Packet::copy(ring_buf_[i]));
         send_time_[i] = ctx.current_ns();
       }
-
-      // batch.CopyAddr(ring_buf_+window_pos_, N-window_pos_);
-      // batch.CopyAddr(ring_buf_, window_size - batch.cnt());
     }
     else{
       for(uint64_t i=window_pos_; i<(window_pos_+window_size); i++){
         batch.add(bess::Packet::copy(ring_buf_[i]));
         send_time_[i] = ctx.current_ns();
       }
-      // batch.CopyAddr(ring_buf_+window_pos_, window_size);
     }
-
-    // for(int i=0; i<batch.cnt(); i++){
-    //   return_batch.add(bess::Packet::copy(batch.pkts()[i]));
-    // }
 
     window_pos_ = (window_pos_+window_size)&mask;
     pending_send_num_ -= window_size;
     window_pos_seq_num_ += window_size;
 
     return batch;
+  }
+
+  inline uint64_t reset_window_pos(){
+    uint64_t more_pkts_to_send = cur_size_-pending_send_num_;
+    window_pos_ = head_pos_;
+    pending_send_num_ = cur_size_;
+    window_pos_seq_num_ = head_seq_num_;
+    return more_pkts_to_send;
   }
 
   inline uint64_t peek_rtt(){
@@ -222,7 +219,6 @@ private:
   uint64_t send_time_[N];
 
   uint64_t rtt_;
-
   uint64_t rtt_count_times_;
 
   reliable_header rh_;

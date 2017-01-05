@@ -80,6 +80,8 @@ public:
     return ack_pkt;
   }
 
+  void check();
+
   inline uint64_t peek_rtt(){
     return send_queue_.peek_rtt();
   }
@@ -109,6 +111,7 @@ public:
 
 private:
   void add_to_reliable_send_list(int pkt_num);
+  void prepend_to_reliable_send_list(int pkt_num);
 
   template<class T>
   bess::Packet* create_cstruct_sub_msg(T* cstruct_msg){
@@ -158,6 +161,9 @@ private:
   uint16_t output_gate_;
 
   uint32_t next_seq_num_to_recv_snapshot_;
+
+  uint64_t next_check_time_;
+  uint64_t last_check_head_seq_num_;
 };
 
 #endif

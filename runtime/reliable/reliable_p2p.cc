@@ -23,12 +23,14 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
   ack_header_.iph.src_addr = 0x0A0A0102;
   ack_header_.iph.dst_addr = 0x0A0A0101;
   ack_header_.iph.hdr_checksum = rte_ipv4_cksum(&(ack_header_.iph));
-
   ack_header_.magic_num = ack_magic_num;
 
   output_gate_ = output_gate;
 
   next_seq_num_to_recv_snapshot_ = 1;
+
+  next_check_time_ = ctx.current_ns() + 2*send_queue_.peek_rtt();
+  last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
 }
 
 reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
@@ -71,6 +73,19 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 }
 
+void reliable_p2p::check(){
+  if(unlikely(next_check_time_<ctx.current_ns())){
+    if(last_check_head_seq_num_==send_queue_.peek_head_seq_num() && send_queue_.peek_cur_size()>0){
+      uint64_t num_to_send = send_queue_.reset_window_pos();
+      prepend_to_reliable_send_list(num_to_send);
+    }
+
+    next_check_time_ = ctx.current_ns() + 2*send_queue_.peek_rtt();
+    last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
+    send_queue_.reset_rtt();
+  }
+}
+
 void reliable_p2p::reset(){
   send_queue_.reset(&(coordinator_actor_->gp_collector_));
   next_seq_num_to_recv_ = 1;
@@ -94,6 +109,24 @@ void reliable_p2p::add_to_reliable_send_list(int pkt_num){
   }
 
   last_item->pkt_num += pkt_num;
+}
+
+void reliable_p2p::prepend_to_reliable_send_list(int pkt_num){
+  generic_list_item* first_item = coordinator_actor_->reliable_send_list_.peek_head();
+
+  if(unlikely(first_item==nullptr || first_item->reliable_rtid != dest_rtid_)){
+    generic_list_item* list_item = coordinator_actor_->get_list_item_allocator()->allocate();
+
+    list_item->pkt_num = pkt_num;
+    list_item->reliable_rtid = dest_rtid_;
+    list_item->output_gate = output_gate_;
+
+    coordinator_actor_->reliable_send_list_.add_to_head(list_item);
+
+    return;
+  }
+
+  first_item->pkt_num += pkt_num;
 }
 
 void reliable_p2p::encode_binary_fs_sub_msg(bess::PacketBatch* batch){
