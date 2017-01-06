@@ -69,7 +69,7 @@ public:
   		// */
 
   		// discard non-IP packets
-  		if(ntohs(eth_header->type) != ETHERTYPE_IP) {
+  		if(ntohs(eth_header->ether_type) != ETHERTYPE_IP) {
   			//fprintf(stderr, "Ignoring non-IP packets\n");
   			return;
   		}
