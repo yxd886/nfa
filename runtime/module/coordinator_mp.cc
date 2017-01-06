@@ -19,7 +19,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
-  if(coordinator_actor_->migration_target_rt_id_ != -1 && num_to_send>0){
+  if(coordinator_actor_->migration_target_rt_id_rrlist_.empty() != true && num_to_send>0){
 
     ping_cstruct cstruct;
     cstruct.val = num_to_send;
@@ -28,20 +28,27 @@ struct task_result coordinator_mp::RunTask(void *arg){
         break;
       }
 
-      bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second
-                                    .reliable_send(77363, 1, 1, ping_t::value, &cstruct);
-      num_to_send-=1;
 
-      if(flag==false){
-        unsuccessful_send+=1;
+      for(auto it=coordinator_actor_->migration_target_rt_id_rrlist_.begin();it!=coordinator_actor_->migration_target_rt_id_rrlist_.end();it++){
+
+        bool flag = coordinator_actor_->reliables_.find(it->second)->second
+                                      .reliable_send(77363, 1, 1, ping_t::value, &cstruct);
+        num_to_send-=1;
+
+        if(flag==false){
+          unsuccessful_send+=1;
+        }
+        else{
+          successful_send+=1;
+        }
+
+
       }
-      else{
-        successful_send+=1;
-      }
+
     }
   }
 
-  if(coordinator_actor_->migration_target_rt_id_ != -1 && num_to_send==0 && send_end_flag==false){
+  if(coordinator_actor_->migration_target_rt_id_rrlist_.empty() != true  && num_to_send==0 && send_end_flag==false){
     send_end_flag = true;
     LOG(INFO)<<"Unsuccessful send "<<unsuccessful_send;
     LOG(INFO)<<"Successful send "<<successful_send;
