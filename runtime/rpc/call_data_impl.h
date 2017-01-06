@@ -595,8 +595,8 @@ void derived_call_data<DeleteMigrationTargetReq, DeleteMigrationTargetRep>::Proc
     create_itself();
 
 
-    string delete_migration_addr = concat_with_colon(request_.addrs().rpc_ip(),
-                                                   std::to_string(request_.addrs().rpc_port()));
+    string delete_migration_addr = concat_with_colon(request_.addr().rpc_ip(),
+                                                   std::to_string(request_.addr().rpc_port()));
     if((migration_targets_.find(delete_migration_addr)!=migration_targets_.end())){
 
       llring_item item(rpc_operation::delete_migration_target,migration_targets_[delete_migration_addr], 0, 0);
@@ -664,8 +664,8 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
     string local_addr = concat_with_colon(convert_uint32t_ip(local_runtime_.rpc_ip),
                                          std::to_string(local_runtime_.rpc_port));
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
-    string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
-                                              std::to_string(migration_target_.rpc_port));
+   // string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
+    //                                          std::to_string(migration_target_.rpc_port));
 
     for(int i=0; i<request_.addrs_size(); i++){
       string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
@@ -673,7 +673,7 @@ void derived_call_data<AddReplicasReq, AddReplicasRep>::Proceed(){
 
       if((replicas_.find(dest_addr)!=replicas_.end()) ||
          (dest_addr == local_addr) ||
-         (dest_addr==migration_target_addr && tmp_item.migration_qouta>0) ||
+         (/*dest_addr==migration_target_addr*/migration_targets_.find(dest_addr)!=migration_targets_.end()&& tmp_item.migration_qouta>0) ||
          (input_runtimes_.find(dest_addr) != input_runtimes_.end()) ||
          (output_runtimes_.find(dest_addr) != output_runtimes_.end()) ){
         continue;
@@ -774,9 +774,9 @@ void derived_call_data<ReplicaNegotiateReq, ReplicaNegotiateRep>::Proceed(){
     llring_item tmp_item(rpc_operation::can_migrate, local_runtime_, 0, 0);
     llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&tmp_item));
     poll_worker2rpc_ring();
-    string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
-                                                  std::to_string(migration_target_.rpc_port));
-    if(migration_target_addr==source_addr && tmp_item.migration_qouta>0){
+    //string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
+    //                                              std::to_string(migration_target_.rpc_port));
+    if(/*migration_target_addr==source_addr*/ migration_targets_.find(source_addr)!=migration_targets_.end()&& tmp_item.migration_qouta>0){
       status_ = FINISH;
       responder_.Finish(reply_, Status::OK, this);
       return;
@@ -927,8 +927,13 @@ void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
       reply_.add_storages()->CopyFrom(storages_runtime);
     }
 
-    RuntimeConfig migration_runtime =  local2protobuf(migration_target_);
-    reply_.mutable_migration_target()->CopyFrom(migration_runtime);
+    for(auto it=migration_targets_.begin();it!=migration_targets_.end();it++){
+      RuntimeConfig migration_targets_runtime =  local2protobuf(it->second);
+      reply_.add_migration_targets()->CopyFrom(migration_targets_runtime);
+    }
+
+    //RuntimeConfig migration_runtime =  local2protobuf(migration_target_);
+    //reply_.mutable_migration_target()->CopyFrom(migration_runtime);
 
     RuntimeConfig proto_local_runtime =  local2protobuf(local_runtime_);
     reply_.mutable_local_runtime()->CopyFrom(proto_local_runtime);

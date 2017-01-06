@@ -216,6 +216,6 @@ message GetRuntimeStateRep{
   repeated RuntimeConfig output_runtimes=6;
   repeated RuntimeConfig replicas=7;
   repeated RuntimeConfig storages=8;
-  RuntimeConfig migration_target=9;
+  repeated RuntimeConfig migration_targets=9;
   RuntimeConfig local_runtime=10;
 }
