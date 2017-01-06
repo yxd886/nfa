@@ -71,11 +71,15 @@ public:
       return false;
     }
     else{
-      format_send_packet(obj_ptr);
+      format_send_packet(obj_ptr, next_seq_num_);
       ring_buf_[tail_pos_] = obj_ptr;
+
       tail_pos_ = ((tail_pos_+1)&mask);
+      next_seq_num_+=1;
+
       cur_size_+=1;
       pending_send_num_+=1;
+
       return true;
     }
   }
@@ -91,31 +95,21 @@ public:
     return true;
   }
 
-  inline bess::PacketBatch pop(uint32_t ack_seq_num){
-    bess::PacketBatch batch;
-    batch.clear();
-    assert(batch.cnt()==0);
+  inline void pop(uint32_t ack_seq_num, garbage_pkt_collector* gp_collector){
 
     if(unlikely(cur_size_ == 0)){
-      return batch;
+      return;
     }
 
     uint64_t pop_num = ack_seq_num - head_seq_num_;
     assert(pop_num<=cur_size_);
 
+    for(uint64_t i=0; i<pop_num; i++){
+      gp_collector->collect(ring_buf_[head_pos_+i]);
+    }
 
-    if(unlikely(head_pos_+pop_num>=N)){
-      batch.CopyAddr(ring_buf_+head_pos_, N-head_pos_);
-      batch.CopyAddr(ring_buf_, pop_num-batch.cnt());
-    }
-    else{
-      batch.CopyAddr(ring_buf_+head_pos_, pop_num);
-    }
     uint64_t current_ns = rdtsc()*ns_per_cycle_;
     uint64_t pos_before_ack = (head_pos_+pop_num-1)&mask;
-    // LOG(INFO)<<"Receive ack_seq_num "<<ack_seq_num<<" at "<<current_ns;
-    // LOG(INFO)<<"Send time of pos_before_ack "<<pos_before_ack<<" is "<<send_time_[pos_before_ack];
-    // LOG(INFO)<<"measured rtt is "<<current_ns - send_time_[pos_before_ack]<<"ns";
     rtt_ = (current_ns - send_time_[pos_before_ack]);
 
     head_pos_ = (head_pos_+pop_num)&mask;
@@ -127,8 +121,6 @@ public:
       pending_send_num_ = cur_size_;
       window_pos_seq_num_ = head_seq_num_;
     }
-
-    return batch;
   }
 
   inline bess::PacketBatch get_window_batch(uint64_t window_size){
@@ -192,15 +184,14 @@ private:
     return (first>second)?second:first;
   }
 
-  inline void format_send_packet(bess::Packet* pkt){
+  inline void format_send_packet(bess::Packet* pkt, uint32_t next_seq_num){
     int pkt_len = pkt->total_len()+
                   sizeof(struct ipv4_hdr)+
                   2*sizeof(uint32_t);
 
     rh_.iph.total_length = rte_cpu_to_be_16(pkt_len);
     rh_.iph.hdr_checksum = rte_ipv4_cksum(&(rh_.iph));
-    rh_.seq_num = next_seq_num_;
-    next_seq_num_ += 1;
+    rh_.seq_num = next_seq_num;
 
     reliable_header* rh = reinterpret_cast<reliable_header*>(pkt->prepend(sizeof(reliable_header)));
     assert(rh!=nullptr);

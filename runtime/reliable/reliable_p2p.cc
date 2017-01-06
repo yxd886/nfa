@@ -40,9 +40,7 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
 
   if(unlikely(rh->magic_num == ack_magic_num)){
     // LOG(INFO)<<"receiving ack packet with seq_num "<<rh->seq_num;
-    bess::PacketBatch free_batch = send_queue_.pop(rh->seq_num);
-    // LOG(INFO)<<"Get a batch of size "<<free_batch.cnt()<<" to free";
-    coordinator_actor_->gp_collector_.collect(&free_batch);
+    send_queue_.pop(rh->seq_num, &(coordinator_actor_->gp_collector_));
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }

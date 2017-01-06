@@ -6,8 +6,6 @@
 #include "./base/reliable_message_misc.h"
 #include "../bessport/worker.h"
 
-#include <glog/logging.h>
-
 static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
 static constexpr int initial_check_times = 50;
@@ -80,7 +78,6 @@ public:
 
     char* data_start = ack_pkt->head_data<char*>();
     rte_memcpy(data_start, &ack_header_, sizeof(reliable_header));
-    // LOG(INFO)<<"sending ack "<<next_seq_num_to_recv_;
     return ack_pkt;
   }
 

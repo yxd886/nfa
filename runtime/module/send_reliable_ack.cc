@@ -19,13 +19,18 @@ struct task_result send_reliable_ack::RunTask(void *arg){
   bess::PacketBatch batch;
   batch.clear();
   uint16_t out_gates[bess::PacketBatch::kMaxBurst];
+
   uint64_t current_ns = rdtsc()*ns_per_cycle_;
+
   for(auto it=coordinator_actor_->reliables_.begin(); it!=coordinator_actor_->reliables_.end(); it++){
+
     it->second.check(current_ns);
+
     bess::Packet* ack_pkt = it->second.get_ack_pkt();
     if(unlikely(ack_pkt == nullptr)){
       continue;
     }
+
     out_gates[batch.cnt()] = it->second.get_output_gate();
     batch.add(ack_pkt);
   }
