@@ -8,8 +8,21 @@
 #include <netinet/in.h>
 #include <rte_ether.h>
 #include <rte_ethdev.h>
-#include <netinet/ether.h>
+#include <netinet/if_ether.h>
 #include "../mptcp/mp_tcp_fs.h"
+
+typedef struct tcp_header {
+	uint16_t sport;
+	uint16_t dport;
+	uint32_t seq_number;
+	uint32_t ack_number;
+	uint8_t data_offset;
+	uint8_t flags;
+	uint16_t window_size;
+	uint16_t checksum;
+	uint16_t urgent_pointer;
+	char options[];
+} tcp_header_t;
 
 
 typedef struct mptcp_option {
@@ -44,7 +57,7 @@ public:
 
 
   	// ethernet header
-  	ether_hdr *eth_header = (ether_hdr *) packet;
+  	ether_header *eth_header = (ether_hdr *) packet;
   		// ip header
   		iphdr *ip_header = (struct iphdr*)(packet + sizeof(struct ether_hdr));//(bytes + sizeof(struct ether_header));
 
@@ -74,7 +87,7 @@ public:
   		}
 
   		// TCP packet information
-  		tcphdr *tcp_header = (struct tcphdr*)(packet + sizeof(struct ether_hdr)+(ip_header->ihl)*4);
+  		tcp_header *tcp_header = (struct tcp_header*)(packet + sizeof(struct ether_hdr)+(ip_header->ihl)*4);
   		char *option = tcp_header->options;
   		char *payload = (uint32_t*)tcp_header+(tcp_header->data_offset >> 4);
 
