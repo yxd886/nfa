@@ -55,7 +55,9 @@ public:
 
 
 
-
+		struct rte_mbuf* rte_pkt=reinterpret_cast<struct rte_mbuf *>(pkt);
+		unsigned char *t =rte_pktmbuf_mtod(rte_pkt, unsigned char*);
+		char* packet = (char*)t;
   	// ethernet header
   	ether_header *eth_header = (ether_hdr *) packet;
   		// ip header
