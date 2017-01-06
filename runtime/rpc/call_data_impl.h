@@ -172,8 +172,8 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
     string local_addr = concat_with_colon(protobuf_local_runtime.rpc_ip(),
                                           std::to_string(protobuf_local_runtime.rpc_port()));
-    string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
-                                          std::to_string(migration_target_.rpc_port));
+    //string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
+    //                                      std::to_string(migration_target_.rpc_port));
     for(int i=0; i<request_.addrs_size(); i++){
       string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
                                            std::to_string(request_.addrs(i).rpc_port()));
@@ -182,7 +182,7 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
          (replicas_.find(dest_addr)!=replicas_.end()) ||
          (storages_.find(dest_addr)!=storages_.end()) ||
          (migration_sources_.find(dest_addr)!=migration_sources_.end()) ||
-         (dest_addr == migration_target_addr)
+         (migration_targets_.find(dest_addr)!=migration_targets_.end())
          ){
         continue;
       }
