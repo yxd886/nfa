@@ -40,7 +40,7 @@ void ServerImpl::HandleRpcs(set<int> cpu_set, int lcore_id, std::atomic<bool>& r
                    std::ref(output_runtimes_),
                    std::ref(replicas_),
                    std::ref(storages_),
-                   std::ref(migration_target_),
+                   std::ref(migration_targets_),
                    std::ref(migration_sources_),
                    std::ref(local_runtime_));
   void* tag;
@@ -63,7 +63,7 @@ void ServerImpl::HandleRpcs(){
                    std::ref(output_runtimes_),
                    std::ref(replicas_),
                    std::ref(storages_),
-                   std::ref(migration_target_),
+                   std::ref(migration_targets_),
                    std::ref(migration_sources_),
                    std::ref(local_runtime_));
   void* tag;

@@ -28,7 +28,7 @@ public:
                     unordered_map<string, runtime_config>& output_runtimes,
                     unordered_map<string, runtime_config>& replicas,
                     unordered_map<string, runtime_config>& storages,
-                    runtime_config& migration_target,
+										unordered_map<string, runtime_config>& migration_targets,
                     unordered_map<string, runtime_config>& migration_sources,
                     runtime_config& local_runtime)
     : call_data_base(service, cq),
@@ -39,7 +39,7 @@ public:
       output_runtimes_(output_runtimes),
       replicas_(replicas),
       storages_(storages),
-      migration_target_(migration_target),
+      migration_targets_(migration_targets),
       migration_sources_(migration_sources),
       local_runtime_(local_runtime){
     Proceed();
@@ -59,7 +59,7 @@ private:
                                       output_runtimes_,
                                       replicas_,
                                       storages_,
-                                      migration_target_,
+                                      migration_targets_,
                                       migration_sources_,
                                       local_runtime_);
   }
