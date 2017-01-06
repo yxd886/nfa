@@ -8,7 +8,6 @@
 #include <netinet/in.h>
 #include <rte_ether.h>
 #include <rte_ethdev.h>
-#include <netinet/if_ether.h>
 #include "../mptcp/mp_tcp_fs.h"
 
 typedef struct tcp_header {
@@ -58,7 +57,7 @@ public:
 		unsigned char *t =rte_pktmbuf_mtod(rte_pkt, unsigned char*);
 		char* packet = (char*)t;
   	// ethernet header
-  	ether_header *eth_header = (ether_header *) packet;
+  	ether_hdr *eth_header = (ether_hdr *) packet;
   		// ip header
   		iphdr *ip_header = (struct iphdr*)(packet + sizeof(struct ether_hdr));//(bytes + sizeof(struct ether_header));
 
