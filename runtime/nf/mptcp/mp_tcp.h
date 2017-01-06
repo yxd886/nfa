@@ -101,7 +101,6 @@ public:
   		while(option < payload) {
   			uint16_t option_kind = *option;
   			uint8_t mptcp_subtype;
-  			mptcp_option_t *mptcp_option;
   			switch(option_kind) {
   				case TCP_OPTION_EOL:
   				case TCP_OPTION_NOP:
@@ -139,6 +138,7 @@ public:
 
   				default:
   					//fprintf(stderr, "Fatal error: unknown TCP option kind: %u\n", option_kind); exit(-1);
+  					break;
   			}
 
   		}
