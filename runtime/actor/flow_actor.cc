@@ -6,13 +6,22 @@
 void flow_actor::handle_message(flow_actor_init_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
-                                vector<network_function_base*>& service_chain){
+                                vector<network_function_base*>& service_chain,
+                                uint32_t input_rtid,
+                                uint64_t input_rt_output_mac,
+                                uint64_t local_rt_input_mac,
+                                uint32_t output_rtid,
+                                uint64_t output_rt_input_mac,
+                                uint64_t local_rt_output_mac){
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
 
   pkt_counter_ = 0;
   sample_counter_ = 0;
   idle_counter_ = 0;
+
+  input_header_.init(input_rtid, input_rt_output_mac, local_rt_input_mac);
+  output_header_.init(output_rtid, output_rt_input_mac, local_rt_output_mac);
 
   size_t i = 0;
   service_chain_length_ = service_chain.size();
@@ -48,6 +57,8 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
     rte_prefetch0(fs_.nf_flow_state_ptr[i]);
     nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
   }
+
+  rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
 
   coordinator_actor_->ec_scheduler_batch_.add(pkt);
 }

@@ -8,6 +8,7 @@
 #include "../bessport/packet.h"
 #include "../bessport/pktbatch.h"
 #include "./base/flow_key.h"
+#include "./base/flow_ether_header.h"
 #include "flow_actor_messages.h"
 #include "fixed_timer.h"
 #include "../nf/base/network_function_base.h"
@@ -24,7 +25,13 @@ public:
   void handle_message(flow_actor_init_t,
                       coordinator* coordinator_actor,
                       flow_key_t* flow_key,
-                      vector<network_function_base*>& service_chain);
+                      vector<network_function_base*>& service_chain,
+                      uint32_t input_rtid,
+                      uint64_t input_rt_output_mac,
+                      uint64_t local_rt_input_mac,
+                      uint32_t output_rtid,
+                      uint64_t output_rt_input_mac,
+                      uint64_t local_rt_output_mac);
 
   void handle_message(pkt_msg_t, bess::Packet* pkt);
 
@@ -52,6 +59,10 @@ private:
   flow_key_t flow_key_;
 
   coordinator* coordinator_actor_;
+
+  flow_ether_header input_header_;
+
+  flow_ether_header output_header_;
 
   size_t service_chain_length_;
 

@@ -32,3 +32,8 @@ DEFINE_string(rpc_ip, "nil", "The IP address that the RPC server listens on.");
 DEFINE_int32(rpc_port, -1, "The port that the RPC server listens on");
 
 DEFINE_int32(worker_core, -1, "The core that the worker thread binds on.");
+
+DEFINE_string(default_input_mac,  "01:02:03:04:05:06", "Default mac address when sending packets out from input port.");
+
+DEFINE_string(default_output_mac, "02:03:04:05:06:07", "Default mac address when sending packets out from output port.");
+

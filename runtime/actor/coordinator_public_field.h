@@ -73,4 +73,9 @@ struct reliable_send_record{
   round_rubin_list<generic_list_item> reliable_send_list_;
 };
 
+struct default_input_output_mac{
+  uint64_t default_input_mac_;
+  uint64_t default_output_mac_;
+};
+
 #endif

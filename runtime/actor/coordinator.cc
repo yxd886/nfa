@@ -58,6 +58,9 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   migration_target_rt_id_ = -1;
   migration_qouta_ = 0;
+
+  default_input_mac_ = convert_string_mac(FLAGS_default_input_mac);
+  default_output_mac_ = convert_string_mac(FLAGS_default_output_mac);
 }
 
 void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
@@ -84,8 +87,37 @@ void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
         actor = deadend_flow_actor_;
       }
       else{
+        bess::Packet* pkt = batch->pkts()[i];
+
+        int32_t input_rtid = 0;
+        uint64_t input_rt_output_mac =  (*(pkt->head_data<uint64_t*>(6)) & 0x0000FFffFFffFFfflu);
+        // uint64_t local_rt_input_mac = local_runtime_.input_port_mac;
+
+        int32_t output_rtid = 0;
+        uint64_t output_rt_input_mac = default_output_mac_;
+        // local_rt_output_mac = local_runtime_.output_port_mac;
+
+        auto it = mac_addr_to_rt_configs_.find(input_rt_output_mac);
+        if(it!=mac_addr_to_rt_configs_.end()){
+          input_rtid = it->second.runtime_id;
+        }
+
+        generic_list_item* first_item = output_runtime_mac_rrlist_.rotate();
+        if(first_item!=nullptr){
+          output_rt_input_mac = first_item->dst_mac_addr;
+          output_rtid = mac_addr_to_rt_configs_.find(output_rt_input_mac)->second.runtime_id;
+        }
+
         send(actor, flow_actor_init_t::value,
-             this, reinterpret_cast<flow_key_t*>(keys[i]), service_chain_);
+             this,
+             reinterpret_cast<flow_key_t*>(keys[i]),
+             service_chain_,
+             input_rtid,
+             input_rt_output_mac,
+             local_runtime_.input_port_mac,
+             output_rtid,
+             output_rt_input_mac,
+             local_runtime_.output_port_mac);
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);

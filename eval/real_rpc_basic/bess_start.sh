@@ -1,3 +1,3 @@
 #! /bin/sh
 
-sudo ../../deps/bess/bessctl/bessctl run file bess_script
+sudo ../../deps/bess/bessctl/bessctl run file bess_no_trafficgen

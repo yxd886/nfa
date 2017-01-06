@@ -22,4 +22,7 @@ DECLARE_int32(rpc_port);
 
 DECLARE_int32(worker_core);
 
+DECLARE_string(default_input_mac);
+DECLARE_string(default_output_mac);
+
 #endif
