@@ -92,7 +92,7 @@ public:
   		char *payload = (char*)((uint32_t*)tcp_header+(tcp_header->data_offset >> 4));
 
   		uint16_t dport =ntohs(tcp_header->dport);
-  		uint32_t migration_target=0;
+  		int32_t migration_target=0;
 
 
 
@@ -100,7 +100,6 @@ public:
 
   		while(option < payload) {
   			uint16_t option_kind = *option;
-  			uint8_t mptcp_subtype;
   			switch(option_kind) {
   				case TCP_OPTION_EOL:
   				case TCP_OPTION_NOP:
