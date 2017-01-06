@@ -135,13 +135,10 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
                                  ping_cstruct* cstruct_ptr){
   // LOG(INFO)<<"Receive ping message sent from actor "<<sender_actor_id<<" on runtime "<<sender_rtid;
   // LOG(INFO)<<"The value contained in cstruct_ptr is "<<cstruct_ptr->val;
-  if(counter == 0){
-    start_time = ctx.current_ns();
-  }
 
   counter += 1;
 
-  if(counter == 100000000){
-    LOG(INFO)<<"Receive all 100000000 packets in "<<((ctx.current_ns()-start_time)/(1000*1000*1000))<<"s";
+  if(counter%30000000 == 0){
+    LOG(INFO)<<"Receive "<<counter<<" messages.";
   }
 }

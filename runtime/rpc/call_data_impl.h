@@ -566,7 +566,7 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
 
       string migration_source_addr = concat_with_colon(request_.migration_source_config().rpc_ip(),
                                                std::to_string(request_.migration_source_config().rpc_port()));
-      if(migration_sources_.find(migration_source_addr) != migration_sources_.end()){
+      if(migration_sources_.find(migration_source_addr) == migration_sources_.end()){
         migration_sources_.emplace(migration_source_addr, migration_source_config);
       }
     }
