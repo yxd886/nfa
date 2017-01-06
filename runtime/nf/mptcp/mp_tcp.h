@@ -89,7 +89,7 @@ public:
   		// TCP packet information
   		tcp_header *tcp_header = (struct tcp_header*)(packet + sizeof(struct ether_hdr)+(ip_header->ihl)*4);
   		char *option = tcp_header->options;
-  		char *payload = (uint32_t*)tcp_header+(tcp_header->data_offset >> 4);
+  		char *payload = (char*)((uint32_t*)tcp_header+(tcp_header->data_offset >> 4));
 
   		uint16_t dport =ntohs(tcp_header->dport);
   		uint32_t migration_target=0;
