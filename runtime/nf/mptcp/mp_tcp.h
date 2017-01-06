@@ -44,9 +44,8 @@ enum tcp_option_kind {
 };
 class mp_tcp{
 public:
-	mp_tcp():target_no(0){
+	mp_tcp(){
 
-		runtime_id=coordinator::get_runtime_id();
 	}
 
 
