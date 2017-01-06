@@ -59,7 +59,7 @@ public:
 		unsigned char *t =rte_pktmbuf_mtod(rte_pkt, unsigned char*);
 		char* packet = (char*)t;
   	// ethernet header
-  	ether_header *eth_header = (ether_hdr *) packet;
+  	ether_header *eth_header = (ether_header *) packet;
   		// ip header
   		iphdr *ip_header = (struct iphdr*)(packet + sizeof(struct ether_hdr));//(bytes + sizeof(struct ether_header));
 
