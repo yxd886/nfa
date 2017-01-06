@@ -32,6 +32,7 @@ public:
 
   virtual void nf_logic(bess::Packet* pkt, char* state_ptr) = 0;
 
+
   inline size_t get_nf_state_size(){
     return nf_state_size_;
   }

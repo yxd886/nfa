@@ -128,6 +128,7 @@ message MigrationNegotiateRep{
 }
 
 message DeleteMigrationTargetReq{
+  Address addr = 1;
 }
 
 message DeleteMigrationTargetRep{

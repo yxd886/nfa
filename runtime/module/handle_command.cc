@@ -133,20 +133,24 @@ struct task_result handle_command::RunTask(void *arg){
         break;
       }
       case rpc_operation::can_migrate :{
-        item->migration_qouta = coordinator_actor_->migration_qouta_;
+      	//auto iter=coordinator_actor_->migration_qouta_rrlist_.find(item->rt_config.runtime_id);
+      	//if(iter==coordinator_actor_->migration_qouta_rrlist_.end()){
+      		//coordinator_actor_->migration_qouta_rrlist_.emplace(item->rt_config.runtime_id,0);
+      	//}
+        item->migration_qouta = 0;
         break;
       }
       case rpc_operation::set_migration_target :{
-        coordinator_actor_->migration_qouta_ = item->migration_qouta;
-        if(coordinator_actor_->migration_target_rt_id_ == item->rt_config.runtime_id){
-          coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second.reset();
-        }
-        else{
-          coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
-          coordinator_actor_->mac_to_reliables_.erase(coordinator_actor_->migration_target_rt_id_);
 
-          coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
+      	if(coordinator_actor_->migration_target_rt_id_rrlist_.find(item->rt_config.runtime_id)!=coordinator_actor_->migration_target_rt_id_rrlist_.end()){
+
+      		coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second.reset();
+      		coordinator_actor_->migration_qouta_rrlist_[item->rt_config.runtime_id]=item->migration_qouta;
+      	}else{
+
+          coordinator_actor_->migration_target_rt_id_rrlist_.emplace(item->rt_config.runtime_id,item->rt_config.runtime_id);
           LOG(INFO)<<"The destination mac address is "<<convert_uint64t_mac(item->rt_config.control_port_mac);
+          coordinator_actor_->migration_qouta_rrlist_.emplace(item->rt_config.runtime_id,item->migration_qouta);
           coordinator_actor_->reliables_.emplace(
                       std::piecewise_construct,
                       std::forward_as_tuple(item->rt_config.runtime_id),
@@ -159,7 +163,9 @@ struct task_result handle_command::RunTask(void *arg){
 
           reliable_p2p& r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->second;
           coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.control_port_mac, r);
-        }
+
+      	}
+      	mp_tcp::update_target_no(coordinator_actor_->migration_target_rt_id_rrlist_.size());
         break;
       }
       case rpc_operation::migration_negotiate :{
@@ -193,11 +199,11 @@ struct task_result handle_command::RunTask(void *arg){
         break;
       }
       case rpc_operation::delete_migration_target :{
-        if(coordinator_actor_->migration_qouta_==0){
-          coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
-          coordinator_actor_->mac_to_reliables_.erase(coordinator_actor_->migration_target_rt_id_);
-          coordinator_actor_->migration_target_rt_id_ = -1;
-          item->rt_config.runtime_id = -1;
+
+
+        if(coordinator_actor_->migration_qouta_rrlist_[item->rt_config.runtime_id]==0){
+          coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_rrlist_[item->rt_config.runtime_id]);
+          coordinator_actor_->mac_to_reliables_.erase(coordinator_actor_->migration_target_rt_id_rrlist_[item->rt_config.runtime_id]);
         }
         break;
       }

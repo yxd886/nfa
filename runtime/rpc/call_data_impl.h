@@ -110,7 +110,7 @@ private:
 
   unordered_map<string, runtime_config>& storages_;
 
-  runtime_config& migration_target_;
+  unordered_map<string, runtime_config>& migration_targets_;
 
   unordered_map<string, runtime_config>& migration_sources_;
 
@@ -503,7 +503,12 @@ void derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>::Proceed(){
 
         poll_worker2rpc_ring();
 
-        migration_target_ = migration_target_runtime;
+        string migration_target_addr = concat_with_colon(rep.migration_target_runtime().rpc_ip(),
+                                                 std::to_string(rep.migration_target_runtime().rpc_port()));
+        if(migration_targets_.find(migration_target_addr) == migration_targets_.end()){
+          migration_targets_.emplace(migration_target_addr, migration_target_runtime);
+        }
+
       }
     }
 
@@ -566,7 +571,7 @@ void derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>::Proceed(){
 
       string migration_source_addr = concat_with_colon(request_.migration_source_config().rpc_ip(),
                                                std::to_string(request_.migration_source_config().rpc_port()));
-      if(migration_sources_.find(migration_source_addr) != migration_sources_.end()){
+      if(migration_sources_.find(migration_source_addr) == migration_sources_.end()){
         migration_sources_.emplace(migration_source_addr, migration_source_config);
       }
     }
@@ -589,19 +594,19 @@ void derived_call_data<DeleteMigrationTargetReq, DeleteMigrationTargetRep>::Proc
   } else if (status_ == PROCESS) {
     create_itself();
 
-    if(migration_target_.runtime_id != -1){
 
-      // Where the actual handling is done.
-      llring_item item(rpc_operation::delete_migration_target, migration_target_, 0, 0);
+    string delete_migration_addr = concat_with_colon(request_.addrs().rpc_ip(),
+                                                   std::to_string(request_.addrs().rpc_port()));
+    if((migration_targets_.find(delete_migration_addr)!=migration_targets_.end())){
+
+      llring_item item(rpc_operation::delete_migration_target,migration_targets_[delete_migration_addr], 0, 0);
+      migration_targets_.erase(delete_migration_addr);
 
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
       poll_worker2rpc_ring();
-
-      if(item.rt_config.runtime_id == -1){
-        migration_target_.runtime_id = -1;
-      }
     }
+
 
     status_ = FINISH;
     responder_.Finish(reply_, Status::OK, this);

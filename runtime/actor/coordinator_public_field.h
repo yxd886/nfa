@@ -48,10 +48,10 @@ struct input_output_runtime_info{
 };
 
 struct migration_target_source_holder{
-  uint64_t migration_qouta_;
+	std::unordered_map<int32_t,uint64_t> migration_qouta_rrlist_;
 
-  int32_t migration_target_rt_id_;
-  round_rubin_list<flow_actor> migrate_out_rrlist_;
+  std::unordered_map<int32_t,int32_t> migration_target_rt_id_rrlist_;
+  std::unordered_map<int32_t,round_rubin_list<flow_actor>> migrate_out_rrlist_;
 
   std::unordered_map<int32_t, round_rubin_list<flow_actor>> rtid_to_migrate_in_rrlist_;
 };
