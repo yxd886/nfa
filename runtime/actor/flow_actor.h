@@ -37,8 +37,8 @@ public:
 
   void handle_message(check_idle_t);
 
-  inline flow_actor_id_t get_id(){
-    return actor_id_;
+  inline flow_actor_id_t* get_id(){
+    return &actor_id_;
   }
 
   inline void set_id(flow_actor_id_t actor_id){

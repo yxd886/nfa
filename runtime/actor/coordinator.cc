@@ -2,11 +2,12 @@
 #include "flow_actor_allocator.h"
 #include "../actor/base/local_send.h"
 #include "../nf/base/network_function_register.h"
+#include "./base/actor_id.h"
 
 #include <glog/logging.h>
 
 void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
-  if(msg_ptr->rmh.recv_actor_id == 1){
+  if(msg_ptr->rmh.recv_actor_id == coordinator_actor_id){
     switch(static_cast<coordinator_messages>(msg_ptr->rmh.msg_type)){
       case coordinator_messages::ping : {
         handle_message(ping_t::value,
@@ -37,6 +38,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   htable_.Init(flow_key_size, sizeof(flow_actor*));
 
+  actorid_htable_.Init(sizeof(uint32_t), sizeof(flow_actor*));
+
   deadend_flow_actor_ = allocator_->allocate();
 
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
@@ -61,6 +64,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   default_input_mac_ = convert_string_mac(FLAGS_default_input_mac);
   default_output_mac_ = convert_string_mac(FLAGS_default_output_mac);
+
+  next_msg_id_ = message_id_start;
 }
 
 void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
@@ -108,6 +113,8 @@ void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
           output_rtid = mac_addr_to_rt_configs_.find(output_rt_input_mac)->second.runtime_id;
         }
 
+        active_flows_rrlist_.add_to_tail(actor);
+
         send(actor, flow_actor_init_t::value,
              this,
              reinterpret_cast<flow_key_t*>(keys[i]),
@@ -121,6 +128,8 @@ void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);
+
+      actorid_htable_.Set(actor->get_id(), &actor);
 
       actor_ptr = &actor;
     }
@@ -156,7 +165,10 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
 
   htable_.Del(flow_key);
 
+  actorid_htable_.Del(flow_actor->get_id());
+
   if(flow_actor!=deadend_flow_actor_){
+    active_flows_rrlist_.list_item_delete(reinterpret_cast<cdlist_item*>(flow_actor));
     allocator_->deallocate(flow_actor);
   }
   else{

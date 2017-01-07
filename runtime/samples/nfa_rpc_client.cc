@@ -342,7 +342,8 @@ int main(int argc, char** argv) {
 
   // Test set replication
   LOG(INFO)<<checker_10240.AddOutputRt();
-  LOG(INFO)<<checker_10240.AddOutputMac(10242);
+  // LOG(INFO)<<checker_10240.AddOutputMac(10242);
+  LOG(INFO)<<checker_10240.AddOutputMac(10241);
   // LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
 
   // LOG(INFO)<<checker_10241.AddReplicas(10242);

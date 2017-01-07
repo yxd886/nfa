@@ -30,6 +30,8 @@ class coordinator : public garbage, public local_batch, public timer_list,
 public:
   using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
 
+  using actorid_htable_t = HTable<uint32_t, flow_actor*, actorid_keycmp, actorid_hash>;
+
   coordinator(flow_actor_allocator* allocator,
               generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
               llring_holder& holder);
@@ -49,11 +51,19 @@ public:
     return mac_list_item_allocator_;
   }
 
+  inline uint32_t allocate_msg_id(){
+    uint32_t return_id = next_msg_id_;
+    next_msg_id_+=1;
+    return return_id;
+  }
+
 private:
 
   flow_actor_allocator* allocator_;
 
   htable_t htable_;
+
+  actorid_htable_t actorid_htable_;
 
   flow_actor* deadend_flow_actor_;
 
@@ -62,6 +72,8 @@ private:
   std::vector<network_function_base*> service_chain_;
 
   generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
+
+  uint32_t next_msg_id_;
 
   int counter = 0;
   uint64_t start_time = 0;
