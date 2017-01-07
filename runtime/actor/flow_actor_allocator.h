@@ -7,7 +7,6 @@
 #include "flow_actor.h"
 #include "../bessport/utils/simple_ring_buffer.h"
 #include "./base/actor_misc.h"
-#include "actor_timer.h"
 
 class flow_actor_allocator{
 

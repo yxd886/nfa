@@ -67,14 +67,14 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
 
 void flow_actor::handle_message(check_idle_t){
   idle_timer_.invalidate();
-  LOG(INFO)<<"idle checker happens";
+
   if(sample_counter_ == pkt_counter_){
     idle_counter_ += 1;
     if(idle_counter_ == 3){
       for(size_t i=0; i<service_chain_length_; i++){
         nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
       }
-      LOG(INFO)<<"The actor is inactive, remove it";
+
       send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
     }
     else{

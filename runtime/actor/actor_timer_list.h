@@ -27,7 +27,7 @@ public:
   inline bool timeout_occur(uint64_t now){
     cdlist_item* first_item = cdlist_peek_first_item(&timer_list_head_);
 
-    if( (first_item==nullptr) || (reinterpret_cast<actor_timer<T>*>(first_item)->to_time_<now)){
+    if( (first_item==nullptr) || (reinterpret_cast<actor_timer<T>*>(first_item)->to_time_>=now)){
       return false;
     }
 

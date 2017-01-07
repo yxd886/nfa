@@ -45,7 +45,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
 
   static_nf_register::get_register().init(allocator->get_max_actor());
-  service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
+  service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000002);
+  LOG(INFO)<<"service chain length is "<<service_chain_.size();
 
   mac_list_item_allocator_ = mac_list_item_allocator;
 
@@ -170,7 +171,6 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
   actorid_htable_.Del(flow_actor->get_id());
 
   if(flow_actor!=deadend_flow_actor_){
-    LOG(INFO)<<"Deallocate the actor.";
     flow_actor->get_idle_timer()->invalidate();
     active_flows_rrlist_.list_item_delete(reinterpret_cast<cdlist_item*>(flow_actor));
     allocator_->deallocate(flow_actor);
@@ -181,8 +181,6 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
 
 void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
                                  ping_cstruct* cstruct_ptr){
-  // LOG(INFO)<<"Receive ping message sent from actor "<<sender_actor_id<<" on runtime "<<sender_rtid;
-  // LOG(INFO)<<"The value contained in cstruct_ptr is "<<cstruct_ptr->val;
 
   counter += 1;
 

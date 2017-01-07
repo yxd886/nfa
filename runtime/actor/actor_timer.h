@@ -33,7 +33,8 @@ struct actor_timer{
   inline void init(uint16_t type, void* actor_ptr){
     type_ = type;
     actor_ptr_ = actor_ptr;
-    invalidate();
+    request_msg_id_ = invalid_message_id;
+    cdlist_item_init(&list_item_);
   }
 
   // called when the actor is deallocated,
