@@ -10,10 +10,10 @@
 #include "./base/flow_key.h"
 #include "./base/flow_ether_header.h"
 #include "flow_actor_messages.h"
-#include "fixed_timer.h"
 #include "../nf/base/network_function_base.h"
 #include "../nf/base/nf_item.h"
 #include "../utils/cdlist.h"
+#include "actor_timer.h"
 
 using namespace std;
 
@@ -45,6 +45,10 @@ public:
     actor_id_ = actor_id;
   }
 
+  inline actor_timer<actor_timer_type::flow_actor_idle_timer>* get_idle_timer(){
+    return &idle_timer_;
+  }
+
 private:
   struct cdlist_item list_item;
 
@@ -71,6 +75,8 @@ private:
   flow_actor_fs fs_;
 
   flow_actor_fs_size fs_size_;
+
+  actor_timer<actor_timer_type::flow_actor_idle_timer> idle_timer_;
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

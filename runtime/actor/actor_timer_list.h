@@ -2,13 +2,13 @@
 #define ACTOR_TIMER_LIST_H
 
 #include "actor_timer.h"
-#include "./base/actor_timer_list_type.h"
-#include "./base/actor_id.h"
+#include "./base/actor_misc.h"
 
-template<timer_list_type T>
+template<actor_timer_type T>
 class actor_timer_list{
 public:
-  actor_timer_list(uint64_t to_ns){
+
+  inline void init_list(uint64_t to_ns){
     cdlist_head_init(&timer_list_head_);
     to_ns_ = to_ns;
   }
@@ -38,7 +38,9 @@ public:
     cdlist_item* first_item = cdlist_peek_first_item(&timer_list_head_);
     actor_timer<T>* actor_timer_ptr = reinterpret_cast<actor_timer<T>*>(first_item);
     actor_timer_ptr->trigger();
-    actor_timer_ptr->invalidate();
+
+    // The invalidate should be called within the message handler
+    // actor_timer_ptr->invalidate();
   }
 
 private:

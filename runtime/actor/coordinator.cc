@@ -2,7 +2,7 @@
 #include "flow_actor_allocator.h"
 #include "../actor/base/local_send.h"
 #include "../nf/base/network_function_register.h"
-#include "./base/actor_id.h"
+#include "./base/actor_misc.h"
 
 #include <glog/logging.h>
 
@@ -66,6 +66,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   default_output_mac_ = convert_string_mac(FLAGS_default_output_mac);
 
   next_msg_id_ = message_id_start;
+
+  idle_flow_list_.init_list(flow_actor_idle_timeout);
 }
 
 void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
@@ -168,6 +170,8 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
   actorid_htable_.Del(flow_actor->get_id());
 
   if(flow_actor!=deadend_flow_actor_){
+    LOG(INFO)<<"Deallocate the actor.";
+    flow_actor->get_idle_timer()->invalidate();
     active_flows_rrlist_.list_item_delete(reinterpret_cast<cdlist_item*>(flow_actor));
     allocator_->deallocate(flow_actor);
   }

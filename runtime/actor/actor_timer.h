@@ -1,15 +1,18 @@
 #ifndef ACTOR_TIMER_H
 #define ACTOR_TIMER_H
 
-#include "../utils/round_rubin_list.h"
-#include "./base/actor_type.h"
-#include "./base/local_send.h"
-#include "./base/actor_timer_list_type.h"
-#include "./base/actor_id.h"
-#include "coordinator.h"
-#include "flow_actor.h"
+#include <cassert>
 
-template<timer_list_type T>
+#include "../utils/round_rubin_list.h"
+#include "./base/actor_misc.h"
+#include "./base/local_send.h"
+#include "coordinator_messages.h"
+#include "flow_actor_messages.h"
+
+class coordinator;
+class flow_actor;
+
+template<actor_timer_type T>
 struct actor_timer{
   cdlist_item list_item_;
 
@@ -30,8 +33,7 @@ struct actor_timer{
   inline void init(uint16_t type, void* actor_ptr){
     type_ = type;
     actor_ptr_ = actor_ptr;
-    request_msg_id_ = invalid_message_id;
-    cdlist_item_init(&list_item_);
+    invalidate();
   }
 
   // called when the actor is deallocated,
@@ -46,25 +48,44 @@ struct actor_timer{
     return (request_msg_id_==request_msg_id);
   }
 
+  inline void send_flow_actor_messgae(){
+    switch(static_cast<flow_actor_messages>(msg_type_)){
+      case flow_actor_messages::check_idle :
+        send(static_cast<flow_actor*>(actor_ptr_), check_idle_t::value);
+        break;
+      default:
+        assert(1==0);
+        break;
+    }
+  }
+
+  inline void send_coordinator_actor_message(){
+    switch(static_cast<coordinator_messages>(msg_type_)){
+      default:
+        assert(1==0);
+        break;
+    }
+  }
+
   inline void trigger(){
     assert(request_msg_id_ != invalid_message_id);
     switch(static_cast<actor_type>(type_)){
       case actor_type::coordinator_actor :
-        send(static_cast<coordinator*>(actor_ptr_), local_message_derived<msg_type_>::value);
+        send_coordinator_actor_message();
         break;
       case actor_type::flow_actor :
-        assert(static_cast<flow_actor*>(actor_ptr_)->get_id() != invalid_flow_actor_id);
-        send(static_cast<flow_actor*>(actor_ptr_), local_message_derived<msg_type_>::value);
+        send_flow_actor_messgae();
         break;
       default:
         break;
     }
   }
+
 };
 
-static_assert(std::is_pod<actor_timer<timer_list_type::flow_actor_idle_timer>>::value,
+static_assert(std::is_pod<actor_timer<actor_timer_type::flow_actor_idle_timer>>::value,
     "actor_timer is not a pod");
 
-static_assert(std::is_pod<actor_timer<timer_list_type::flow_actor_req_timer>>::value,
+static_assert(std::is_pod<actor_timer<actor_timer_type::flow_actor_req_timer>>::value,
     "actor_timer is not a pod");
 #endif

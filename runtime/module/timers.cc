@@ -1,6 +1,5 @@
 //
 #include "timers.h"
-#include "../actor/fixed_timer.h"
 
 void timers::customized_init(coordinator* coordinator_actor){
   RegisterTask(nullptr);
@@ -14,9 +13,9 @@ struct task_result timers::RunTask(void *arg) {
   };
 
   for(size_t i=0; i<bess::PacketBatch::kMaxBurst; i++){
-    //trigger at most kMaxBurst timers on each invoke.
-    if(unlikely(timeout_occur(&(coordinator_actor_->idle_flow_check_list_), ctx.current_ns()))){
-      trigger_timer(&(coordinator_actor_->idle_flow_check_list_));
+
+    if(unlikely(coordinator_actor_->idle_flow_list_.timeout_occur(ctx.current_ns()))){
+      coordinator_actor_->idle_flow_list_.trigger_timer();
     }
     else{
       break;

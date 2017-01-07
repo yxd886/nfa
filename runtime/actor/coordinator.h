@@ -10,7 +10,6 @@
 #include "./base/nfa_ipv4_field.h"
 #include "./base/flow_hash.h"
 #include "coordinator_messages.h"
-#include "fixed_timer.h"
 #include "../nf/base/network_function_base.h"
 #include "../rpc/ring_msg.h"
 #include "../nfaflags.h"

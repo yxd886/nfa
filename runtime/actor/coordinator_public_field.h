@@ -7,12 +7,12 @@
 #include "../utils/mac_list_item.h"
 #include "../utils/round_rubin_list.h"
 #include "../bessport/module.h"
-#include "fixed_timer.h"
 #include "../bessport/kmod/llring.h"
 #include "../rpc/ring_msg.h"
 #include "../actor/flow_actor.h"
 #include "../reliable/reliable_p2p.h"
 #include "./base/garbage_pkt_collector.h"
+#include "actor_timer_list.h"
 
 struct garbage{
   garbage_pkt_collector gp_collector_;
@@ -24,7 +24,7 @@ struct local_batch{
 };
 
 struct timer_list{
-  std::list<fixed_timer<flow_actor_idle_timeout>> idle_flow_check_list_;
+  actor_timer_list<actor_timer_type::flow_actor_idle_timer> idle_flow_list_;
 };
 
 struct rpcworker_llring{

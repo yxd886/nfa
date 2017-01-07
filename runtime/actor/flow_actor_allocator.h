@@ -6,7 +6,8 @@
 
 #include "flow_actor.h"
 #include "../bessport/utils/simple_ring_buffer.h"
-#include "./base/actor_id.h"
+#include "./base/actor_misc.h"
+#include "actor_timer.h"
 
 class flow_actor_allocator{
 
@@ -16,6 +17,8 @@ public:
     flow_actor_array_ = static_cast<flow_actor*>(mem_alloc(sizeof(flow_actor)*max_actors));
     for(size_t i=0; i<max_actors; i++){
       flow_actor_array_[i].set_id(invalid_flow_actor_id);
+      flow_actor_array_[i].get_idle_timer()->init(static_cast<uint16_t>(actor_type::flow_actor),
+                                                  &flow_actor_array_[i]);
       ring_buf_.push(&flow_actor_array_[i]);
     }
   }
