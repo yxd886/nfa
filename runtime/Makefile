@@ -143,9 +143,12 @@ MODULE_BASIC_OBJS = $(filter-out main.o $(filter-out samples/module_basic.o,$(SA
 REAL_RPC_BASIC_MAIN_EXEC = samples/real_rpc_basic/server_main
 REAL_RPC_BASIC_MAIN_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_basic/server_main.o,$(SAMPLES_OBJS)),$(OBJS))
 
+MIGRATION_START_EXEC = samples/migration_start
+MIGRATION_START_OBJS = $(filter-out main.o $(filter-out samples/migration_start.o,$(SAMPLES_OBJS)),$(OBJS))
+
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(NFA_RPC_CLIENT_EXEC)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(NFA_RPC_CLIENT_EXEC) $(MIGRATION_START_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -268,6 +271,12 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(REAL_RPC_BASIC_MAIN_EXEC), \
 	$$(REAL_RPC_BASIC_MAIN_OJBS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(MIGRATION_START_EXEC), \
+	$$(MIGRATION_START_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;

@@ -15,6 +15,8 @@ static constexpr uint32_t message_id_start = 2;
 
 static constexpr uint64_t flow_actor_idle_timeout = 1*1000*1000*1000;
 
+static constexpr uint64_t request_timeout = 5*1000*1000; //5 ms
+
 // static constexpr uint64_t flow_actor_idle_timeout = 1*1000*1000*1000;
 
 enum class actor_timer_type{

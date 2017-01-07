@@ -19,7 +19,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
-  if(coordinator_actor_->migration_target_rt_id_ != -1){
+  /*if(coordinator_actor_->migration_target_rt_id_ != -1){
     ping_cstruct cstruct;
     cstruct.val = 1024;
 
@@ -41,7 +41,21 @@ struct task_result coordinator_mp::RunTask(void *arg){
                <<coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second.peek_rtt()
                <<"ns";
     }
+  }*/
+
+  if(unlikely(coordinator_actor_->migration_qouta_>0)){
+    for(int i=0; i<32; i++){
+      flow_actor* actor_ptr = coordinator_actor_->active_flows_rrlist_.pop_head();
+      if(actor_ptr==nullptr){
+        break;
+      }
+
+      coordinator_actor_->migration_qouta_ -= 1;
+      coordinator_actor_->migrate_out_rrlist_.add_to_tail(actor_ptr);
+      send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
+    }
   }
+
   return ret;
 }
 

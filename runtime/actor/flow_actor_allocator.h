@@ -18,6 +18,10 @@ public:
       flow_actor_array_[i].set_id(invalid_flow_actor_id);
       flow_actor_array_[i].get_idle_timer()->init(static_cast<uint16_t>(actor_type::flow_actor),
                                                   &flow_actor_array_[i]);
+      flow_actor_array_[i].get_migration_timer()->init(static_cast<uint16_t>(actor_type::flow_actor),
+                                                  &flow_actor_array_[i]);
+      flow_actor_array_[i].get_replication_timer()->init(static_cast<uint16_t>(actor_type::flow_actor),
+                                                  &flow_actor_array_[i]);
       ring_buf_.push(&flow_actor_array_[i]);
     }
   }

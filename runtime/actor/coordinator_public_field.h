@@ -25,6 +25,7 @@ struct local_batch{
 
 struct timer_list{
   actor_timer_list<actor_timer_type::flow_actor_idle_timer> idle_flow_list_;
+  actor_timer_list<actor_timer_type::flow_actor_req_timer> req_timer_list_;
 };
 
 struct rpcworker_llring{

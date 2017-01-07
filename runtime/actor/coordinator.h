@@ -46,6 +46,12 @@ public:
   void handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
                       ping_cstruct* cstruct_ptr);
 
+  void handle_message(create_migration_target_actor_t,
+                      int32_t sender_rtid,
+                      uint32_t sender_actor_id,
+                      uint32_t msg_id,
+                      create_migration_target_actor_cstruct* cstruct_ptr);
+
   inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
     return mac_list_item_allocator_;
   }

@@ -93,3 +93,28 @@ void flow_actor::handle_message(check_idle_t){
                                                   static_cast<uint16_t>(flow_actor_messages::check_idle));
   }
 }
+
+void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid){
+  create_migration_target_actor_cstruct cstruct;
+  cstruct.input_rtid = input_header_.dest_rtid;
+  cstruct.output_rtid = output_header_.dest_rtid;
+  rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
+
+  uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+  bool flag = coordinator_actor_->reliables_.find(migration_target_rtid)->second.reliable_send(
+                              msg_id,
+                              actor_id_,
+                              coordinator_actor_id,
+                              create_migration_target_actor_t::value,
+                              &cstruct);
+
+  if(flag == false){
+    // do some processing
+    return;
+  }
+
+  /*coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
+                                                ctx.current_ns(),
+                                                msg_id,
+                                                static_cast<uint16_t>(flow_actor_messages::start_migration_response));*/
+}

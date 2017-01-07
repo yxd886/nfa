@@ -17,6 +17,14 @@ void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
                        msg_ptr->cstruct_pkt->head_data<ping_cstruct*>());
         break;
       }
+      case coordinator_messages::create_migration_target_actor : {
+        handle_message(create_migration_target_actor_t::value,
+                        msg_ptr->send_runtime_id,
+                        msg_ptr->rmh.send_actor_id,
+                        msg_ptr->rmh.msg_id,
+                        msg_ptr->cstruct_pkt->head_data<create_migration_target_actor_cstruct*>());
+        break;
+      }
       default : {
         break;
       }
@@ -45,7 +53,7 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
 
   static_nf_register::get_register().init(allocator->get_max_actor());
-  service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000002);
+  service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
   LOG(INFO)<<"service chain length is "<<service_chain_.size();
 
   mac_list_item_allocator_ = mac_list_item_allocator;
@@ -69,6 +77,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   next_msg_id_ = message_id_start;
 
   idle_flow_list_.init_list(flow_actor_idle_timeout);
+
+  req_timer_list_.init_list(request_timeout);
 }
 
 void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
@@ -172,6 +182,8 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
 
   if(flow_actor!=deadend_flow_actor_){
     flow_actor->get_idle_timer()->invalidate();
+    flow_actor->get_migration_timer()->invalidate();
+    flow_actor->get_replication_timer()->invalidate();
     active_flows_rrlist_.list_item_delete(reinterpret_cast<cdlist_item*>(flow_actor));
     allocator_->deallocate(flow_actor);
   }
@@ -187,4 +199,16 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
   if(counter%30000000 == 0){
     LOG(INFO)<<"Receive "<<counter<<" messages.";
   }
+}
+
+void coordinator::handle_message(create_migration_target_actor_t,
+                                 int32_t sender_rtid,
+                                 uint32_t sender_actor_id,
+                                 uint32_t msg_id,
+                                 create_migration_target_actor_cstruct* cstruct_ptr){
+  LOG(INFO)<<"Receive create_migration_target_actor message sent from runtime "<<sender_rtid
+           <<", actor id "<<sender_actor_id
+           <<", msg id "<<msg_id
+           <<", input runtime id "<<cstruct_ptr->input_rtid
+           <<", output_runtime_id "<<cstruct_ptr->output_rtid;
 }

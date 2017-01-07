@@ -37,6 +37,8 @@ public:
 
   void handle_message(check_idle_t);
 
+  void handle_message(start_migration_t, int32_t migration_target_rtid);
+
   inline flow_actor_id_t* get_id(){
     return &actor_id_;
   }
@@ -47,6 +49,14 @@ public:
 
   inline actor_timer<actor_timer_type::flow_actor_idle_timer>* get_idle_timer(){
     return &idle_timer_;
+  }
+
+  inline actor_timer<actor_timer_type::flow_actor_req_timer>* get_migration_timer(){
+    return &migration_timer_;
+  }
+
+  inline actor_timer<actor_timer_type::flow_actor_req_timer>* get_replication_timer(){
+    return &replication_timer_;
   }
 
 private:
@@ -77,6 +87,10 @@ private:
   flow_actor_fs_size fs_size_;
 
   actor_timer<actor_timer_type::flow_actor_idle_timer> idle_timer_;
+
+  actor_timer<actor_timer_type::flow_actor_req_timer> migration_timer_;
+
+  actor_timer<actor_timer_type::flow_actor_req_timer> replication_timer_;
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

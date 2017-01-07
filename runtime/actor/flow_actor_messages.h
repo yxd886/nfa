@@ -6,11 +6,19 @@
 enum class flow_actor_messages : uint16_t{
   pkt_msg,
   flow_actor_init,
-  check_idle
+  check_idle,
+  start_migration,
+  start_migration_response,
+  start_migration_timeout
 };
 
 using pkt_msg_t = local_message(flow_actor_messages, pkt_msg);
 using flow_actor_init_t = local_message(flow_actor_messages, flow_actor_init);
 using check_idle_t = local_message(flow_actor_messages, check_idle);
+
+using start_migration_t = local_message(flow_actor_messages, start_migration);
+using start_migration_response_t = local_message(flow_actor_messages, start_migration_response);
+using start_migration_timeout_t = local_message(flow_actor_messages, start_migration_timeout);
+
 
 #endif
