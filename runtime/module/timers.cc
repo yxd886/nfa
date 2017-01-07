@@ -21,6 +21,15 @@ struct task_result timers::RunTask(void *arg) {
     }
   }
 
+  for(size_t i=0; i<bess::PacketBatch::kMaxBurst; i++){
+    if(unlikely(coordinator_actor_->req_timer_list_.timeout_occur(ctx.current_ns()))){
+      coordinator_actor_->req_timer_list_.trigger_timer();
+    }
+    else{
+      break;
+    }
+  }
+
   return ret;
 }
 

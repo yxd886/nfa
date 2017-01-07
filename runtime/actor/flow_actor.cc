@@ -102,19 +102,34 @@ void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   bool flag = coordinator_actor_->reliables_.find(migration_target_rtid)->second.reliable_send(
-                              msg_id,
-                              actor_id_,
-                              coordinator_actor_id,
-                              create_migration_target_actor_t::value,
-                              &cstruct);
+                                      msg_id,
+                                      actor_id_,
+                                      coordinator_actor_id,
+                                      create_migration_target_actor_t::value,
+                                      &cstruct);
 
   if(flag == false){
     // do some processing
     return;
   }
 
-  /*coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
+  coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
                                                 ctx.current_ns(),
                                                 msg_id,
-                                                static_cast<uint16_t>(flow_actor_messages::start_migration_response));*/
+                                                static_cast<uint16_t>(flow_actor_messages::start_migration_timeout));
+}
+
+void flow_actor::handle_message(start_migration_timeout_t){
+  migration_timer_.invalidate();
+  LOG(INFO)<<"start_migration_timeout is triggered";
+}
+
+void flow_actor::handle_message(start_migration_response_t, start_migration_response_cstruct* cstruct_ptr){
+  if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
+    LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    return;
+  }
+
+  LOG(INFO)<<"The response is successfully received";
+  migration_timer_.invalidate();
 }

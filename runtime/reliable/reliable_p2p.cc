@@ -39,14 +39,14 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   reliable_header* rh = pkt->head_data<reliable_header *>();
 
   if(unlikely(rh->magic_num == ack_magic_num)){
-    // LOG(INFO)<<"receiving ack packet with seq_num "<<rh->seq_num;
+    LOG(INFO)<<"receiving ack packet with seq_num "<<rh->seq_num;
     send_queue_.pop(rh->seq_num, &(coordinator_actor_->gp_collector_));
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
-    // LOG(INFO)<<rh->seq_num<<" "<<next_seq_num_to_recv_<<", discard";
+    LOG(INFO)<<rh->seq_num<<" "<<next_seq_num_to_recv_<<", discard";
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
@@ -64,6 +64,7 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 
   if(batch_.cnt() == cur_msg_.rmh.msg_pkt_num){
+    LOG(INFO)<<"Get a message";
     cur_msg_.format(&batch_);
     batch_.clear();
     return &cur_msg_;

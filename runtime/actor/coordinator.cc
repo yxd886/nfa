@@ -31,8 +31,23 @@ void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
     }
   }
   else{
+    LOG(INFO)<<"I'm fucking dying here, the receiver actor id is "<<msg_ptr->rmh.recv_actor_id;
+    flow_actor** actor_ptr = actorid_htable_.Get(&(msg_ptr->rmh.recv_actor_id));
+    if(unlikely(actor_ptr == 0)){
+      LOG(INFO)<<"The actor with id "<<msg_ptr->rmh.recv_actor_id<<" does not exist";
+      return;
+    }
+    LOG(INFO)<<"The actor_ptr is an valid pointer";
+
     switch(static_cast<flow_actor_messages>(msg_ptr->rmh.msg_type)){
+      case flow_actor_messages::start_migration_response : {
+        send(*actor_ptr,
+             start_migration_response_t::value,
+             msg_ptr->cstruct_pkt->head_data<start_migration_response_cstruct*>());
+        break;
+      }
       default : {
+        assert(1==0);
         break;
       }
     }
@@ -168,6 +183,8 @@ void coordinator::handle_message(cp_pkt_batch_t, bess::PacketBatch* batch){
       continue;
     }
 
+    LOG(INFO)<<"Receive a message sent from runtime "<<msg_ptr->send_runtime_id;
+
     process_recv_reliable_msg(msg_ptr);
     msg_ptr->clean(&gp_collector_);
   }
@@ -211,4 +228,20 @@ void coordinator::handle_message(create_migration_target_actor_t,
            <<", msg id "<<msg_id
            <<", input runtime id "<<cstruct_ptr->input_rtid
            <<", output_runtime_id "<<cstruct_ptr->output_rtid;
+
+  uint32_t response_msg_id = allocate_msg_id();
+
+  start_migration_response_cstruct cstruct;
+  cstruct.request_msg_id = msg_id;
+
+  bool flag = reliables_.find(sender_rtid)->second.reliable_send(response_msg_id,
+                                                                 coordinator_actor_id,
+                                                                 sender_actor_id,
+                                                                 start_migration_response_t::value,
+                                                                 &cstruct);
+
+  if(flag == false){
+    LOG(INFO)<<"coordinator fails to send response_msg_id";
+    return;
+  }
 }

@@ -39,6 +39,10 @@ public:
 
   void handle_message(start_migration_t, int32_t migration_target_rtid);
 
+  void handle_message(start_migration_timeout_t);
+
+  void handle_message(start_migration_response_t, start_migration_response_cstruct* cstruct_ptr);
+
   inline flow_actor_id_t* get_id(){
     return &actor_id_;
   }
