@@ -17,7 +17,6 @@
 #include "../rpc/llring_holder.h"
 #include "../utils/generic_ring_allocator.h"
 #include "coordinator_public_field.h"
-#include "../nf/mptcp/mp_tcp.h"
 
 class flow_actor;
 class flow_actor_allocator;
