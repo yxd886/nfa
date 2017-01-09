@@ -186,5 +186,68 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
   LOG(INFO)<<"The response is successfully received, the route has been changed";
   migration_timer_.invalidate();
 
+  bess::Packet* pkt = bess::Packet::Alloc();
+  pkt->set_data_off(SNBUF_HEADROOM);
+  pkt->set_total_len(fs_size_.nf_flow_state_size[0]);
+  pkt->set_data_len(fs_size_.nf_flow_state_size[0]);
+  bess::PacketBatch batch;
+  batch.clear();
+  batch.add(pkt);
 
+  uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+  bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second.reliable_send(
+                                                  msg_id,
+                                                  actor_id_,
+                                                  migration_target_actor_id_,
+                                                  migrate_flow_state_t::value,
+                                                  &batch);
+
+  if(flag == false){
+    coordinator_actor_->gp_collector_.collect(&batch);
+    return;
+  }
+
+  coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
+                                                ctx.current_ns(),
+                                                msg_id,
+                                                static_cast<uint16_t>(flow_actor_messages::migrate_flow_state_timeout));
+}
+
+void flow_actor::handle_message(migrate_flow_state_t,
+                                int32_t sender_rtid,
+                                uint32_t sender_actor_id,
+                                uint32_t request_msg_id,
+                                bess::PacketBatch* fs_pkt_batch){
+  LOG(INFO)<<"Receive fs_pkt_batch!!!";
+
+  uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+  migrate_flow_state_response_cstruct cstruct;
+  cstruct.request_msg_id = request_msg_id;
+
+  bool flag = coordinator_actor_->reliables_.find(sender_rtid)->second.reliable_send(
+                                                  msg_id,
+                                                  actor_id_,
+                                                  sender_actor_id,
+                                                  migrate_flow_state_response_t::value,
+                                                  &cstruct);
+
+  if(flag == false){
+    return;
+  }
+
+}
+
+void flow_actor::handle_message(migrate_flow_state_timeout_t){
+  migration_timer_.invalidate();
+  LOG(INFO)<<"Receive migrate_flow_state_timeout";
+}
+
+void flow_actor::handle_message(migrate_flow_state_response_t, migrate_flow_state_response_cstruct* cstruct_ptr){
+  if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
+    LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    return;
+  }
+
+  LOG(INFO)<<"The response is successfully received, the migration has completed";
+  migration_timer_.invalidate();
 }

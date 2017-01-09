@@ -51,6 +51,16 @@ public:
 
   void handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr);
 
+  void handle_message(migrate_flow_state_t,
+                      int32_t sender_rtid,
+                      uint32_t sender_actor_id,
+                      uint32_t request_msg_id,
+                      bess::PacketBatch* fs_pkt_batch);
+
+  void handle_message(migrate_flow_state_timeout_t);
+
+  void handle_message(migrate_flow_state_response_t, migrate_flow_state_response_cstruct* cstruct_ptr);
+
   inline flow_actor_id_t get_id(){
     return actor_id_;
   }

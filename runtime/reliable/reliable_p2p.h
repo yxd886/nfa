@@ -55,6 +55,35 @@ public:
     return true;
   }
 
+  template<uint16_t N>
+  bool reliable_send(uint32_t msg_id,
+                     uint32_t send_actor_id,
+                     uint32_t recv_actor_id,
+                     local_message_derived<N>,
+                     bess::PacketBatch* batch){
+
+    encode_binary_fs_sub_msg(batch);
+
+    reliable_message_header* msg_header = reinterpret_cast<reliable_message_header*>(
+                                          batch->pkts()[0]->prepend(sizeof(reliable_message_header)));
+
+    msg_header->send_actor_id = send_actor_id;
+    msg_header->recv_actor_id = recv_actor_id;
+    msg_header->msg_id = msg_id;
+    msg_header->msg_type = N;
+    msg_header->msg_pkt_num = batch->cnt();
+
+
+    bool flag = send_queue_.push(batch);
+    if(unlikely(flag == false)){
+      return false;
+    }
+
+    add_to_reliable_send_list(batch->cnt());
+
+    return true;
+  }
+
   inline bess::PacketBatch get_send_batch(int batch_size){
     return send_queue_.get_window_batch(batch_size);
   }
@@ -139,9 +168,51 @@ private:
     return msg_pkt;
   }
 
-  void encode_binary_fs_sub_msg(bess::PacketBatch* batch);
+  inline void encode_binary_fs_sub_msg(bess::PacketBatch* batch){
+    // the batch contains binary flow states created by the network functions.
+    assert(batch->cnt()>0);
 
-  bess::PacketBatch create_packet_sub_msg(bess::Packet* pkt);
+    uint8_t* sub_msg_num = reinterpret_cast<uint8_t*>(batch->pkts()[0]->prepend(1));
+    *sub_msg_num = batch->cnt();
+
+    char* sub_msg_tag = reinterpret_cast<char*>(batch->pkts()[0]->prepend(1));
+    *sub_msg_tag =  static_cast<char>(sub_message_type_enum::packet);
+  }
+
+  inline bess::PacketBatch create_packet_sub_msg(bess::Packet* pkt){
+    bess::PacketBatch batch;
+
+    batch.add(pkt);
+    char* pkt_data_start = reinterpret_cast<char *>(pkt->buffer()) + pkt->data_off();
+
+    if(unlikely(pkt->data_len()>pkt_sub_msg_cutting_thresh)){
+      bess::Packet* suplement_pkt = bess::Packet::Alloc();
+
+      if(unlikely(suplement_pkt == nullptr)){
+        batch.clear();
+        return batch;
+      }
+
+      size_t suplement_pkt_size = pkt->data_len() - pkt_sub_msg_cutting_thresh;
+      suplement_pkt->set_data_off(SNBUF_HEADROOM);
+      suplement_pkt->set_total_len(suplement_pkt_size);
+      suplement_pkt->set_data_len(suplement_pkt_size);
+
+      char* suplement_pkt_data_start = reinterpret_cast<char *>(suplement_pkt->buffer()) +
+                                       static_cast<size_t>(SNBUF_HEADROOM);
+      rte_memcpy(suplement_pkt_data_start, pkt_data_start+pkt_sub_msg_cutting_thresh, suplement_pkt_size);
+
+      batch.add(suplement_pkt);
+    }
+
+    uint8_t* sub_msg_num = reinterpret_cast<uint8_t*>(pkt->prepend(1));
+    *sub_msg_num = batch.cnt();
+
+    char* sub_msg_tag = reinterpret_cast<char*>(pkt->prepend(1));
+    *sub_msg_tag =  static_cast<char>(sub_message_type_enum::packet);
+
+    return batch;
+  }
 
   reliable_send_queue<4096> send_queue_;
   uint32_t next_seq_num_to_recv_;

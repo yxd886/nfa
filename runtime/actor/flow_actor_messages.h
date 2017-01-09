@@ -14,7 +14,11 @@ enum class flow_actor_messages : uint16_t{
 
   change_vswtich_route_execution,
   change_vswitch_route_timeout,
-  change_vswitch_route_response
+  change_vswitch_route_response,
+
+  migrate_flow_state,
+  migrate_flow_state_timeout,
+  migrate_flow_state_response
 };
 
 using pkt_msg_t = local_message(flow_actor_messages, pkt_msg);
@@ -37,6 +41,13 @@ struct change_vswitch_route_response_cstruct{
   uint32_t request_msg_id;
 };
 
+
+using migrate_flow_state_t = local_message(flow_actor_messages, migrate_flow_state);
+using migrate_flow_state_timeout_t = local_message(flow_actor_messages, migrate_flow_state_timeout);
+using migrate_flow_state_response_t = local_message(flow_actor_messages, migrate_flow_state_response);
+struct migrate_flow_state_response_cstruct{
+  uint32_t request_msg_id;
+};
 
 
 

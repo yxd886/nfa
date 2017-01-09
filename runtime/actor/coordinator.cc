@@ -56,8 +56,23 @@ void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
       }
       case flow_actor_messages::change_vswitch_route_response : {
         send(*actor_ptr,
-            change_vswitch_route_response_t::value,
+             change_vswitch_route_response_t::value,
              msg_ptr->cstruct_pkt->head_data<change_vswitch_route_response_cstruct*>());
+        break;
+      }
+      case flow_actor_messages::migrate_flow_state : {
+        send(*actor_ptr,
+             migrate_flow_state_t::value,
+             msg_ptr->send_runtime_id,
+             msg_ptr->rmh.send_actor_id,
+             msg_ptr->rmh.msg_id,
+             &(msg_ptr->fs_msg_batch));
+        break;
+      }
+      case flow_actor_messages::migrate_flow_state_response : {
+        send(*actor_ptr,
+             migrate_flow_state_response_t::value,
+             msg_ptr->cstruct_pkt->head_data<migrate_flow_state_response_cstruct*>());
         break;
       }
       default : {

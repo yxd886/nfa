@@ -187,7 +187,7 @@ private:
   inline void format_send_packet(bess::Packet* pkt, uint32_t next_seq_num){
     int pkt_len = pkt->total_len()+
                   sizeof(struct ipv4_hdr)+
-                  2*sizeof(uint32_t);
+                  sizeof(uint32_t)+sizeof(uint8_t);
 
     rh_.iph.total_length = rte_cpu_to_be_16(pkt_len);
     rh_.iph.hdr_checksum = rte_ipv4_cksum(&(rh_.iph));
