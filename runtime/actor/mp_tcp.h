@@ -43,8 +43,7 @@ enum tcp_option_kind {
 };
 
 
-
- static bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int32_t& migration_target_id){
+bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int32_t& migration_target_id){
 
 
 
