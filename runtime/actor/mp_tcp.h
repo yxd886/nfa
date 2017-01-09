@@ -10,7 +10,7 @@
 #include <rte_ethdev.h>
 
 
-typedef struct tcp_header {
+struct tcp_header {
 	uint16_t sport;
 	uint16_t dport;
 	uint32_t seq_number;
@@ -21,15 +21,15 @@ typedef struct tcp_header {
 	uint16_t checksum;
 	uint16_t urgent_pointer;
 	char options[];
-} tcp_header_t;
+};
 
 
-typedef struct mptcp_option {
+struct mptcp_option {
 	uint8_t tcp_kind;
 	uint8_t length;
 	uint8_t subtype;
 	char payload[0];
-} mptcp_option_t;
+};
 
 enum tcp_option_kind {
 	TCP_OPTION_EOL        = 0,
@@ -45,7 +45,7 @@ enum tcp_option_kind {
 
 
 
-bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, uint32_t& migration_target_id){
+bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int32_t& migration_target_id){
 
 
 
