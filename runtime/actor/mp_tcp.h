@@ -130,6 +130,7 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, uint
 			}
 
 		}
+		return false;
 
 
 }

@@ -45,7 +45,7 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
 
-  if(FLAGS_mp_tcp_flag){
+  if(FLAGS_mptcp_flag){
   	uint32_t migration_target_id;
   	if(is_mptcp_flow(pkt,
   									 coordinator_actor_->local_runtime_.runtime_id,
