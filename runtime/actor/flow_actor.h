@@ -45,6 +45,12 @@ public:
 
   void handle_message(change_vswitch_route_timeout_t);
 
+  void handle_message(change_vswtich_route_execution_t,
+                      int32_t new_output_rtid,
+                      uint64_t new_output_rt_input_mac);
+
+  void handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr);
+
   inline flow_actor_id_t get_id(){
     return actor_id_;
   }
@@ -102,6 +108,8 @@ private:
   actor_timer<actor_timer_type::flow_actor_req_timer> migration_timer_;
 
   actor_timer<actor_timer_type::flow_actor_req_timer> replication_timer_;
+
+  uint32_t migration_target_actor_id_;
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

@@ -54,6 +54,12 @@ void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
              msg_ptr->cstruct_pkt->head_data<start_migration_response_cstruct*>());
         break;
       }
+      case flow_actor_messages::change_vswitch_route_response : {
+        send(*actor_ptr,
+            change_vswitch_route_response_t::value,
+             msg_ptr->cstruct_pkt->head_data<change_vswitch_route_response_cstruct*>());
+        break;
+      }
       default : {
         assert(1==0);
         break;
@@ -270,6 +276,7 @@ void coordinator::handle_message(create_migration_target_actor_t,
   start_migration_response_cstruct cstruct;
   cstruct.request_msg_id = msg_id;
   cstruct.migration_target_actor_id = actor->get_id();
+  cstruct.migration_target_input_mac = local_runtime_.input_port_mac;
 
   bool flag = reliables_.find(sender_rtid)->second.reliable_send(response_msg_id,
                                                                  coordinator_actor_id,
@@ -290,4 +297,32 @@ void coordinator::handle_message(change_vswitch_route_t,
                                  change_vswitch_route_request_cstruct* cstruct_ptr){
   LOG(INFO)<<"Receive change_vswitch_route message sent from runtime "<<sender_rtid
            <<" with actor id "<<sender_actor_id;
+
+  flow_actor** actor_ptr = htable_.Get(&(cstruct_ptr->flow_key));
+  flow_actor* actor = 0;
+
+  if(unlikely(actor_ptr==nullptr)){
+    //error handling
+  }
+
+  actor = *actor_ptr;
+  send(actor,
+      change_vswtich_route_execution_t::value,
+      cstruct_ptr->new_output_rt_id,
+      cstruct_ptr->new_output_rt_input_mac);
+
+  uint32_t response_msg_id = allocate_msg_id();
+  change_vswitch_route_response_cstruct cstruct;
+  cstruct.request_msg_id = msg_id;
+  bool flag = reliables_.find(sender_rtid)->second.reliable_send(response_msg_id,
+                                                                 coordinator_actor_id,
+                                                                 sender_actor_id,
+                                                                 change_vswitch_route_response_t::value,
+                                                                 &cstruct);
+
+  if(flag == false){
+    LOG(INFO)<<"coordinator fails to send response_msg_id";
+    return;
+  }
+
 }

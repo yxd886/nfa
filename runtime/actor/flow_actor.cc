@@ -139,8 +139,11 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
            <<cstruct_ptr->migration_target_actor_id;
   migration_timer_.invalidate();
 
+  migration_target_actor_id_ = cstruct_ptr->migration_target_actor_id;
+
   change_vswitch_route_request_cstruct cstruct;
   cstruct.new_output_rt_id = coordinator_actor_->migration_target_rt_id_;
+  cstruct.new_output_rt_input_mac = cstruct_ptr->migration_target_input_mac;
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
@@ -165,4 +168,23 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
 void flow_actor::handle_message(change_vswitch_route_timeout_t){
   migration_timer_.invalidate();
   LOG(INFO)<<"change_vswitch_route_timeout is triggered";
+}
+
+void flow_actor::handle_message(change_vswtich_route_execution_t,
+                                int32_t new_output_rtid,
+                                uint64_t new_output_rt_input_mac){
+  output_header_.dest_rtid = new_output_rtid;
+  output_header_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&new_output_rt_input_mac));
+}
+
+void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr){
+  if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
+    LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    return;
+  }
+
+  LOG(INFO)<<"The response is successfully received, the route has been changed";
+  migration_timer_.invalidate();
+
+
 }
