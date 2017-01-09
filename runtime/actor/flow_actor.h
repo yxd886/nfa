@@ -13,7 +13,6 @@
 #include "../nf/base/network_function_base.h"
 #include "../nf/base/nf_item.h"
 #include "../utils/cdlist.h"
-#include "mp_tcp.h"
 
 using namespace std;
 
