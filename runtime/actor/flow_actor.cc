@@ -2,6 +2,7 @@
 #include "coordinator.h"
 #include "./base/local_send.h"
 #include "../bessport/utils/time.h"
+#include "mp_tcp.h"
 
 void flow_actor::handle_message(flow_actor_init_t,
                                 coordinator* coordinator_actor,
