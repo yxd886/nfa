@@ -46,7 +46,7 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
   // ogate 1 of ec_scheduler is connected to a sink
 
   if(FLAGS_mptcp_flag){
-  	uint32_t migration_target_id;
+  	int32_t migration_target_id;
   	if(is_mptcp_flow(pkt,
   									 coordinator_actor_->local_runtime_.runtime_id,
   									 coordinator_actor_->migration_target_rt_id_rrlist_.size(),
