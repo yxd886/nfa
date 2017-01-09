@@ -67,19 +67,19 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, uint
 		// discard non-IP packets
 		if(ntohs(eth_header->ether_type) != 0X0800) {  //ip
 			//fprintf(stderr, "Ignoring non-IP packets\n");
-			return;
+			return false;
 		}
 
 		// Discard non IPv4 packets.
 		// TODO: add IPv6 support
 		if(ip_header->version!= 4) {
 		//	fprintf(stderr, "Ignoring non-IPv4 packets.\n");
-			return;
+			return false;
 		}
 		// discard non-TCP packets
 		if(ip_header->protocol!= IPPROTO_TCP) {
 			//fprintf(stderr, "Ignoring non-TCP packets\n");
-			return;
+			return false;
 		}
 
 		// TCP packet information
