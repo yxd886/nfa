@@ -3,6 +3,7 @@
 #include "../actor/coordinator.h"
 #include "../actor/base/local_send.h"
 
+#include <glog/logging.h>
 
 void reverse_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
   dp_pkt_batch.clear();
@@ -28,6 +29,7 @@ void reverse_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
   }
 
   if(unlikely(cp_pkt_batch.cnt()>0)){
+    LOG(INFO)<<"Send control packet batch to coordinator actor";
     send(coordinator_actor_, cp_pkt_batch_t::value, &cp_pkt_batch);
   }
 

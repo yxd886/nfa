@@ -43,8 +43,15 @@ public:
 
   void handle_message(start_migration_response_t, start_migration_response_cstruct* cstruct_ptr);
 
-  inline flow_actor_id_t* get_id(){
-    return &actor_id_;
+  void handle_message(change_vswitch_route_timeout_t);
+
+  inline flow_actor_id_t get_id(){
+    return actor_id_;
+  }
+
+  inline uint64_t get_id_64(){
+    uint64_t actor_id_64 = 0x00000000FfFfFfFf & actor_id_;
+    return actor_id_64;
   }
 
   inline void set_id(flow_actor_id_t actor_id){

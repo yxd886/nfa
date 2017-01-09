@@ -24,7 +24,7 @@ struct task_result send_reliable_ack::RunTask(void *arg){
 
   for(auto it=coordinator_actor_->reliables_.begin(); it!=coordinator_actor_->reliables_.end(); it++){
 
-    // it->second.check(current_ns);
+    it->second.check(current_ns);
 
     bess::Packet* ack_pkt = it->second.get_ack_pkt();
     if(unlikely(ack_pkt == nullptr)){

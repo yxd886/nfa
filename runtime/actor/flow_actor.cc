@@ -97,7 +97,12 @@ void flow_actor::handle_message(check_idle_t){
 void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid){
   create_migration_target_actor_cstruct cstruct;
   cstruct.input_rtid = input_header_.dest_rtid;
+  cstruct.input_rt_output_mac = (*reinterpret_cast<uint64_t *>(&(input_header_.ethh.d_addr))) &
+                                0x0000FFffFFffFFfflu;
   cstruct.output_rtid = output_header_.dest_rtid;
+  cstruct.output_rt_input_mac = (*reinterpret_cast<uint64_t *>(&(output_header_.ethh.d_addr))) &
+                                0x0000FFffFFffFFfflu;
+
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
@@ -130,6 +135,34 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
     return;
   }
 
-  LOG(INFO)<<"The response is successfully received";
+  LOG(INFO)<<"The response is successfully received, the id of the migration target is "
+           <<cstruct_ptr->migration_target_actor_id;
   migration_timer_.invalidate();
+
+  change_vswitch_route_request_cstruct cstruct;
+  cstruct.new_output_rt_id = coordinator_actor_->migration_target_rt_id_;
+  rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
+
+  uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+  bool flag = coordinator_actor_->reliables_.find(input_header_.dest_rtid)->second.reliable_send(
+                                        msg_id,
+                                        actor_id_,
+                                        coordinator_actor_id,
+                                        change_vswitch_route_t::value,
+                                        &cstruct);
+
+  if(flag == false){
+    // do some processing
+    return;
+  }
+
+  coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
+                                                ctx.current_ns(),
+                                                msg_id,
+                                                static_cast<uint16_t>(flow_actor_messages::change_vswitch_route_timeout));
+}
+
+void flow_actor::handle_message(change_vswitch_route_timeout_t){
+  migration_timer_.invalidate();
+  LOG(INFO)<<"change_vswitch_route_timeout is triggered";
 }

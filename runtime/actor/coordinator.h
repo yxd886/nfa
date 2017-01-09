@@ -29,7 +29,7 @@ class coordinator : public garbage, public local_batch, public timer_list,
 public:
   using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
 
-  using actorid_htable_t = HTable<uint32_t, flow_actor*, actorid_keycmp, actorid_hash>;
+  using actorid_htable_t = HTable<uint64_t, flow_actor*, actorid_keycmp, actorid_hash>;
 
   coordinator(flow_actor_allocator* allocator,
               generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
@@ -51,6 +51,12 @@ public:
                       uint32_t sender_actor_id,
                       uint32_t msg_id,
                       create_migration_target_actor_cstruct* cstruct_ptr);
+
+  void handle_message(change_vswitch_route_t,
+                      int32_t sender_rtid,
+                      uint32_t sender_actor_id,
+                      uint32_t msg_id,
+                      change_vswitch_route_request_cstruct* cstruct_ptr);
 
   inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
     return mac_list_item_allocator_;

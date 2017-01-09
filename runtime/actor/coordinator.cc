@@ -25,19 +25,27 @@ void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
                         msg_ptr->cstruct_pkt->head_data<create_migration_target_actor_cstruct*>());
         break;
       }
+      case coordinator_messages::change_vswitch_route : {
+        handle_message(change_vswitch_route_t::value,
+                       msg_ptr->send_runtime_id,
+                       msg_ptr->rmh.send_actor_id,
+                       msg_ptr->rmh.msg_id,
+                       msg_ptr->cstruct_pkt->head_data<change_vswitch_route_request_cstruct*>());
+
+        break;
+      }
       default : {
         break;
       }
     }
   }
   else{
-    LOG(INFO)<<"I'm fucking dying here, the receiver actor id is "<<msg_ptr->rmh.recv_actor_id;
-    flow_actor** actor_ptr = actorid_htable_.Get(&(msg_ptr->rmh.recv_actor_id));
+    uint64_t actor_id_64 = 0x00000000FfFfFfFf & msg_ptr->rmh.recv_actor_id;
+    flow_actor** actor_ptr = actorid_htable_.Get(&actor_id_64);
     if(unlikely(actor_ptr == 0)){
       LOG(INFO)<<"The actor with id "<<msg_ptr->rmh.recv_actor_id<<" does not exist";
       return;
     }
-    LOG(INFO)<<"The actor_ptr is an valid pointer";
 
     switch(static_cast<flow_actor_messages>(msg_ptr->rmh.msg_type)){
       case flow_actor_messages::start_migration_response : {
@@ -61,7 +69,7 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   htable_.Init(flow_key_size, sizeof(flow_actor*));
 
-  actorid_htable_.Init(sizeof(uint32_t), sizeof(flow_actor*));
+  actorid_htable_.Init(sizeof(uint64_t), sizeof(flow_actor*));
 
   deadend_flow_actor_ = allocator_->allocate();
 
@@ -157,7 +165,8 @@ void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);
 
-      actorid_htable_.Set(actor->get_id(), &actor);
+      uint64_t actor_id_64 = actor->get_id_64();
+      actorid_htable_.Set(&actor_id_64, &actor);
 
       actor_ptr = &actor;
     }
@@ -183,8 +192,6 @@ void coordinator::handle_message(cp_pkt_batch_t, bess::PacketBatch* batch){
       continue;
     }
 
-    LOG(INFO)<<"Receive a message sent from runtime "<<msg_ptr->send_runtime_id;
-
     process_recv_reliable_msg(msg_ptr);
     msg_ptr->clean(&gp_collector_);
   }
@@ -195,7 +202,8 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
 
   htable_.Del(flow_key);
 
-  actorid_htable_.Del(flow_actor->get_id());
+  uint64_t actor_id_64 = flow_actor->get_id_64();
+  actorid_htable_.Del(&actor_id_64);
 
   if(flow_actor!=deadend_flow_actor_){
     flow_actor->get_idle_timer()->invalidate();
@@ -229,10 +237,39 @@ void coordinator::handle_message(create_migration_target_actor_t,
            <<", input runtime id "<<cstruct_ptr->input_rtid
            <<", output_runtime_id "<<cstruct_ptr->output_rtid;
 
+
+  flow_actor* actor = allocator_->allocate();
+
+  if(unlikely(actor==nullptr)){
+    LOG(WARNING)<<"No available flow actors to allocate";
+    //TODO: error handling
+    return;
+  }
+
+  active_flows_rrlist_.add_to_tail(actor);
+
+  send(actor, flow_actor_init_t::value,
+       this,
+       &(cstruct_ptr->flow_key),
+       service_chain_,
+       cstruct_ptr->input_rtid,
+       cstruct_ptr->input_rt_output_mac,
+       local_runtime_.input_port_mac,
+       cstruct_ptr->output_rtid,
+       cstruct_ptr->output_rt_input_mac,
+       local_runtime_.output_port_mac);
+
+
+  htable_.Set(&(cstruct_ptr->flow_key), &actor);
+
+  uint64_t actor_id_64 = actor->get_id_64();
+  actorid_htable_.Set(&actor_id_64, &actor);
+
   uint32_t response_msg_id = allocate_msg_id();
 
   start_migration_response_cstruct cstruct;
   cstruct.request_msg_id = msg_id;
+  cstruct.migration_target_actor_id = actor->get_id();
 
   bool flag = reliables_.find(sender_rtid)->second.reliable_send(response_msg_id,
                                                                  coordinator_actor_id,
@@ -244,4 +281,13 @@ void coordinator::handle_message(create_migration_target_actor_t,
     LOG(INFO)<<"coordinator fails to send response_msg_id";
     return;
   }
+}
+
+void coordinator::handle_message(change_vswitch_route_t,
+                                 int32_t sender_rtid,
+                                 uint32_t sender_actor_id,
+                                 uint32_t msg_id,
+                                 change_vswitch_route_request_cstruct* cstruct_ptr){
+  LOG(INFO)<<"Receive change_vswitch_route message sent from runtime "<<sender_rtid
+           <<" with actor id "<<sender_actor_id;
 }

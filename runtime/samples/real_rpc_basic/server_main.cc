@@ -107,6 +107,35 @@ int main(int argc, char* argv[]){
   flow_actor_allocator allocator(num_flow_actors);
   coordinator coordinator_actor(&allocator, &mac_list_item_allocator, communication_ring);
 
+  /*LOG(INFO)<<"HashMap test starts";
+  using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
+  using actorid_htable_t = HTable<uint64_t, flow_actor*, actorid_keycmp, actorid_hash>;
+
+  htable_t htable_;
+  actorid_htable_t actorid_htable_;
+
+  htable_.Init(flow_key_size, sizeof(flow_actor*));
+  actorid_htable_.Init(sizeof(uint64_t), sizeof(flow_actor*));
+
+  flow_actor* actor = allocator.allocate();
+  actor->set_id(1024);
+  flow_key_t flow_key;
+  htable_.Set(&flow_key, &actor);
+
+  flow_actor** actor_ptr = htable_.Get(&flow_key);
+  assert(actor_ptr!=nullptr);
+  assert((*actor_ptr)->get_id() == 1024);
+
+  uint64_t actor_id_64 = actor->get_id_64();
+  actorid_htable_.Set(&actor_id_64, &actor);
+
+  actor_ptr = actorid_htable_.Get(&actor_id_64);
+  assert(actor_ptr!=nullptr);
+  assert((*actor_ptr)->get_id() == 1024);
+
+  LOG(INFO)<<"HashMap test ends";
+  exit(0);*/
+
   // create module and attach modules to the default traffic class of worker 1.
   // std::unique_ptr<Module> mod_handle_command_ptr(mod_handle_command);
   Module* mod_iport_port_inc = create_module<PortInc>("PortInc", "mod_iport_port_inc", &input_port, 0, 32);
