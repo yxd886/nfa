@@ -32,7 +32,7 @@ void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
 
 coordinator::coordinator(flow_actor_allocator* allocator,
                          generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
-                         llring_holder& holder):mp_tcp(false){
+                         llring_holder& holder){
   allocator_ = allocator;
 
   htable_.Init(flow_key_size, sizeof(flow_actor*));
@@ -43,14 +43,6 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   static_nf_register::get_register().init(allocator->get_max_actor());
   service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
-
-  for(int i=0; i<static_nf_register::get_register().compute_service_chain_length(0x0000000000000001); i++){
-    uint8_t nf_id = static_nf_register::get_register().compute_network_function(0x0000000000000001, i);
-    if(nf_id==5){
-    	mp_tcp=true;
-    	mp_tcp::set_runtime_id(FLAGS_runtime_id);
-    }
-  }
 
   mac_list_item_allocator_ = mac_list_item_allocator;
 

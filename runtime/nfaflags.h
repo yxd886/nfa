@@ -22,4 +22,6 @@ DECLARE_int32(rpc_port);
 
 DECLARE_int32(worker_core);
 
+DECLARE_bool(mptcp_flag);
+
 #endif

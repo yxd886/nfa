@@ -165,7 +165,6 @@ struct task_result handle_command::RunTask(void *arg){
           coordinator_actor_->mac_to_reliables_.emplace(item->rt_config.control_port_mac, r);
 
       	}
-      	mp_tcp::update_target_no(coordinator_actor_->migration_target_rt_id_rrlist_.size());
         break;
       }
       case rpc_operation::migration_negotiate :{

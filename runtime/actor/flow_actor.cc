@@ -2,7 +2,6 @@
 #include "coordinator.h"
 #include "./base/local_send.h"
 #include "../bessport/utils/time.h"
-#include "../nf/mptcp/mp_tcp_fs.h"
 
 void flow_actor::handle_message(flow_actor_init_t,
                                 coordinator* coordinator_actor,
@@ -40,29 +39,39 @@ void flow_actor::handle_message(flow_actor_init_t,
 }
 
 void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
+
   pkt_counter_+=1;
 
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
 
+  if(FLAGS_mp_tcp_flag){
+  	uint32_t migration_target_id;
+  	if(is_mptcp_flow(pkt,
+  									 coordinator_actor_->local_runtime_.runtime_id,
+  									 coordinator_actor_->migration_target_rt_id_rrlist_.size(),
+										 migration_target_id)){
+  		//TODO:begin to migrate this flow to migration target.
 
-  for(size_t i=0; i<service_chain_length_; i++){
-    rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-    nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
-  }
 
-  if(coordinator_actor_->has_mp_tcp()){
+  	}else{
+      for(size_t i=0; i<service_chain_length_; i++){
+        rte_prefetch0(fs_.nf_flow_state_ptr[i]);
+        nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+      }
+    	coordinator_actor_->ec_scheduler_batch_.add(pkt);
 
-  	if((reinterpret_cast<mp_tcp_fs*>(fs_.nf_flow_state_ptr[0]))->need_to_migrate){
-
-  		//TODO: migrate the flow.
   	}
-
 
   }else{
 
-
+    for(size_t i=0; i<service_chain_length_; i++){
+      rte_prefetch0(fs_.nf_flow_state_ptr[i]);
+      nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+    }
   	coordinator_actor_->ec_scheduler_batch_.add(pkt);
+
+
 
   }
 

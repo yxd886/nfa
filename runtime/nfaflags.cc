@@ -32,3 +32,5 @@ DEFINE_string(rpc_ip, "nil", "The IP address that the RPC server listens on.");
 DEFINE_int32(rpc_port, -1, "The port that the RPC server listens on");
 
 DEFINE_int32(worker_core, -1, "The core that the worker thread binds on.");
+
+DEFINE_bool(mptcp_flag, false, "whether to launch the mptcp application.");
