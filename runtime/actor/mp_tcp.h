@@ -1,7 +1,7 @@
 #ifndef MPTCP_H
 #define MPTCP_H
 
-#include "../../bessport/packet.h"
+#include "../bessport/packet.h"
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
