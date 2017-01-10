@@ -148,7 +148,7 @@ MIGRATION_START_OBJS = $(filter-out main.o $(filter-out samples/migration_start.
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(NFA_RPC_CLIENT_EXEC) $(MIGRATION_START_EXEC)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \

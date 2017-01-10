@@ -172,8 +172,6 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
     string local_addr = concat_with_colon(protobuf_local_runtime.rpc_ip(),
                                           std::to_string(protobuf_local_runtime.rpc_port()));
-    string migration_target_addr = concat_with_colon(convert_uint32t_ip(migration_target_.rpc_ip),
-                                          std::to_string(migration_target_.rpc_port));
     for(int i=0; i<request_.addrs_size(); i++){
       string dest_addr = concat_with_colon(request_.addrs(i).rpc_ip(),
                                            std::to_string(request_.addrs(i).rpc_port()));
@@ -183,8 +181,7 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
          (replicas_.find(dest_addr)!=replicas_.end()) ||
          (storages_.find(dest_addr)!=storages_.end()) ||
          (migration_targets_.find(dest_addr)!=migration_targets_.end()) ||
-         (migration_sources_.find(dest_addr)!=migration_sources_.end()) ||
-         (dest_addr == migration_target_addr)
+         (migration_sources_.find(dest_addr)!=migration_sources_.end())
          ){
         continue;
       }
@@ -239,7 +236,7 @@ void derived_call_data<AddInputRtReq, AddInputRtRep>::Proceed(){
                                                   std::to_string(request_.input_runtime().rpc_port()));
     if((input_runtime != local_runtime_) &&
        (input_runtimes_.find(input_runtime_addr)==input_runtimes_.end()) &&
-       (output_runtimes_.find(dest_addr)==output_runtimes_.end())){
+       (output_runtimes_.find(input_runtime_addr)==output_runtimes_.end())){
       input_runtimes_.emplace(input_runtime_addr, input_runtime);
 
       llring_item item(rpc_operation::add_input_runtime, input_runtime, 0, 0);
@@ -905,8 +902,8 @@ void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
       reply_.add_storages()->CopyFrom(storages_runtime);
     }
 
-    RuntimeConfig migration_runtime =  local2protobuf(migration_target_);
-    reply_.mutable_migration_target()->CopyFrom(migration_runtime);
+    // RuntimeConfig migration_runtime =  local2protobuf(migration_target_);
+    // reply_.mutable_migration_target()->CopyFrom(migration_runtime);
 
     RuntimeConfig proto_local_runtime =  local2protobuf(local_runtime_);
     reply_.mutable_local_runtime()->CopyFrom(proto_local_runtime);

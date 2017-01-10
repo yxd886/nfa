@@ -196,9 +196,9 @@ class LivenessCheckClient {
     SetMigrationTargetRep reply;
     ClientContext context;
 
-    request.mutable_addr()->set_rpc_ip("127.0.0.1");
-    request.mutable_addr()->set_rpc_port(port_num);
-    request.set_quota(qouta);
+    auto new_addr_ptr = request.add_addrs();
+    new_addr_ptr->set_rpc_ip("127.0.0.1");
+    new_addr_ptr->set_rpc_port(port_num);
 
     Status status = stub_->SetMigrationTarget(&context, request, &reply);
 
