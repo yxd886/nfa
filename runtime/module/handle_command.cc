@@ -135,10 +135,13 @@ struct task_result handle_command::RunTask(void *arg){
           coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reset();
         }
         else{
-          uint64_t mac = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
-                                           ->get_rt_config()->control_port_mac;
-          coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
-          coordinator_actor_->mac_to_reliables_.Del(&mac);
+
+          if(coordinator_actor_->migration_target_rt_id_!=-1){
+            uint64_t mac = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
+                                             ->get_rt_config()->control_port_mac;
+            coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
+            coordinator_actor_->mac_to_reliables_.Del(&mac);
+          }
 
           coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
           reliable_p2p* r = coordinator_actor_->reliables_.emplace(item->rt_config.runtime_id,
