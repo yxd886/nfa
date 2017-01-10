@@ -88,7 +88,7 @@ class ServerImpl final {
 
   unordered_map<string, runtime_config> storages_;
 
-  runtime_config migration_target_;
+  unordered_map<string, runtime_config> migration_targets_;
 
   unordered_map<string, runtime_config> migration_sources_;
 

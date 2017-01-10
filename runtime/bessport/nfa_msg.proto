@@ -25,6 +25,7 @@ service Runtime_RPC {
   rpc ReplicaNegotiate(ReplicaNegotiateReq) returns (ReplicaNegotiateRep){}
   rpc DeleteReplica(DeleteReplicaReq) returns (DeleteReplicaRep){}
   rpc DeleteStorage(DeleteStorageReq) returns (DeleteStorageRep){}
+  
   rpc GetRuntimeState(GetRuntimeStateReq) returns (GetRuntimeStateRep){}
 }
 
@@ -108,8 +109,7 @@ message DeleteInputMacRep{
 }
 
 message SetMigrationTargetReq{
-  Address addr = 1;
-  uint64 quota = 2;
+  repeated Address addrs = 1;
 }
 
 message SetMigrationTargetRep{
@@ -119,15 +119,14 @@ message MigrationNegotiateReq{
   RuntimeConfig migration_source_config = 1;
   repeated Address input_runtime_addrs = 2;
   repeated Address output_runtime_addrs = 3;
-  uint64 quota = 4;
 }
 
 message MigrationNegotiateRep{
   RuntimeConfig migration_target_runtime = 1;
-  uint64 quota = 2;
 }
 
 message DeleteMigrationTargetReq{
+  Address addr = 1;
 }
 
 message DeleteMigrationTargetRep{

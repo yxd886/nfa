@@ -130,71 +130,65 @@ struct task_result handle_command::RunTask(void *arg){
         break;
       }
       case rpc_operation::set_migration_target :{
-        coordinator_actor_->migration_qouta_ = item->migration_qouta;
-        if(coordinator_actor_->migration_target_rt_id_ == item->rt_config.runtime_id){
-          coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reset();
-        }
-        else{
+        reliable_p2p* r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id);
+        if(r==nullptr){
+          r = coordinator_actor_->reliables_.emplace(item->rt_config.runtime_id,
+                                            coordinator_actor_->local_runtime_.control_port_mac,
+                                            item->rt_config.control_port_mac,
+                                            coordinator_actor_->local_runtime_.runtime_id,
+                                            item->rt_config.runtime_id,
+                                            coordinator_actor_,
+                                            2,
+                                            &(item->rt_config));
 
-          if(coordinator_actor_->migration_target_rt_id_!=-1){
-            uint64_t mac = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
-                                             ->get_rt_config()->control_port_mac;
-            coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
-            coordinator_actor_->mac_to_reliables_.Del(&mac);
-          }
-
-          coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
-          reliable_p2p* r = coordinator_actor_->reliables_.emplace(item->rt_config.runtime_id,
-                                                                   coordinator_actor_->local_runtime_.control_port_mac,
-                                                                   item->rt_config.control_port_mac,
-                                                                   coordinator_actor_->local_runtime_.runtime_id,
-                                                                   item->rt_config.runtime_id,
-                                                                   coordinator_actor_,
-                                                                   2,
-                                                                   &(item->rt_config));
 
           coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.control_port_mac), &r);
+
+          r->inc_ref_cnt();
+        }
+        else{
+          r->inc_ref_cnt();
         }
         break;
       }
       case rpc_operation::migration_negotiate :{
-        //first of all, determine the number of migration that can be accepted. Using the number of
-        // available flow actors.
-        // TODO:
         reliable_p2p* r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id);
-        if(r != nullptr){
-          coordinator_actor_->reliables_.find(item->rt_config.runtime_id)->reset();
-        }
-        else{
+        if(r==nullptr){
           r = coordinator_actor_->reliables_.emplace(item->rt_config.runtime_id,
-                                                     coordinator_actor_->local_runtime_.control_port_mac,
-                                                     item->rt_config.control_port_mac,
-                                                     coordinator_actor_->local_runtime_.runtime_id,
-                                                     item->rt_config.runtime_id,
-                                                     coordinator_actor_,
-                                                     2,
-                                                     &(item->rt_config));
+                                            coordinator_actor_->local_runtime_.control_port_mac,
+                                            item->rt_config.control_port_mac,
+                                            coordinator_actor_->local_runtime_.runtime_id,
+                                            item->rt_config.runtime_id,
+                                            coordinator_actor_,
+                                            2,
+                                            &(item->rt_config));
+
 
           coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.control_port_mac), &r);
+
+          r->inc_ref_cnt();
+        }
+        else{
+          r->inc_ref_cnt();
         }
         break;
       }
       case rpc_operation::delete_migration_target :{
-        if(coordinator_actor_->migration_qouta_==0){
-          uint64_t mac = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
-                                           ->get_rt_config()->control_port_mac;
-          coordinator_actor_->reliables_.erase(coordinator_actor_->migration_target_rt_id_);
-          coordinator_actor_->mac_to_reliables_.Del(&mac);
-          coordinator_actor_->migration_target_rt_id_ = -1;
-          item->rt_config.runtime_id = -1;
+        reliable_p2p* r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id);
+        r->dec_ref_cnt();
+        if(r->is_ref_cnt_zero()){
+          coordinator_actor_->mac_to_reliables_.Del(&(r->get_rt_config()->control_port_mac));
+          coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
         }
         break;
       }
       case rpc_operation::delete_migration_source :{
-        uint64_t mac = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
-                                         ->get_rt_config()->control_port_mac;
-        coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
-        coordinator_actor_->mac_to_reliables_.Del(&mac);
+        reliable_p2p* r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id);
+        r->dec_ref_cnt();
+        if(r->is_ref_cnt_zero()){
+          coordinator_actor_->mac_to_reliables_.Del(&(r->get_rt_config()->control_port_mac));
+          coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+        }
         break;
       }
       case rpc_operation::add_replica :{
@@ -221,6 +215,7 @@ struct task_result handle_command::RunTask(void *arg){
         else{
           r->inc_ref_cnt();
         }
+
         break;
       }
       case rpc_operation::add_storage :{
