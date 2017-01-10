@@ -948,6 +948,7 @@ void derived_call_data<MigrateAllFlowsReq, MigrateAllFlowsRep>::Proceed(){
     service_->RequestMigrateAllFlows(&ctx_, &request_, &responder_, cq_, cq_, this);
   } else if (status_ == PROCESS) {
     create_itself();
+    LOG(INFO) << "Receive MigrateAllFlows rpc message.";
 
 		llring_item item(rpc_operation::migrate_all_flows, migration_target_, 0, 0);
 
