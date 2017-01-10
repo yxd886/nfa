@@ -106,7 +106,7 @@ void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  bool flag = coordinator_actor_->reliables_.find(migration_target_rtid)->second.reliable_send(
+  bool flag = coordinator_actor_->reliables_.find(migration_target_rtid)->reliable_send(
                                       msg_id,
                                       actor_id_,
                                       coordinator_actor_id,
@@ -147,7 +147,7 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  bool flag = coordinator_actor_->reliables_.find(input_header_.dest_rtid)->second.reliable_send(
+  bool flag = coordinator_actor_->reliables_.find(input_header_.dest_rtid)->reliable_send(
                                         msg_id,
                                         actor_id_,
                                         coordinator_actor_id,
@@ -195,7 +195,7 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
   batch.add(pkt);
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->second.reliable_send(
+  bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reliable_send(
                                                   msg_id,
                                                   actor_id_,
                                                   migration_target_actor_id_,
@@ -224,7 +224,7 @@ void flow_actor::handle_message(migrate_flow_state_t,
   migrate_flow_state_response_cstruct cstruct;
   cstruct.request_msg_id = request_msg_id;
 
-  bool flag = coordinator_actor_->reliables_.find(sender_rtid)->second.reliable_send(
+  bool flag = coordinator_actor_->reliables_.find(sender_rtid)->reliable_send(
                                                   msg_id,
                                                   actor_id_,
                                                   sender_actor_id,

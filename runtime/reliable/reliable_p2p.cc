@@ -4,7 +4,7 @@
 
 reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
                            int local_rtid, int dest_rtid, coordinator* coordinator_actor,
-                           uint16_t output_gate) :
+                           uint16_t output_gate, runtime_config* remote_rt_config) :
   send_queue_(local_rt_mac, dest_rt_mac), next_seq_num_to_recv_(1), ref_cnt_(0),
   local_rtid_(local_rtid), dest_rtid_(dest_rtid), coordinator_actor_(coordinator_actor){
 
@@ -33,6 +33,8 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
   previous_check_time_ = ctx.current_ns() + initial_check_times*send_queue_.peek_rtt();
   next_check_time_ = ctx.current_ns() + initial_check_times*send_queue_.peek_rtt();
   last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
+
+  remote_rt_config_ = *remote_rt_config;
 }
 
 reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){

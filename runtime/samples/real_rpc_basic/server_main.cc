@@ -29,9 +29,10 @@
 #include "../../rpc/llring_holder.h"
 #include "../../rpc/server_impl.h"
 #include "../../module/handle_command.h"
-#include "../../utils/mac_list_item.h"
+#include "../../utils/generic_list_item.h"
 #include "../../utils/generic_ring_allocator.h"
 #include "../../utils/round_rubin_list.h"
+#include "../../utils/fast_hash_map.h"
 
 using namespace bess;
 using namespace std;
@@ -107,33 +108,60 @@ int main(int argc, char* argv[]){
   flow_actor_allocator allocator(num_flow_actors);
   coordinator coordinator_actor(&allocator, &mac_list_item_allocator, communication_ring);
 
-  /*LOG(INFO)<<"HashMap test starts";
-  using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
-  using actorid_htable_t = HTable<uint64_t, flow_actor*, actorid_keycmp, actorid_hash>;
+  /*LOG(INFO)<<"fast_hash_map test starts";
+  fast_hash_map<uint32_t, reliable_p2p, uint32_keycmp, uint32_hash> fhm;
 
-  htable_t htable_;
-  actorid_htable_t actorid_htable_;
+  reliable_p2p* p1 = fhm.emplace(1, 0,0,1,1,&coordinator_actor, 1);
+  assert(p1!=nullptr);
 
-  htable_.Init(flow_key_size, sizeof(flow_actor*));
-  actorid_htable_.Init(sizeof(uint64_t), sizeof(flow_actor*));
+  reliable_p2p* p11 = fhm.emplace(1, 0,0,1,1,&coordinator_actor, 1);
+  assert(p11==nullptr);
 
-  flow_actor* actor = allocator.allocate();
-  actor->set_id(1024);
-  flow_key_t flow_key;
-  htable_.Set(&flow_key, &actor);
+  reliable_p2p* p2 = fhm.emplace(2, 0,0,1,1,&coordinator_actor, 2);
+  assert(p2!=nullptr);
 
-  flow_actor** actor_ptr = htable_.Get(&flow_key);
-  assert(actor_ptr!=nullptr);
-  assert((*actor_ptr)->get_id() == 1024);
+  reliable_p2p* p3 = fhm.emplace(3, 0,0,1,1,&coordinator_actor, 3);
+  assert(p3!=nullptr);
 
-  uint64_t actor_id_64 = actor->get_id_64();
-  actorid_htable_.Set(&actor_id_64, &actor);
+  for(int i=0; i<fhm.cnt(); i++){
+    reliable_p2p* current_p = fhm.next();
+    assert(current_p->get_output_gate() == i+1);
+  }
 
-  actor_ptr = actorid_htable_.Get(&actor_id_64);
-  assert(actor_ptr!=nullptr);
-  assert((*actor_ptr)->get_id() == 1024);
+  p1 = fhm.find(1);
+  assert(p1!=nullptr);
+  assert(p1->get_output_gate()==1);
 
-  LOG(INFO)<<"HashMap test ends";
+  p2 = fhm.find(2);
+  assert(p2!=nullptr);
+  assert(p2->get_output_gate()==2);
+
+  p3 = fhm.find(3);
+  assert(p3!=nullptr);
+  assert(p3->get_output_gate()==3);
+
+  p11 = fhm.find(4);
+  assert(p11 == nullptr);
+
+  fhm.erase(1);
+  p1 = fhm.find(1);
+  assert(p1==nullptr);
+  assert(fhm.cnt()==2);
+
+  fhm.erase(2);
+  p2 = fhm.find(2);
+  assert(p2==nullptr);
+  assert(fhm.cnt()==1);
+
+  fhm.erase(3);
+  p3 = fhm.find(3);
+  assert(p3==nullptr);
+  assert(fhm.cnt()==0);
+
+  fhm.erase(4);
+  assert(fhm.cnt()==0);
+
+  LOG(INFO)<<"fast_hash_map test ends";
   exit(0);*/
 
   // create module and attach modules to the default traffic class of worker 1.

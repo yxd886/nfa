@@ -51,7 +51,6 @@ struct task_result coordinator_mp::RunTask(void *arg){
       }
 
       coordinator_actor_->migration_qouta_ -= 1;
-      coordinator_actor_->migrate_out_rrlist_.add_to_tail(actor_ptr);
       send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
     }
   }

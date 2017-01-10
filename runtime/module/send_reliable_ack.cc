@@ -22,16 +22,16 @@ struct task_result send_reliable_ack::RunTask(void *arg){
 
   uint64_t current_ns = rdtsc()*ns_per_cycle_;
 
-  for(auto it=coordinator_actor_->reliables_.begin(); it!=coordinator_actor_->reliables_.end(); it++){
+  for(int i=0; i<coordinator_actor_->reliables_.cnt(); i++){
+    reliable_p2p* r = coordinator_actor_->reliables_.next();
+    r->check(current_ns);
 
-    it->second.check(current_ns);
-
-    bess::Packet* ack_pkt = it->second.get_ack_pkt();
+    bess::Packet* ack_pkt = r->get_ack_pkt();
     if(unlikely(ack_pkt == nullptr)){
       continue;
     }
 
-    out_gates[batch.cnt()] = it->second.get_output_gate();
+    out_gates[batch.cnt()] = r->get_output_gate();
     batch.add(ack_pkt);
   }
 

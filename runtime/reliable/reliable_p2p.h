@@ -19,7 +19,7 @@ public:
 
   reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
                int local_rtid, int dest_rtid, coordinator* coordinator_actor,
-               uint16_t output_gate);
+               uint16_t output_gate, runtime_config* remote_rt_config);
 
   reliable_single_msg* recv(bess::Packet* pkt);
 
@@ -139,6 +139,10 @@ public:
     }
   }
 
+  inline runtime_config* get_rt_config(){
+    return &remote_rt_config_;
+  }
+
 private:
   void add_to_reliable_send_list(int pkt_num);
   void prepend_to_reliable_send_list(int pkt_num);
@@ -237,6 +241,8 @@ private:
   uint64_t next_check_time_;
   uint64_t previous_check_time_;
   uint64_t last_check_head_seq_num_;
+
+  runtime_config remote_rt_config_;
 };
 
 #endif

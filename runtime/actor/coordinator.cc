@@ -98,7 +98,6 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   static_nf_register::get_register().init(allocator->get_max_actor());
   service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
-  LOG(INFO)<<"service chain length is "<<service_chain_.size();
 
   mac_list_item_allocator_ = mac_list_item_allocator;
 
@@ -123,6 +122,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   idle_flow_list_.init_list(flow_actor_idle_timeout);
 
   req_timer_list_.init_list(request_timeout);
+
+  mac_to_reliables_.Init(sizeof(uint64_t), sizeof(reliable_p2p*));
 }
 
 void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
@@ -159,15 +160,15 @@ void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
         uint64_t output_rt_input_mac = default_output_mac_;
         // local_rt_output_mac = local_runtime_.output_port_mac;
 
-        auto it = mac_addr_to_rt_configs_.find(input_rt_output_mac);
-        if(it!=mac_addr_to_rt_configs_.end()){
-          input_rtid = it->second.runtime_id;
+        reliable_p2p** r_ptr = mac_to_reliables_.Get(&input_rt_output_mac);
+        if(r_ptr != nullptr){
+          input_rtid = (*r_ptr)->get_rt_config()->runtime_id;
         }
 
         generic_list_item* first_item = output_runtime_mac_rrlist_.rotate();
         if(first_item!=nullptr){
           output_rt_input_mac = first_item->dst_mac_addr;
-          output_rtid = mac_addr_to_rt_configs_.find(output_rt_input_mac)->second.runtime_id;
+          output_rtid = first_item->dst_rtid;
         }
 
         active_flows_rrlist_.add_to_tail(actor);
@@ -202,13 +203,13 @@ void coordinator::handle_message(cp_pkt_batch_t, bess::PacketBatch* batch){
     char* data_start = batch->pkts()[i]->head_data<char*>();
     uint64_t mac_addr = ((*(reinterpret_cast<uint64_t *>(data_start+6))) & 0x0000FFffFFffFFfflu);
 
-    auto it = mac_to_reliables_.find(mac_addr);
-    if(unlikely(it == mac_to_reliables_.end())){
+    reliable_p2p** r_ptr = mac_to_reliables_.Get(&mac_addr);
+    if(unlikely(r_ptr == nullptr)){
       gp_collector_.collect(batch->pkts()[i]);
       continue;
     }
 
-    reliable_single_msg* msg_ptr = it->second.recv(batch->pkts()[i]);
+    reliable_single_msg* msg_ptr = (*r_ptr)->recv(batch->pkts()[i]);
     if(unlikely(msg_ptr == nullptr)){
       continue;
     }
@@ -229,8 +230,7 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
   if(flow_actor!=deadend_flow_actor_){
     flow_actor->get_idle_timer()->invalidate();
     flow_actor->get_migration_timer()->invalidate();
-    flow_actor->get_replication_timer()->invalidate();
-    active_flows_rrlist_.list_item_delete(reinterpret_cast<cdlist_item*>(flow_actor));
+    cdlist_del(reinterpret_cast<cdlist_item*>(flow_actor));
     allocator_->deallocate(flow_actor);
   }
   else{
@@ -293,11 +293,11 @@ void coordinator::handle_message(create_migration_target_actor_t,
   cstruct.migration_target_actor_id = actor->get_id();
   cstruct.migration_target_input_mac = local_runtime_.input_port_mac;
 
-  bool flag = reliables_.find(sender_rtid)->second.reliable_send(response_msg_id,
-                                                                 coordinator_actor_id,
-                                                                 sender_actor_id,
-                                                                 start_migration_response_t::value,
-                                                                 &cstruct);
+  bool flag = reliables_.find(sender_rtid)->reliable_send(response_msg_id,
+                                                         coordinator_actor_id,
+                                                         sender_actor_id,
+                                                         start_migration_response_t::value,
+                                                         &cstruct);
 
   if(flag == false){
     LOG(INFO)<<"coordinator fails to send response_msg_id";
@@ -329,11 +329,11 @@ void coordinator::handle_message(change_vswitch_route_t,
   uint32_t response_msg_id = allocate_msg_id();
   change_vswitch_route_response_cstruct cstruct;
   cstruct.request_msg_id = msg_id;
-  bool flag = reliables_.find(sender_rtid)->second.reliable_send(response_msg_id,
-                                                                 coordinator_actor_id,
-                                                                 sender_actor_id,
-                                                                 change_vswitch_route_response_t::value,
-                                                                 &cstruct);
+  bool flag = reliables_.find(sender_rtid)->reliable_send(response_msg_id,
+                                                           coordinator_actor_id,
+                                                           sender_actor_id,
+                                                           change_vswitch_route_response_t::value,
+                                                           &cstruct);
 
   if(flag == false){
     LOG(INFO)<<"coordinator fails to send response_msg_id";

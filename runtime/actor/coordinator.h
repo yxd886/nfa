@@ -21,11 +21,8 @@ class flow_actor;
 class flow_actor_allocator;
 
 class coordinator : public garbage, public local_batch, public timer_list,
-                    public rpcworker_llring, public local_runtime_info,
-                    public active_flows, public input_output_runtime_info,
-                    public migration_target_source_holder, public replicas_holder,
-                    public storages_holder, public reliables_holder,
-                    public reliable_send_record, public default_input_output_mac{
+                    public rpcworker_llring, public local_runtime_info, public rr_lists,
+                    public migration_target_source_holder, public reliables_holder{
 public:
   using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
 
@@ -81,8 +78,6 @@ private:
   nfa_ipv4_field fields_[3];
 
   std::vector<network_function_base*> service_chain_;
-
-  generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
 
   uint32_t next_msg_id_;
 
