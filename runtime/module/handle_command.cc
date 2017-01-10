@@ -302,7 +302,7 @@ struct task_result handle_command::RunTask(void *arg){
       case rpc_operation::migrate_all_flows:{
       	flow_actor* actor_ptr=nullptr;
 
-          while((actor_ptr= coordinator_actor_->active_flows_rrlist_.pop_head())!=nullptr){
+				while((actor_ptr= coordinator_actor_->active_flows_rrlist_.pop_head())!=nullptr){
 
           LOG(INFO) << "Begin to migrate flow, flow actor id: "<<actor_ptr->get_id();
 
