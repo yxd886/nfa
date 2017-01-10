@@ -300,13 +300,10 @@ struct task_result handle_command::RunTask(void *arg){
         break;
       }
       case rpc_operation::migrate_all_flows:{
+      	flow_actor* actor_ptr=nullptr;
 
-      	LOG(INFO) << "the number of active flows: "<<coordinator_actor_->active_flows_rrlist_.size();
-        for(int i=0; i<coordinator_actor_->active_flows_rrlist_.size(); i++){
-          flow_actor* actor_ptr = coordinator_actor_->active_flows_rrlist_.pop_head();
-          if(actor_ptr==nullptr){
-            break;
-          }
+          while(actor_ptr= coordinator_actor_->active_flows_rrlist_.pop_head()){
+
           LOG(INFO) << "Begin to migrate flow, flow actor id: "<<actor_ptr->get_id();
 
           coordinator_actor_->migration_qouta_ -= 1;
