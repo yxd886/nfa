@@ -100,4 +100,6 @@ void ServerImpl::create_call_data(T&&... arg){
   new derived_call_data<DeleteStorageReq, DeleteStorageRep>(std::forward<T>(arg)...);
 
   new derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>(std::forward<T>(arg)...);
+
+  new derived_call_data<MigrateAllFlowsReq, MigrateAllFlowsReqRep>(std::forward<T>(arg)...);
 }
