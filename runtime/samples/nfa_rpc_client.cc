@@ -283,6 +283,23 @@ class LivenessCheckClient {
     }
   }
 
+
+  std::string MigrateAllFlows(){
+  	MigrateAllFlowsReq request;
+  	MigrateAllFlowsRep reply;
+    ClientContext context;
+
+    Status status = stub_->MigrateAllFlows(&context, request, &reply);
+
+
+    if(status.ok()){
+      return "MigrateAllFlows finishes.";
+    }
+    else{
+      return "MigrateAllFlows fails.";
+    }
+  }
+
  private:
   std::unique_ptr<Runtime_RPC::Stub> stub_;
 };
@@ -341,9 +358,9 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10242.DeleteInputRt(10240);
 
   // Test set replication
-  LOG(INFO)<<checker_10240.AddOutputRt();
+  // LOG(INFO)<<checker_10240.AddOutputRt();
   // LOG(INFO)<<checker_10240.AddOutputMac(10242);
-  LOG(INFO)<<checker_10240.AddOutputMac(10241);
+  // LOG(INFO)<<checker_10240.AddOutputMac(10241);
   // LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
 
   // LOG(INFO)<<checker_10241.AddReplicas(10242);
@@ -368,6 +385,11 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10240.GetRuntimeState();
   // LOG(INFO)<<checker_10241.GetRuntimeState();
   // LOG(INFO)<<checker_10242.GetRuntimeState();
+
+  // Test Migrate All flows
+   LOG(INFO)<<checker_10240.AddOutputRt();
+   LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
+   LOG(INFO)<<checker_10241.MigrateAllFlows();
 
   return 0;
 }

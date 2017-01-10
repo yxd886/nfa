@@ -936,4 +936,32 @@ void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
   }
 }
 
+
+
+
+// RPC implementation for MigrateAllFlows
+
+template<>
+void derived_call_data<MigrateAllFlowsReq, MigrateAllFlowsRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestMigrateAllFlows(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+		llring_item item(rpc_operation::migrate_all_flows, migration_target_, 0, 0);
+
+		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
+
+		poll_worker2rpc_ring();
+
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
 #endif

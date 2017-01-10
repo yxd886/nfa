@@ -26,6 +26,8 @@ service Runtime_RPC {
   rpc DeleteReplica(DeleteReplicaReq) returns (DeleteReplicaRep){}
   rpc DeleteStorage(DeleteStorageReq) returns (DeleteStorageRep){}
   rpc GetRuntimeState(GetRuntimeStateReq) returns (GetRuntimeStateRep){}
+  
+  rpc MigrateAllFlows(MigrateAllFlowsReq) returns (MigrateAllFlowsRep){}
 }
 
 message LivenessRequest {
@@ -217,4 +219,13 @@ message GetRuntimeStateRep{
   repeated RuntimeConfig storages=8;
   RuntimeConfig migration_target=9;
   RuntimeConfig local_runtime=10;
+}
+
+message MigrateAllFlowsReq{
+  Address addr = 1;
+}
+
+
+message MigrateAllFlowsRep{
+
 }

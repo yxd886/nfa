@@ -211,7 +211,8 @@ enum class rpc_operation{
   add_storage,
   remove_replica,
   remove_storage,
-  get_stats
+  get_stats,
+	migrate_all_flows
 };
 
 struct llring_item{
@@ -287,6 +288,9 @@ inline string opcode2string(rpc_operation code){
     case rpc_operation::get_stats:
       return_val = "get_stats";
       break;
+    case rpc_operation::migrate_all_flows:
+    	return_val = "migrate_all_flows";
+    	break;
     default:
       return_val = "wtf??";
       break;
