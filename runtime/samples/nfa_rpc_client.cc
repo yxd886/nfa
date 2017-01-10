@@ -191,6 +191,25 @@ class LivenessCheckClient {
     }
   }
 
+  std::string MigrateTo(int32_t port_num, int32_t quota){
+    MigrateToReq request;
+    MigrateToRep reply;
+    ClientContext context;
+
+    request.mutable_addr()->set_rpc_ip("127.0.0.1");
+    request.mutable_addr()->set_rpc_port(port_num);
+    request.set_quota(quota);
+
+    Status status = stub_->MigrateTo(&context, request, &reply);
+
+    if(status.ok()){
+      return "MigrateTo finishes.";
+    }
+    else{
+      return "MigrateTo fails.";
+    }
+  }
+
   std::string SetMigrationTarget(int32_t port_num, int32_t qouta){
     SetMigrationTargetReq request;
     SetMigrationTargetRep reply;

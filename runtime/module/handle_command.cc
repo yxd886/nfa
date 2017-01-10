@@ -125,8 +125,11 @@ struct task_result handle_command::RunTask(void *arg){
         }
         break;
       }
-      case rpc_operation::can_migrate :{
-        item->migration_qouta = coordinator_actor_->migration_qouta_;
+      case rpc_operation::migrate_to :{
+        if(coordinator_actor_->migration_qouta_==0){
+          coordinator_actor_->migration_qouta_ = item->migration_qouta;
+          coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
+        }
         break;
       }
       case rpc_operation::set_migration_target :{

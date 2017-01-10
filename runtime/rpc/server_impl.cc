@@ -89,6 +89,7 @@ void ServerImpl::create_call_data(T&&... arg){
   new derived_call_data<DeleteInputMacReq, DeleteInputMacRep>(std::forward<T>(arg)...);
   new derived_call_data<DeleteOutputMacReq, DeleteOutputMacRep>(std::forward<T>(arg)...);
 
+  new derived_call_data<MigrateToReq, MigrateToRep>(std::forward<T>(arg)...);
   new derived_call_data<SetMigrationTargetReq, SetMigrationTargetRep>(std::forward<T>(arg)...);
   new derived_call_data<MigrationNegotiateReq, MigrationNegotiateRep>(std::forward<T>(arg)...);
   new derived_call_data<DeleteMigrationTargetReq, DeleteMigrationTargetRep>(std::forward<T>(arg)...);

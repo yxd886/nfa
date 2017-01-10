@@ -16,6 +16,7 @@ service Runtime_RPC {
   rpc DeleteInputMac (DeleteInputMacReq) returns (DeleteInputMacRep) {}
   rpc DeleteOutputMac (DeleteOutputMacReq) returns (DeleteOutputMacRep) {}
   
+  rpc MigrateTo (MigrateToReq) returns (MigrateToRep) {}
   rpc SetMigrationTarget (SetMigrationTargetReq) returns (SetMigrationTargetRep){}
   rpc MigrationNegotiate (MigrationNegotiateReq) returns (MigrationNegotiateRep){}
   rpc DeleteMigrationTarget (DeleteMigrationTargetReq) returns (DeleteMigrationTargetRep){}
@@ -106,6 +107,14 @@ message DeleteInputMacReq{
 }
 
 message DeleteInputMacRep{
+}
+
+message MigrateToReq{
+  Address addr = 1;
+  uint64 quota = 2;
+}
+
+message MigrateToRep{
 }
 
 message SetMigrationTargetReq{

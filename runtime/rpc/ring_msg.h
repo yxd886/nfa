@@ -202,7 +202,7 @@ enum class rpc_operation{
   add_output_mac,
   delete_input_mac,
   delete_output_mac,
-  can_migrate,
+  migrate_to,
   set_migration_target,
   migration_negotiate,
   delete_migration_target,
@@ -257,8 +257,8 @@ inline string opcode2string(rpc_operation code){
     case rpc_operation::delete_output_mac:
       return_val = "delete_output_mac";
       break;
-    case rpc_operation::can_migrate:
-      return_val = "can_migrate";
+    case rpc_operation::migrate_to:
+      return_val = "migrate_to";
       break;
     case rpc_operation::set_migration_target:
       return_val = "set_migration_target";
