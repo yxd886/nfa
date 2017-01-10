@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <stdio.h>
 
 #include <grpc++/grpc++.h>
 #include <glog/logging.h>
@@ -389,6 +390,7 @@ int main(int argc, char** argv) {
   // Test Migrate All flows
    LOG(INFO)<<checker_10240.AddOutputRt();
    LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
+   getchar();
    LOG(INFO)<<checker_10241.MigrateAllFlows();
 
   return 0;
