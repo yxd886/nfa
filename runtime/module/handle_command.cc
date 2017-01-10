@@ -307,7 +307,7 @@ struct task_result handle_command::RunTask(void *arg){
           if(actor_ptr==nullptr){
             break;
           }
-          LOG(INFO) << "Begin to migrate flow, flow actor id: "<<actor_ptr->actor_id_;
+          LOG(INFO) << "Begin to migrate flow, flow actor id: "<<actor_ptr->get_id();
 
           coordinator_actor_->migration_qouta_ -= 1;
           coordinator_actor_->migrate_out_rrlist_.add_to_tail(actor_ptr);
