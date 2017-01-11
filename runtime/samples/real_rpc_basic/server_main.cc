@@ -33,6 +33,7 @@
 #include "../../utils/generic_ring_allocator.h"
 #include "../../utils/round_rubin_list.h"
 #include "../../utils/fast_hash_map.h"
+#include "../../utils/fixed_array.h"
 
 using namespace bess;
 using namespace std;

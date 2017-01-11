@@ -57,6 +57,8 @@ struct migration_target_source_holder{
   uint64_t migration_qouta_;
 
   int32_t migration_target_rt_id_;
+
+  // fast_hash_map<uint32_t, >
 };
 
 struct reliables_holder{
