@@ -59,16 +59,19 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int3
 
 	if(ntohs(eth_header->ether_type) != 0X0800) {  //ip
 
+		LOG(INFO)<<"NOT IP PACKET";
 		return false;
 	}
 
 	if(ip_header->version!= 4) {
 
+		LOG(INFO)<<"NOT IPV4 PACKET";
 		return false;
 	}
 
 	if(ip_header->protocol!= IPPROTO_TCP) {
 
+		LOG(INFO)<<"NOT TCP PACKET";
 		return false;
 	}
 
