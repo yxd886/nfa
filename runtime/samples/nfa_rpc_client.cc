@@ -415,7 +415,7 @@ int main(int argc, char** argv) {
    LOG(INFO)<<checker_10240.DeleteOutputMac(10242);
 
 
-
+   getchar();
 
    LOG(INFO)<<checker_10242.MigrateAllFlows();
    LOG(INFO)<<checker_10240.DeleteOutputRt(10242);
