@@ -398,8 +398,11 @@ int main(int argc, char** argv) {
    LOG(INFO)<<checker_10241.MigrateAllFlows();
 
    getchar();
-   LOG(INFO)<<checker_10241.AddInputMac(10240);
+   LivenessCheckClient new_checker_10241(grpc::CreateChannel(
+         "localhost:10241", grpc::InsecureChannelCredentials()));
+   LOG(INFO)<<new_checker_10241.AddInputMac(10240);
    LOG(INFO)<<checker_10242.SetMigrationTarget(10241,1000);
+   getchar();
    LOG(INFO)<<checker_10242.MigrateAllFlows();
 
   return 0;
