@@ -392,17 +392,23 @@ int main(int argc, char** argv) {
 
      getchar();
 
+
+     LOG(INFO)<<checker_10240.SingleAddOutputRt(10242);
+     LOG(INFO)<<checker_10240.AddOutputMac(10242);
+
+     LOG(INFO)<<checker_10242.AddInputMac(10240);
+
      LOG(INFO)<<checker_10241.SetMigrationTarget(10242,20000);
-     //LOG(INFO)<<checker_10240.DeleteOutputMac(10241);
+     LOG(INFO)<<checker_10240.DeleteOutputMac(10241);
 
 
 
 
 
      LOG(INFO)<<checker_10241.MigrateTo(10242,20000);
-    // LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
+     LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
 
-  /*   getchar();
+     getchar();
 
      LOG(INFO)<<checker_10240.SingleAddOutputRt(10241);
      LOG(INFO)<<checker_10240.AddOutputMac(10241);
@@ -417,6 +423,6 @@ int main(int argc, char** argv) {
      LOG(INFO)<<checker_10242.MigrateTo(10241,20000);
      LOG(INFO)<<checker_10240.DeleteOutputRt(10242);
 
-*/
+
   return 0;
 }
