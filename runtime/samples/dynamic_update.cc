@@ -400,6 +400,7 @@ int main(int argc, char** argv) {
 
      LOG(INFO)<<checker_10241.SetMigrationTarget(10242,20000);
      LOG(INFO)<<checker_10240.DeleteOutputMac(10241);
+     LOG(INFO)<<checker_10241.DeleteInputMac(10240);
 
 
 
@@ -407,6 +408,7 @@ int main(int argc, char** argv) {
 
      LOG(INFO)<<checker_10241.MigrateTo(10242,20000);
      LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
+     LOG(INFO)<<checker_10241.DeleteInputRt(10240);
 
      getchar();
 
