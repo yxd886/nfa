@@ -360,9 +360,9 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10242.DeleteInputRt(10240);
 
   // Test set replication
-  LOG(INFO)<<checker_10240.AddOutputRt();
+  // LOG(INFO)<<checker_10240.AddOutputRt();
   // LOG(INFO)<<checker_10240.AddOutputMac(10242);
-  LOG(INFO)<<checker_10240.AddOutputMac(10241);
+  // LOG(INFO)<<checker_10240.AddOutputMac(10241);
   // LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
 
   // LOG(INFO)<<checker_10241.AddReplicas(10242);
@@ -387,6 +387,40 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10240.GetRuntimeState();
   // LOG(INFO)<<checker_10241.GetRuntimeState();
   // LOG(INFO)<<checker_10242.GetRuntimeState();
+
+
+     LOG(INFO)<<checker_10240.SingleAddOutputRt(10241);
+     LOG(INFO)<<checker_10240.AddOutputMac(10241);
+
+
+
+     LOG(INFO)<<checker_10240.SingleAddOutputRt(10242);
+     LOG(INFO)<<checker_10240.AddOutputMac(10242);
+     LOG(INFO)<<checker_10241.SetMigrationTarget(10242,20000);
+     LOG(INFO)<<checker_10240.DeleteOutputMac(10241);
+
+
+
+
+
+     LOG(INFO)<<checker_10241.MigrateTo(10242,20000);
+     LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
+
+     getchar();
+
+     LOG(INFO)<<checker_10240.SingleAddOutputRt(10241);
+     LOG(INFO)<<checker_10240.AddOutputMac(10241);
+
+     LOG(INFO)<<checker_10242.SetMigrationTarget(10241,20000);
+
+     LOG(INFO)<<checker_10240.DeleteOutputMac(10242);
+
+
+
+
+     LOG(INFO)<<checker_10242.MigrateTo(10241,20000);
+     LOG(INFO)<<checker_10240.DeleteOutputRt(10242);
+
 
   return 0;
 }
