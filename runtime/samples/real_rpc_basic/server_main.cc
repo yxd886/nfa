@@ -110,57 +110,32 @@ int main(int argc, char* argv[]){
   coordinator coordinator_actor(&allocator, &mac_list_item_allocator, communication_ring);
 
   /*LOG(INFO)<<"fast_hash_map test starts";
-  fast_hash_map<uint32_t, reliable_p2p, uint32_keycmp, uint32_hash> fhm;
+  fixed_array<int32_t> fa;
+  fa.init(2);
 
-  reliable_p2p* p1 = fhm.emplace(1, 0,0,1,1,&coordinator_actor, 1);
-  assert(p1!=nullptr);
+  int32_t a = 1;
+  fa.add(&a);
 
-  reliable_p2p* p11 = fhm.emplace(1, 0,0,1,1,&coordinator_actor, 1);
-  assert(p11==nullptr);
+  int32_t b = 2;
+  fa.add(&b);
 
-  reliable_p2p* p2 = fhm.emplace(2, 0,0,1,1,&coordinator_actor, 2);
-  assert(p2!=nullptr);
+  int32_t c = 3;
+  fa.add(&c);
 
-  reliable_p2p* p3 = fhm.emplace(3, 0,0,1,1,&coordinator_actor, 3);
-  assert(p3!=nullptr);
+  assert(fa.size()==3);
+  assert(*(fa.get(0))==1);
+  assert(*(fa.get(1))==2);
+  assert(*(fa.get(2))==3);
 
-  for(int i=0; i<fhm.cnt(); i++){
-    reliable_p2p* current_p = fhm.next();
-    assert(current_p->get_output_gate() == i+1);
-  }
 
-  p1 = fhm.find(1);
-  assert(p1!=nullptr);
-  assert(p1->get_output_gate()==1);
+  fa.remove(0);
+  assert(fa.size() == 2);
+  assert(*(fa.get(0))==2);
+  assert(*(fa.get(1))==3);
 
-  p2 = fhm.find(2);
-  assert(p2!=nullptr);
-  assert(p2->get_output_gate()==2);
-
-  p3 = fhm.find(3);
-  assert(p3!=nullptr);
-  assert(p3->get_output_gate()==3);
-
-  p11 = fhm.find(4);
-  assert(p11 == nullptr);
-
-  fhm.erase(1);
-  p1 = fhm.find(1);
-  assert(p1==nullptr);
-  assert(fhm.cnt()==2);
-
-  fhm.erase(2);
-  p2 = fhm.find(2);
-  assert(p2==nullptr);
-  assert(fhm.cnt()==1);
-
-  fhm.erase(3);
-  p3 = fhm.find(3);
-  assert(p3==nullptr);
-  assert(fhm.cnt()==0);
-
-  fhm.erase(4);
-  assert(fhm.cnt()==0);
+  fa.remove(0);
+  assert(fa.size()==1);
+  assert(*(fa.get(0))==3);
 
   LOG(INFO)<<"fast_hash_map test ends";
   exit(0);*/

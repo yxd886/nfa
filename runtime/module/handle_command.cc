@@ -152,6 +152,8 @@ struct task_result handle_command::RunTask(void *arg){
         else{
           r->inc_ref_cnt();
         }
+
+        coordinator_actor_->migration_targets_.add(&(item->rt_config.runtime_id));
         break;
       }
       case rpc_operation::migration_negotiate :{
@@ -182,6 +184,13 @@ struct task_result handle_command::RunTask(void *arg){
         if(r->is_ref_cnt_zero()){
           coordinator_actor_->mac_to_reliables_.Del(&(r->get_rt_config()->control_port_mac));
           coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+        }
+        for(size_t i=0; i<coordinator_actor_->migration_targets_.size(); i++){
+          int32_t rtid = *(coordinator_actor_->migration_targets_.get(i));
+          if(rtid == item->rt_config.runtime_id){
+            coordinator_actor_->migration_targets_.remove(i);
+            break;
+          }
         }
         break;
       }

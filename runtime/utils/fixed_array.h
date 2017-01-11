@@ -1,6 +1,8 @@
 #ifndef FIXED_ARRAY_H
 #define FIXED_ARRAY_H
 
+#include <rte_memcpy.h>
+
 #include "../bessport/mem_alloc.h"
 
 static constexpr size_t relloc_size = 32;
@@ -38,7 +40,7 @@ public:
       return;
     }
 
-    rte_memcopy(&array_[pos], &array_[pos+1], sizeof(T)*(cur_size_-1-pos));
+    rte_memcpy(&array_[pos], &array_[pos+1], sizeof(T)*(cur_size_-1-pos));
     cur_size_-=1;
   }
 

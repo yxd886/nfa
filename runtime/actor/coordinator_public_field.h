@@ -14,6 +14,7 @@
 #include "./base/garbage_pkt_collector.h"
 #include "../utils/generic_list_item.h"
 #include "actor_timer_list.h"
+#include "../utils/fixed_array.h"
 
 struct garbage{
   garbage_pkt_collector gp_collector_;
@@ -58,6 +59,7 @@ struct migration_target_source_holder{
 
   int32_t migration_target_rt_id_;
 
+  fixed_array<int32_t> migration_targets_;
   // fast_hash_map<uint32_t, >
 };
 
