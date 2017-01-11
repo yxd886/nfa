@@ -20,23 +20,13 @@
 class flow_actor;
 class flow_actor_allocator;
 
-class coordinator : public garbage, public local_batch, public timer_list,
+class coordinator : public core, public garbage, public local_batch, public timer_list,
                     public rpcworker_llring, public local_runtime_info, public rr_lists,
                     public migration_target_source_holder, public reliables_holder{
 public:
-  using htable_t = HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash>;
-
-  using actorid_htable_t = HTable<uint64_t, flow_actor*, actorid_keycmp, actorid_hash>;
-
   coordinator(flow_actor_allocator* allocator,
               generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
               llring_holder& holder);
-
-  void process_recv_reliable_msg(reliable_single_msg* msg_ptr);
-
-  void handle_message(dp_pkt_batch_t, bess::PacketBatch* batch);
-
-  void handle_message(cp_pkt_batch_t, bess::PacketBatch* batch);
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
 
@@ -66,19 +56,6 @@ public:
   }
 
 private:
-
-  flow_actor_allocator* allocator_;
-
-  htable_t htable_;
-
-  actorid_htable_t actorid_htable_;
-
-  flow_actor* deadend_flow_actor_;
-
-  nfa_ipv4_field fields_[3];
-
-  std::vector<network_function_base*> service_chain_;
-
   uint32_t next_msg_id_;
 
   int counter = 0;

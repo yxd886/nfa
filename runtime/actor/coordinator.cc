@@ -6,83 +6,6 @@
 
 #include <glog/logging.h>
 
-void coordinator::process_recv_reliable_msg(reliable_single_msg* msg_ptr){
-  if(msg_ptr->rmh.recv_actor_id == coordinator_actor_id){
-    switch(static_cast<coordinator_messages>(msg_ptr->rmh.msg_type)){
-      case coordinator_messages::ping : {
-        handle_message(ping_t::value,
-                       msg_ptr->send_runtime_id,
-                       msg_ptr->rmh.send_actor_id,
-                       msg_ptr->rmh.msg_id,
-                       msg_ptr->cstruct_pkt->head_data<ping_cstruct*>());
-        break;
-      }
-      case coordinator_messages::create_migration_target_actor : {
-        handle_message(create_migration_target_actor_t::value,
-                        msg_ptr->send_runtime_id,
-                        msg_ptr->rmh.send_actor_id,
-                        msg_ptr->rmh.msg_id,
-                        msg_ptr->cstruct_pkt->head_data<create_migration_target_actor_cstruct*>());
-        break;
-      }
-      case coordinator_messages::change_vswitch_route : {
-        handle_message(change_vswitch_route_t::value,
-                       msg_ptr->send_runtime_id,
-                       msg_ptr->rmh.send_actor_id,
-                       msg_ptr->rmh.msg_id,
-                       msg_ptr->cstruct_pkt->head_data<change_vswitch_route_request_cstruct*>());
-
-        break;
-      }
-      default : {
-        break;
-      }
-    }
-  }
-  else{
-    uint64_t actor_id_64 = 0x00000000FfFfFfFf & msg_ptr->rmh.recv_actor_id;
-    flow_actor** actor_ptr = actorid_htable_.Get(&actor_id_64);
-    if(unlikely(actor_ptr == 0)){
-      LOG(INFO)<<"The actor with id "<<msg_ptr->rmh.recv_actor_id<<" does not exist";
-      return;
-    }
-
-    switch(static_cast<flow_actor_messages>(msg_ptr->rmh.msg_type)){
-      case flow_actor_messages::start_migration_response : {
-        send(*actor_ptr,
-             start_migration_response_t::value,
-             msg_ptr->cstruct_pkt->head_data<start_migration_response_cstruct*>());
-        break;
-      }
-      case flow_actor_messages::change_vswitch_route_response : {
-        send(*actor_ptr,
-             change_vswitch_route_response_t::value,
-             msg_ptr->cstruct_pkt->head_data<change_vswitch_route_response_cstruct*>());
-        break;
-      }
-      case flow_actor_messages::migrate_flow_state : {
-        send(*actor_ptr,
-             migrate_flow_state_t::value,
-             msg_ptr->send_runtime_id,
-             msg_ptr->rmh.send_actor_id,
-             msg_ptr->rmh.msg_id,
-             &(msg_ptr->fs_msg_batch));
-        break;
-      }
-      case flow_actor_messages::migrate_flow_state_response : {
-        send(*actor_ptr,
-             migrate_flow_state_response_t::value,
-             msg_ptr->cstruct_pkt->head_data<migrate_flow_state_response_cstruct*>());
-        break;
-      }
-      default : {
-        assert(1==0);
-        break;
-      }
-    }
-  }
-}
-
 coordinator::coordinator(flow_actor_allocator* allocator,
                          generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
                          llring_holder& holder){
@@ -101,98 +24,29 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   mac_list_item_allocator_ = mac_list_item_allocator;
 
+  idle_flow_list_.init_list(flow_actor_idle_timeout);
+  req_timer_list_.init_list(request_timeout);
+
+  rpc2worker_ring_ = holder.rpc2worker_ring();
+  worker2rpc_ring_ = holder.worker2rpc_ring();
+
   local_runtime_.runtime_id = FLAGS_runtime_id;
   local_runtime_.input_port_mac = convert_string_mac(FLAGS_input_port_mac);
   local_runtime_.output_port_mac = convert_string_mac(FLAGS_output_port_mac);
   local_runtime_.control_port_mac = convert_string_mac(FLAGS_control_port_mac);
   local_runtime_.rpc_ip = convert_string_ip(FLAGS_rpc_ip);
   local_runtime_.rpc_port = FLAGS_rpc_port;
-
-  rpc2worker_ring_ = holder.rpc2worker_ring();
-  worker2rpc_ring_ = holder.worker2rpc_ring();
-
-  migration_target_rt_id_ = -1;
-  migration_qouta_ = 0;
-
   default_input_mac_ = convert_string_mac(FLAGS_default_input_mac);
   default_output_mac_ = convert_string_mac(FLAGS_default_output_mac);
 
-  next_msg_id_ = message_id_start;
-
-  idle_flow_list_.init_list(flow_actor_idle_timeout);
-
-  req_timer_list_.init_list(request_timeout);
+  migration_qouta_ = 0;
+  migration_target_rt_id_ = -1;
+  migration_targets_.init(relloc_size);
 
   mac_to_reliables_.Init(sizeof(uint64_t), sizeof(reliable_p2p*));
+
+  next_msg_id_ = message_id_start;
 }
-
-void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
-  ec_scheduler_batch_.clear();
-  char keys[bess::PacketBatch::kMaxBurst][flow_key_size] __ymm_aligned;
-
-  for(int i=0; i<batch->cnt(); i++){
-    char* data_start = batch->pkts()[i]->head_data<char*>();
-
-    memset(&keys[i][flow_key_size-8], 0, sizeof(uint64_t));
-    for(int j=0; j<3; j++){
-      char* key = keys[i]+fields_[j].pos;
-      *(uint64_t *)key = *(uint64_t *)(data_start + fields_[j].offset) & fields_[j].mask;
-    }
-
-    flow_actor** actor_ptr = htable_.Get(reinterpret_cast<flow_key_t*>(keys[i]));
-    flow_actor* actor = 0;
-
-    if(unlikely(actor_ptr==nullptr)){
-      actor = allocator_->allocate();
-
-      if(unlikely(actor==nullptr)){
-        LOG(WARNING)<<"No available flow actors to allocate";
-        actor = deadend_flow_actor_;
-      }
-      else{
-        active_flows_rrlist_.add_to_tail(actor);
-
-        send(actor, flow_actor_init_with_pkt_t::value,
-             this,
-             reinterpret_cast<flow_key_t*>(keys[i]),
-             service_chain_,
-             batch->pkts()[i]);
-      }
-
-      htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);
-
-      uint64_t actor_id_64 = actor->get_id_64();
-      actorid_htable_.Set(&actor_id_64, &actor);
-
-      actor_ptr = &actor;
-    }
-
-    send(*actor_ptr, pkt_msg_t::value, batch->pkts()[i]);
-  }
-}
-
-void coordinator::handle_message(cp_pkt_batch_t, bess::PacketBatch* batch){
-  ec_scheduler_batch_.clear();
-  for(int i=0; i<batch->cnt(); i++){
-    char* data_start = batch->pkts()[i]->head_data<char*>();
-    uint64_t mac_addr = ((*(reinterpret_cast<uint64_t *>(data_start+6))) & 0x0000FFffFFffFFfflu);
-
-    reliable_p2p** r_ptr = mac_to_reliables_.Get(&mac_addr);
-    if(unlikely(r_ptr == nullptr)){
-      gp_collector_.collect(batch->pkts()[i]);
-      continue;
-    }
-
-    reliable_single_msg* msg_ptr = (*r_ptr)->recv(batch->pkts()[i]);
-    if(unlikely(msg_ptr == nullptr)){
-      continue;
-    }
-
-    process_recv_reliable_msg(msg_ptr);
-    msg_ptr->clean(&gp_collector_);
-  }
-}
-
 
 void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key){
 
@@ -229,8 +83,8 @@ void coordinator::handle_message(create_migration_target_actor_t,
   LOG(INFO)<<"Receive create_migration_target_actor message sent from runtime "<<sender_rtid
            <<", actor id "<<sender_actor_id
            <<", msg id "<<msg_id
-           <<", input runtime id "<<cstruct_ptr->input_rtid
-           <<", output_runtime_id "<<cstruct_ptr->output_rtid;
+           <<", input runtime id "<<cstruct_ptr->input_header.dest_rtid
+           <<", output_runtime_id "<<cstruct_ptr->output_header.dest_rtid;
 
 
   flow_actor* actor = allocator_->allocate();

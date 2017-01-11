@@ -15,6 +15,23 @@
 #include "../utils/generic_list_item.h"
 #include "actor_timer_list.h"
 #include "../utils/fixed_array.h"
+#include "flow_actor_allocator.h"
+
+struct core{
+  flow_actor_allocator* allocator_;
+
+  HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash> htable_;
+
+  HTable<uint64_t, flow_actor*, actorid_keycmp, actorid_hash> actorid_htable_;
+
+  flow_actor* deadend_flow_actor_;
+
+  nfa_ipv4_field fields_[3];
+
+  std::vector<network_function_base*> service_chain_;
+
+  generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
+};
 
 struct garbage{
   garbage_pkt_collector gp_collector_;
@@ -42,7 +59,6 @@ struct local_runtime_info{
 };
 
 struct rr_lists{
-  generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
 
   round_rubin_list<generic_list_item> output_runtime_mac_rrlist_;
   round_rubin_list<generic_list_item> input_runtime_mac_rrlist_;
@@ -56,11 +72,8 @@ struct rr_lists{
 
 struct migration_target_source_holder{
   uint64_t migration_qouta_;
-
   int32_t migration_target_rt_id_;
-
   fixed_array<int32_t> migration_targets_;
-  // fast_hash_map<uint32_t, >
 };
 
 struct reliables_holder{

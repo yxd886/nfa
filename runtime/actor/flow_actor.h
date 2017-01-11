@@ -96,8 +96,6 @@ private:
 
   uint64_t sample_counter_;
 
-  uint64_t idle_counter_;
-
   flow_key_t flow_key_;
 
   coordinator* coordinator_actor_;

@@ -3,6 +3,7 @@
 #define RECV_RELIABLE_MSGACK_H
 
 #include "../bessport/module.h"
+#include "../reliable/base/reliable_message_misc.h"
 
 class coordinator;
 
@@ -19,9 +20,7 @@ public:
   void customized_init(coordinator* coordinator_actor);
 
 private:
-
   coordinator* coordinator_actor_;
-  bess::PacketBatch cp_pkt_batch;
 };
 
 #endif

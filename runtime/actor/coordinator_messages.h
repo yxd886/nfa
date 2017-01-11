@@ -3,10 +3,9 @@
 
 #include "./base/local_message.h"
 #include "./base/flow_key.h"
+#include "./base/flow_ether_header.h"
 
 enum class coordinator_messages : uint16_t{
-  dp_pkt_batch,
-  cp_pkt_batch,
   remove_flow,
   ping,
 
@@ -15,8 +14,6 @@ enum class coordinator_messages : uint16_t{
   change_vswitch_route
 };
 
-using dp_pkt_batch_t = local_message(coordinator_messages, dp_pkt_batch);
-using cp_pkt_batch_t = local_message(coordinator_messages, cp_pkt_batch);
 using remove_flow_t = local_message(coordinator_messages, remove_flow);
 
 using ping_t = local_message(coordinator_messages, ping);
@@ -26,10 +23,8 @@ struct ping_cstruct{
 
 using create_migration_target_actor_t = local_message(coordinator_messages, create_migration_target_actor);
 struct create_migration_target_actor_cstruct{
-  int32_t input_rtid;
-  uint64_t input_rt_output_mac;
-  int32_t output_rtid;
-  uint64_t output_rt_input_mac;
+  flow_ether_header input_header;
+  flow_ether_header output_header;
   flow_key_t flow_key;
 };
 

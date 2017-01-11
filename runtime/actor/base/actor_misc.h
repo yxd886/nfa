@@ -13,7 +13,7 @@ static constexpr uint32_t idle_message_id = 1;
 
 static constexpr uint32_t message_id_start = 2;
 
-static constexpr uint64_t flow_actor_idle_timeout = 1*1000*1000*1000;
+static constexpr uint64_t flow_actor_idle_timeout = 3000000000; //3s
 
 static constexpr uint64_t request_timeout = 5*1000*1000; //5 ms
 

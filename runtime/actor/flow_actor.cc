@@ -13,7 +13,6 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
 
   pkt_counter_ = 0;
   sample_counter_ = 0;
-  idle_counter_ = 0;
 
   int32_t input_rtid;
   uint64_t input_rt_output_mac =  (*(first_packet->head_data<uint64_t*>(6)) & 0x0000FFffFFffFFfflu);
@@ -75,13 +74,12 @@ void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
 
   pkt_counter_ = 0;
   sample_counter_ = 0;
-  idle_counter_ = 0;
 
-  input_header_.init(cstruct->input_rtid,
-                     cstruct->input_rt_output_mac,
+  input_header_.init(cstruct->input_header.dest_rtid,
+                     &(cstruct->input_header.ethh.d_addr),
                      coordinator_actor->local_runtime_.input_port_mac);
-  output_header_.init(cstruct->output_rtid,
-                      cstruct->output_rt_input_mac,
+  output_header_.init(cstruct->output_header.dest_rtid,
+                      &(cstruct->output_header.ethh.d_addr),
                       coordinator_actor->local_runtime_.output_port_mac);
 
   size_t i = 0;
@@ -130,23 +128,13 @@ void flow_actor::handle_message(check_idle_t){
   idle_timer_.invalidate();
 
   if(sample_counter_ == pkt_counter_){
-    idle_counter_ += 1;
-    if(idle_counter_ == 3){
-      for(size_t i=0; i<service_chain_length_; i++){
-        nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
-      }
+    for(size_t i=0; i<service_chain_length_; i++){
+      nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
+    }
 
-      send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
-    }
-    else{
-      coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
-                                                    ctx.current_ns(),
-                                                    idle_message_id,
-                                                    static_cast<uint16_t>(flow_actor_messages::check_idle));
-    }
+    send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
   }
   else{
-    idle_counter_ = 0;
     sample_counter_ = pkt_counter_;
     coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
                                                   ctx.current_ns(),
@@ -157,13 +145,8 @@ void flow_actor::handle_message(check_idle_t){
 
 void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid){
   create_migration_target_actor_cstruct cstruct;
-  cstruct.input_rtid = input_header_.dest_rtid;
-  cstruct.input_rt_output_mac = (*reinterpret_cast<uint64_t *>(&(input_header_.ethh.d_addr))) &
-                                0x0000FFffFFffFFfflu;
-  cstruct.output_rtid = output_header_.dest_rtid;
-  cstruct.output_rt_input_mac = (*reinterpret_cast<uint64_t *>(&(output_header_.ethh.d_addr))) &
-                                0x0000FFffFFffFFfflu;
-
+  rte_memcpy(&(cstruct.input_header), &input_header_, sizeof(flow_ether_header));
+  rte_memcpy(&(cstruct.output_header), &output_header_, sizeof(flow_ether_header));
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
