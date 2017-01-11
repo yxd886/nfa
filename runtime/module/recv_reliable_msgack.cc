@@ -32,7 +32,6 @@ void recv_reliable_msgack::ProcessBatch(bess::PacketBatch *batch){
       continue;
     }
 
-    LOG(INFO)<<"Receive message!";
     process_reliable_msg::match(msg_ptr, coordinator_actor_);
     msg_ptr->clean(&(coordinator_actor_->gp_collector_));
   }
