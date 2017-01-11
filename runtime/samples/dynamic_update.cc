@@ -407,6 +407,7 @@ int main(int argc, char** argv) {
 
 
      LOG(INFO)<<checker_10241.MigrateTo(10242,20000);
+     getchar();
      LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
      LOG(INFO)<<checker_10241.DeleteInputRt(10240);
 
