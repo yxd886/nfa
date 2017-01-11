@@ -412,6 +412,7 @@ int main(int argc, char** argv) {
 
      LOG(INFO)<<checker_10240.SingleAddOutputRt(10241);
      LOG(INFO)<<checker_10240.AddOutputMac(10241);
+     LOG(INFO)<<checker_10241.AddInputMac(10240);
 
      LOG(INFO)<<checker_10242.SetMigrationTarget(10241,20000);
 
