@@ -400,6 +400,7 @@ int main(int argc, char** argv) {
    getchar();
    LivenessCheckClient new_checker_10241(grpc::CreateChannel(
          "localhost:10241", grpc::InsecureChannelCredentials()));
+   LOG(INFO)<<checker_10240.AddOutputRt();
    LOG(INFO)<<new_checker_10241.AddInputMac(10240);
    LOG(INFO)<<checker_10242.SetMigrationTarget(10241,1000);
    getchar();
