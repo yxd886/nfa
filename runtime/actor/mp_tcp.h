@@ -108,6 +108,8 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int3
 				break;
 			case TCP_OPTION_MULTIPATH:{
 				migration_target_id=(dport%target_no)+2;
+				LOG(INFO)<<"migration_target_id:"<<migration_target_id;
+				LOG(INFO)<<"runtime_id:"<<runtime_id;
 				if(migration_target_id!=runtime_id){
 
 					return true;
