@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <rte_ether.h>
 #include <rte_ethdev.h>
+#include <glog/logging.h>
+#include <stdio.h>
 
 
 struct tcp_header {
@@ -79,6 +81,8 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int3
 
 	while(option < payload) {
 		uint16_t option_kind = *option;
+		LOG(INFO)<<"option_kind:"<<option_kind;
+		getchar();
 		switch(option_kind) {
 			case TCP_OPTION_EOL:
 			case TCP_OPTION_NOP:
