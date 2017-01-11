@@ -397,12 +397,13 @@ int main(int argc, char** argv) {
    LOG(INFO)<<checker_10240.AddOutputMac(10242);
    LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
    LOG(INFO)<<checker_10240.DeleteOutputMac(10241);
-   LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
+
 
    getchar();
 
 
    LOG(INFO)<<checker_10241.MigrateAllFlows();
+   LOG(INFO)<<checker_10240.DeleteOutputRt(10241);
 
    getchar();
 
@@ -412,11 +413,12 @@ int main(int argc, char** argv) {
    LOG(INFO)<<checker_10242.SetMigrationTarget(10241,1000);
 
    LOG(INFO)<<checker_10240.DeleteOutputMac(10242);
-   LOG(INFO)<<checker_10240.DeleteOutputRt(10242);
+
 
 
 
    LOG(INFO)<<checker_10242.MigrateAllFlows();
+   LOG(INFO)<<checker_10240.DeleteOutputRt(10242);
 
    //LOG(INFO)<<checker_10240.AddOutputMac(10242);
    //LOG(INFO)<<checker_10241.AddInputMac(10240);
