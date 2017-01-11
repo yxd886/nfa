@@ -59,7 +59,7 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
 	int32_t migration_target_id;
   if(FLAGS_mptcp_flag&&is_mptcp_flow(pkt,
 			                               coordinator_actor_->local_runtime_.runtime_id,
-			                               1,//size of the migration target map. now it is 1
+																		 coordinator_actor_->migration_targets_.size(),//size of the migration target map. now it is 1
 			                               migration_target_id)){
 
 
