@@ -84,7 +84,7 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int3
 
 	while(option < payload) {
 		uint16_t option_kind = *option;
-		LOG(INFO)<<"option_kind:"<<option_kind;
+		//LOG(INFO)<<"option_kind:"<<option_kind;
 		switch(option_kind) {
 			case TCP_OPTION_EOL:
 			case TCP_OPTION_NOP:
@@ -107,8 +107,8 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int3
 				break;
 			case TCP_OPTION_MULTIPATH:{
 				migration_target_id=(dport%target_no)+3;
-				LOG(INFO)<<"migration_target_id:"<<migration_target_id;
-				LOG(INFO)<<"runtime_id:"<<runtime_id;
+				//LOG(INFO)<<"migration_target_id:"<<migration_target_id;
+				//LOG(INFO)<<"runtime_id:"<<runtime_id;
 				if(migration_target_id!=runtime_id){
 
 					return true;
