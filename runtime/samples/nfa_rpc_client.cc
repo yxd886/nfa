@@ -397,5 +397,10 @@ int main(int argc, char** argv) {
    getchar();
    LOG(INFO)<<checker_10241.MigrateAllFlows();
 
+   getchar();
+   LOG(INFO)<<checker_10241.AddInputMac(10240);
+   LOG(INFO)<<checker_10242.SetMigrationTarget(10241,1000);
+   LOG(INFO)<<checker_10242.MigrateAllFlows();
+
   return 0;
 }
