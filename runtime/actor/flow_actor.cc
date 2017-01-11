@@ -3,16 +3,11 @@
 #include "./base/local_send.h"
 #include "../bessport/utils/time.h"
 
-void flow_actor::handle_message(flow_actor_init_t,
+void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
                                 vector<network_function_base*>& service_chain,
-                                uint32_t input_rtid,
-                                uint64_t input_rt_output_mac,
-                                uint64_t local_rt_input_mac,
-                                uint32_t output_rtid,
-                                uint64_t output_rt_input_mac,
-                                uint64_t local_rt_output_mac){
+                                bess::Packet* first_packet){
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
 
@@ -20,8 +15,74 @@ void flow_actor::handle_message(flow_actor_init_t,
   sample_counter_ = 0;
   idle_counter_ = 0;
 
-  input_header_.init(input_rtid, input_rt_output_mac, local_rt_input_mac);
-  output_header_.init(output_rtid, output_rt_input_mac, local_rt_output_mac);
+  int32_t input_rtid;
+  uint64_t input_rt_output_mac =  (*(first_packet->head_data<uint64_t*>(6)) & 0x0000FFffFFffFFfflu);
+  reliable_p2p** r_ptr = coordinator_actor->mac_to_reliables_.Get(&input_rt_output_mac);
+  if(unlikely(r_ptr == nullptr)){
+    input_rtid = 0;
+  }
+  else{
+    input_rtid = (*r_ptr)->get_rt_config()->runtime_id;
+  }
+  input_header_.init(input_rtid, input_rt_output_mac, coordinator_actor->local_runtime_.input_port_mac);
+
+  int32_t output_rtid;
+  uint64_t output_rt_input_mac;
+  generic_list_item* first_item = coordinator_actor->output_runtime_mac_rrlist_.rotate();
+  if(unlikely(first_item==nullptr)){
+    output_rtid = 0;
+    output_rt_input_mac = coordinator_actor->default_output_mac_;
+  }
+  else{
+    output_rt_input_mac = first_item->dst_mac_addr;
+    output_rtid = first_item->dst_rtid;
+  }
+  output_header_.init(output_rtid, output_rt_input_mac, coordinator_actor->local_runtime_.output_port_mac);
+
+  size_t i = 0;
+  service_chain_length_ = service_chain.size();
+
+  for(; i<service_chain_length_; i++){
+    char* fs_state_ptr = service_chain[i]->allocate();
+
+    if(unlikely(fs_state_ptr == nullptr)){
+      LOG(WARNING)<<"flow state allocation failed";
+      for(size_t j=0; j<i; j++){
+        nfs_.nf[j]->deallocate(fs_.nf_flow_state_ptr[j]);
+      }
+      service_chain_length_ = 0;
+      break;
+    }
+
+    nfs_.nf[i] = service_chain[i];
+    fs_.nf_flow_state_ptr[i] = fs_state_ptr;
+    fs_size_.nf_flow_state_size[i] = service_chain[i]->get_nf_state_size();
+  }
+
+  coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
+                                                ctx.current_ns(),
+                                                idle_message_id,
+                                                static_cast<uint16_t>(flow_actor_messages::check_idle));
+}
+
+void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
+                                coordinator* coordinator_actor,
+                                flow_key_t* flow_key,
+                                vector<network_function_base*>& service_chain,
+                                create_migration_target_actor_cstruct* cstruct){
+  flow_key_ = *flow_key;
+  coordinator_actor_ = coordinator_actor;
+
+  pkt_counter_ = 0;
+  sample_counter_ = 0;
+  idle_counter_ = 0;
+
+  input_header_.init(cstruct->input_rtid,
+                     cstruct->input_rt_output_mac,
+                     coordinator_actor->local_runtime_.input_port_mac);
+  output_header_.init(cstruct->output_rtid,
+                      cstruct->output_rt_input_mac,
+                      coordinator_actor->local_runtime_.output_port_mac);
 
   size_t i = 0;
   service_chain_length_ = service_chain.size();

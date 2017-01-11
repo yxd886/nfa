@@ -150,39 +150,13 @@ void coordinator::handle_message(dp_pkt_batch_t, bess::PacketBatch* batch){
         actor = deadend_flow_actor_;
       }
       else{
-        bess::Packet* pkt = batch->pkts()[i];
-
-        int32_t input_rtid = 0;
-        uint64_t input_rt_output_mac =  (*(pkt->head_data<uint64_t*>(6)) & 0x0000FFffFFffFFfflu);
-        // uint64_t local_rt_input_mac = local_runtime_.input_port_mac;
-
-        int32_t output_rtid = 0;
-        uint64_t output_rt_input_mac = default_output_mac_;
-        // local_rt_output_mac = local_runtime_.output_port_mac;
-
-        reliable_p2p** r_ptr = mac_to_reliables_.Get(&input_rt_output_mac);
-        if(r_ptr != nullptr){
-          input_rtid = (*r_ptr)->get_rt_config()->runtime_id;
-        }
-
-        generic_list_item* first_item = output_runtime_mac_rrlist_.rotate();
-        if(first_item!=nullptr){
-          output_rt_input_mac = first_item->dst_mac_addr;
-          output_rtid = first_item->dst_rtid;
-        }
-
         active_flows_rrlist_.add_to_tail(actor);
 
-        send(actor, flow_actor_init_t::value,
+        send(actor, flow_actor_init_with_pkt_t::value,
              this,
              reinterpret_cast<flow_key_t*>(keys[i]),
              service_chain_,
-             input_rtid,
-             input_rt_output_mac,
-             local_runtime_.input_port_mac,
-             output_rtid,
-             output_rt_input_mac,
-             local_runtime_.output_port_mac);
+             batch->pkts()[i]);
       }
 
       htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);
@@ -269,16 +243,11 @@ void coordinator::handle_message(create_migration_target_actor_t,
 
   active_flows_rrlist_.add_to_tail(actor);
 
-  send(actor, flow_actor_init_t::value,
+  send(actor, flow_actor_init_with_cstruct_t::value,
        this,
        &(cstruct_ptr->flow_key),
        service_chain_,
-       cstruct_ptr->input_rtid,
-       cstruct_ptr->input_rt_output_mac,
-       local_runtime_.input_port_mac,
-       cstruct_ptr->output_rtid,
-       cstruct_ptr->output_rt_input_mac,
-       local_runtime_.output_port_mac);
+       cstruct_ptr);
 
 
   htable_.Set(&(cstruct_ptr->flow_key), &actor);

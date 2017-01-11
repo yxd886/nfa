@@ -22,16 +22,17 @@ class flow_actor{
 public:
   using flow_actor_id_t = uint32_t;
 
-  void handle_message(flow_actor_init_t,
+  void handle_message(flow_actor_init_with_pkt_t,
                       coordinator* coordinator_actor,
                       flow_key_t* flow_key,
                       vector<network_function_base*>& service_chain,
-                      uint32_t input_rtid,
-                      uint64_t input_rt_output_mac,
-                      uint64_t local_rt_input_mac,
-                      uint32_t output_rtid,
-                      uint64_t output_rt_input_mac,
-                      uint64_t local_rt_output_mac);
+                      bess::Packet* first_packet);
+
+  void handle_message(flow_actor_init_with_cstruct_t,
+                      coordinator* coordinator_actor,
+                      flow_key_t* flow_key,
+                      vector<network_function_base*>& service_chain,
+                      create_migration_target_actor_cstruct* cstruct);
 
   void handle_message(pkt_msg_t, bess::Packet* pkt);
 

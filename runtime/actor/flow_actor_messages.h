@@ -5,7 +5,8 @@
 
 enum class flow_actor_messages : uint16_t{
   pkt_msg,
-  flow_actor_init,
+  flow_actor_init_with_pkt,
+  flow_actor_init_with_cstruct,
   check_idle,
 
   start_migration,
@@ -22,7 +23,8 @@ enum class flow_actor_messages : uint16_t{
 };
 
 using pkt_msg_t = local_message(flow_actor_messages, pkt_msg);
-using flow_actor_init_t = local_message(flow_actor_messages, flow_actor_init);
+using flow_actor_init_with_pkt_t = local_message(flow_actor_messages, flow_actor_init_with_pkt);
+using flow_actor_init_with_cstruct_t = local_message(flow_actor_messages, flow_actor_init_with_cstruct);
 using check_idle_t = local_message(flow_actor_messages, check_idle);
 
 using start_migration_t = local_message(flow_actor_messages, start_migration);
