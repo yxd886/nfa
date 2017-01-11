@@ -282,7 +282,7 @@ $(eval $(call BUILD, \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 	
 	
-	$(eval $(call BUILD, \
+$(eval $(call BUILD, \
 	LD, \
 	$$(DYNAMIC_UPDATE_EXEC), \
 	$$(DYNAMIC_UPDATE_OBJS), \
