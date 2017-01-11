@@ -176,11 +176,11 @@ int main(int argc, char* argv[]){
   Module* mod_send_reliable_msg = create_module<send_reliable_msg>("send_reliable_msg",
                                                                    "mod_send_reliable_msg",
                                                                    &coordinator_actor);
-
+/*
   Module* mod_coordinator_mp = create_module<coordinator_mp>("coordinator_mp",
                                                              "mod_coordinator_mp",
                                                              &coordinator_actor);
-
+*/
   int f1 = mod_iport_port_inc->ConnectModules(0, mod_forward_ec_scheduler, 0);
   int f2 = mod_forward_ec_scheduler->ConnectModules(0, mod_oport_port_out, 0);
   if(f1!=0 || f2!=0 ){
