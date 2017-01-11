@@ -57,9 +57,9 @@ bool is_mptcp_flow(bess::Packet* pkt,int32_t runtime_id,uint32_t target_no, int3
 		// ip header
 	iphdr *ip_header = (struct iphdr*)(packet + sizeof(struct ether_hdr));//(bytes + sizeof(struct ether_header));
 
-	if(ntohs(eth_header->ether_type) != 0X0800) {  //ip
+	if(ntohs(eth_header->ether_type) != 0x0800) {  //ip
 
-		LOG(INFO)<<"NOT IP PACKET";
+		LOG(INFO)<<"NOT IP PACKET:"<<hex<<ntohs(eth_header->ether_type);
 		return false;
 	}
 
