@@ -393,18 +393,19 @@ int main(int argc, char** argv) {
    LOG(INFO)<<checker_10240.AddOutputMac(10242);
    LOG(INFO)<<checker_10241.AddInputMac(10240);
    LOG(INFO)<<checker_10242.AddInputMac(10240);
-   LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
-   getchar();
-   LOG(INFO)<<checker_10241.MigrateAllFlows();
+  // LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
+  // LOG(INFO)<<checker_10242.SetMigrationTarget(10241,1000);
+  // getchar();
+  // LOG(INFO)<<checker_10241.MigrateAllFlows();
 
-   getchar();
-   LivenessCheckClient new_checker_10241(grpc::CreateChannel(
-         "localhost:10241", grpc::InsecureChannelCredentials()));
-   LOG(INFO)<<checker_10240.AddOutputRt();
-   LOG(INFO)<<new_checker_10241.AddInputMac(10240);
-   LOG(INFO)<<checker_10242.SetMigrationTarget(10241,1000);
-   getchar();
-   LOG(INFO)<<checker_10242.MigrateAllFlows();
+  // getchar();
+  // LivenessCheckClient new_checker_10241(grpc::CreateChannel(
+  //       "localhost:10241", grpc::InsecureChannelCredentials()));
+ //  LOG(INFO)<<checker_10240.AddOutputRt();
+ //  LOG(INFO)<<new_checker_10241.AddInputMac(10240);
+
+ //  getchar();
+ //  LOG(INFO)<<checker_10242.MigrateAllFlows();
 
   return 0;
 }
