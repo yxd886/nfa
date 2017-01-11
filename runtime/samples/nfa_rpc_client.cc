@@ -392,11 +392,11 @@ int main(int argc, char** argv) {
      LOG(INFO)<<checker_10240.AddOutputRt();
 
   // LOG(INFO)<<checker_10240.AddOutputMac(10241);
-     LOG(INFO)<<checker_10240.AddOutputMac(10242);
+     LOG(INFO)<<checker_10240.AddOutputMac(10241);
   // LOG(INFO)<<checker_10241.AddInputMac(10240);
-     LOG(INFO)<<checker_10242.AddInputMac(10240);
-     LOG(INFO)<<checker_10242.SetMigrationTarget(10241,1000);
-     LOG(INFO)<<checker_10242.MigrateTo(10241,1000);
+     LOG(INFO)<<checker_10242.AddInputMac(10241);
+     LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
+     LOG(INFO)<<checker_10241.MigrateTo(10242,1000);
 
   return 0;
 }
