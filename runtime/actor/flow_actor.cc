@@ -284,6 +284,8 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
     return;
   }
 
+  current_state_ = flow_actor_migration_source_after_route_change;
+
   bess::Packet* pkt = bess::Packet::Alloc();
   pkt->set_data_off(SNBUF_HEADROOM);
   pkt->set_total_len(fs_size_.nf_flow_state_size[0]);

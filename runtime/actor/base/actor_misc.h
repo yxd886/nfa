@@ -36,10 +36,12 @@ enum class actor_type : uint16_t{
 // flow actor state
 static constexpr uint32_t flow_actor_normal_processing = 0x1; // 0001
 
-static constexpr uint32_t flow_actor_migration_source = 0x2;  // 0010
-
 static constexpr uint32_t flow_actor_migration_target = 0x3;  // 0011
 
-static constexpr uint32_t flow_actor_migration_failure_processing = 0x4; //0100  0001
+static constexpr uint32_t flow_actor_migration_source = 0x2;  // 0010
+
+static constexpr uint32_t flow_actor_migration_source_after_route_change = 0x6; // 0110
+
+static constexpr uint32_t flow_actor_migration_failure_processing = 0x4; //0100
 
 #endif
