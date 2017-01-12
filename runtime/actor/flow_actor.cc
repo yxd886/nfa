@@ -67,6 +67,7 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
 
   if(FLAGS_deduplicate_flag&&is_duplicate_packet(first_packet)){
 
+  	coordinator_actor_->migration_target_rt_id_=FLAGS_deduplicate_rtm_id;
   	handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
 
   }
