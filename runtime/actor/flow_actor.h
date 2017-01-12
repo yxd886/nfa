@@ -14,18 +14,11 @@
 #include "../nf/base/nf_item.h"
 #include "../utils/cdlist.h"
 #include "actor_timer.h"
+#include "./base/actor_misc.h"
 
 using namespace std;
 
 class coordinator;
-
-static constexpr uint32_t flow_actor_normal_processing = 1; // 0001
-
-static constexpr uint32_t flow_actor_migration_source = 2;  // 0010
-
-static constexpr uint32_t flow_actor_migration_target = 3;  // 0011
-
-static constexpr uint32_t flow_actor_migration_failure_processing = 4; //0100  0001
 
 class flow_actor{
 public:
