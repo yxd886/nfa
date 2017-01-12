@@ -5,7 +5,7 @@
 
 class garbage_pkt_collector{
 public:
-  void collect(bess::Packet* pkt){
+  inline void collect(bess::Packet* pkt){
     if(garbage_pkt_batch.cnt() == bess::PacketBatch::kMaxBurst){
       bess::Packet::Free(&garbage_pkt_batch);
       garbage_pkt_batch.clear();
@@ -13,7 +13,7 @@ public:
     garbage_pkt_batch.add(pkt);
   }
 
-  void collect(bess::PacketBatch* batch){
+  inline void collect(bess::PacketBatch* batch){
     if((garbage_pkt_batch.cnt()+batch->cnt())>32){
       bess::Packet::Free(&garbage_pkt_batch);
       garbage_pkt_batch.clear();

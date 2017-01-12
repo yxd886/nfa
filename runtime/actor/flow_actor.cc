@@ -64,6 +64,8 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                                 ctx.current_ns(),
                                                 idle_message_id,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
+
+  buffer_batch_.clear();
 }
 
 void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
@@ -110,9 +112,15 @@ void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
                                                 ctx.current_ns(),
                                                 idle_message_id,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
+
+  buffer_batch_.clear();
 }
 
 void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
+  (this->*funcs_[current_state_])(pkt);
+}
+
+void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){
   pkt_counter_+=1;
 
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
@@ -127,6 +135,21 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
 
   coordinator_actor_->ec_scheduler_batch_.add(pkt);
 }
+
+void flow_actor::pkt_migration_target_processing(bess::Packet* pkt){
+  pkt_counter_ += 1;
+
+  if(unlikely(buffer_batch_.cnt())>buffer_batch_size){
+    coordinator_actor_->gp_collector_.collect(pkt);
+  }
+
+  buffer_batch_.add(pkt);
+}
+
+void flow_actor::pkt_process_after_route_change(bess::Packet* pkt){
+  assert(1==0);
+}
+
 
 void flow_actor::handle_message(check_idle_t){
   idle_timer_.invalidate();
@@ -143,7 +166,7 @@ void flow_actor::handle_message(check_idle_t){
 
   if(sample_counter_ == pkt_counter_){
     if(current_state_==flow_actor_migration_target){
-      // LOG(INFO)<<"migration target is killed due to idleness";
+      coordinator_actor_->gp_collector_.collect(&buffer_batch_);
     }
 
     for(size_t i=0; i<service_chain_length_; i++){
@@ -329,6 +352,20 @@ void flow_actor::handle_message(migrate_flow_state_t,
   current_state_ = flow_actor_normal_processing;
 
   coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+  pkt_counter_+=buffer_batch_.cnt();
+  for(int i=0; i<buffer_batch_.cnt(); i++){
+    bess::Packet* pkt = buffer_batch_.pkts()[i];
+
+    for(size_t j=0; j<service_chain_length_; j++){
+      rte_prefetch0(fs_.nf_flow_state_ptr[j]);
+      nfs_.nf[j]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+    }
+
+    rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
+
+    coordinator_actor_->gb_.add_pkt_set_gate(pkt, 1);
+  }
 }
 
 void flow_actor::handle_message(migrate_flow_state_timeout_t){

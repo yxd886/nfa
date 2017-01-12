@@ -16,6 +16,7 @@
 #include "actor_timer_list.h"
 #include "../utils/fixed_array.h"
 #include "flow_actor_allocator.h"
+#include "./base/giant_batch.h"
 
 struct core{
   flow_actor_allocator* allocator_;
@@ -90,6 +91,10 @@ struct migration_stats{
   uint64_t null_passive_migration_;
   uint64_t current_iteration_start_time_;
   uint64_t current_iteration_end_time_;
+};
+
+struct giant_batch_holder{
+  giant_batch gb_;
 };
 
 #endif

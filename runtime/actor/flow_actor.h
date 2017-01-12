@@ -91,6 +91,19 @@ public:
     output_header_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&new_output_rt_input_mac));
   }
 
+  inline void set_up_pkt_processing_funcs(){
+    funcs_[1] = &flow_actor::pkt_normal_nf_processing;
+    funcs_[3] = &flow_actor::pkt_migration_target_processing;
+
+    funcs_[2] = &flow_actor::pkt_normal_nf_processing;
+    funcs_[6] = &flow_actor::pkt_process_after_route_change;
+    funcs_[4] = &flow_actor::pkt_normal_nf_processing;
+
+
+    funcs_[0] = &flow_actor::pkt_normal_nf_processing;
+    funcs_[5] = &flow_actor::pkt_normal_nf_processing;
+  }
+
 private:
   struct cdlist_item list_item;
 
@@ -127,6 +140,18 @@ private:
   uint32_t current_state_;
 
   void failure_handling();
+
+  void pkt_normal_nf_processing(bess::Packet* pkt);
+
+  void pkt_migration_target_processing(bess::Packet* pkt);
+
+  void pkt_process_after_route_change(bess::Packet* pkt);
+
+  typedef  void (flow_actor::*pkt_processing_func)(bess::Packet*);
+
+  pkt_processing_func funcs_[7];
+
+  bess::PacketBatch buffer_batch_;
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");
