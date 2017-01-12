@@ -27,6 +27,8 @@ DECLARE_string(default_output_mac);
 
 DECLARE_bool(deduplicate_flag);
 
+DECLARE_bool(deduplicate_target_flag);
+
 DECLARE_int32(deduplicate_rtm_id);
 
 #endif

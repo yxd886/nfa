@@ -39,5 +39,7 @@ DEFINE_string(default_output_mac, "02:03:04:05:06:07", "Default mac address when
 
 DEFINE_bool(deduplicate_flag, false, "choose whether to use deduplication application");
 
+DEFINE_bool(deduplicate_target_flag, false ,"choose whether to become the migrate target of deplication application");
+
 DEFINE_int32(deduplicate_rtm_id, -1, "select a runtime for deduplication");
 
