@@ -22,7 +22,7 @@ class flow_actor_allocator;
 
 class coordinator : public core, public garbage, public local_batch, public timer_list,
                     public rpcworker_llring, public local_runtime_info, public rr_lists,
-                    public migration_target_source_holder, public reliables_holder{
+                    public migration_target_source_holder, public reliables_holder, public migration_stats{
 public:
   coordinator(flow_actor_allocator* allocator,
               generic_ring_allocator<generic_list_item>* mac_list_item_allocator,

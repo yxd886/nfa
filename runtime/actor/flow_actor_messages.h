@@ -33,7 +33,6 @@ using start_migration_response_t = local_message(flow_actor_messages, start_migr
 struct start_migration_response_cstruct{
   uint32_t request_msg_id;
   uint32_t migration_target_actor_id;
-  uint64_t migration_target_input_mac;
 };
 
 using change_vswtich_route_execution_t = local_message(flow_actor_messages, change_vswtich_route_execution);

@@ -18,6 +18,15 @@
 using namespace std;
 
 class coordinator;
+
+static constexpr uint32_t flow_actor_normal_processing = 1; // 0001
+
+static constexpr uint32_t flow_actor_migration_source = 2;  // 0010
+
+static constexpr uint32_t flow_actor_migration_target = 3;  // 0011
+
+static constexpr uint32_t flow_actor_migration_failure_processing = 4; //0100  0001
+
 class flow_actor{
 public:
   using flow_actor_id_t = uint32_t;
@@ -46,10 +55,6 @@ public:
 
   void handle_message(change_vswitch_route_timeout_t);
 
-  void handle_message(change_vswtich_route_execution_t,
-                      int32_t new_output_rtid,
-                      uint64_t new_output_rt_input_mac);
-
   void handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr);
 
   void handle_message(migrate_flow_state_t,
@@ -75,7 +80,7 @@ public:
     actor_id_ = actor_id;
   }
 
-  inline actor_timer<actor_timer_type::flow_actor_idle_timer>* get_idle_timer(){
+  inline actor_timer<actor_timer_type::flow_actor_req_timer>* get_idle_timer(){
     return &idle_timer_;
   }
 
@@ -87,7 +92,15 @@ public:
     return &replication_timer_;
   }
 
+  inline void update_output_header(int32_t new_output_rtid,
+                                   uint64_t new_output_rt_input_mac){
+    output_header_.dest_rtid = new_output_rtid;
+    output_header_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&new_output_rt_input_mac));
+  }
+
 private:
+  void failure_handling();
+
   struct cdlist_item list_item;
 
   flow_actor_id_t actor_id_;
@@ -112,13 +125,15 @@ private:
 
   flow_actor_fs_size fs_size_;
 
-  actor_timer<actor_timer_type::flow_actor_idle_timer> idle_timer_;
+  actor_timer<actor_timer_type::flow_actor_req_timer> idle_timer_;
 
   actor_timer<actor_timer_type::flow_actor_req_timer> migration_timer_;
 
   actor_timer<actor_timer_type::flow_actor_req_timer> replication_timer_;
 
   uint32_t migration_target_actor_id_;
+
+  uint32_t current_state_;
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

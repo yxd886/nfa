@@ -44,20 +44,39 @@ struct task_result coordinator_mp::RunTask(void *arg){
   }*/
 
   for(int i=0; i<32; i++){
-    if(coordinator_actor_->migration_qouta_==0){
+    if((coordinator_actor_->migration_qouta_==0) || (coordinator_actor_->outgoing_migrations_>1024)){
       break;
     }
 
-    flow_actor* actor_ptr = coordinator_actor_->active_flows_rrlist_.pop_head();
+    flow_actor* actor_ptr = coordinator_actor_->active_flows_rrlist_.peek_head();
     if(actor_ptr==nullptr){
       coordinator_actor_->migration_qouta_ -= 1;
+
+      coordinator_actor_->null_passive_migration_ += 1;
       continue;
     }
 
+    coordinator_actor_->active_flows_rrlist_.pop_head();
     send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
     coordinator_actor_->migration_qouta_ -= 1;
+    coordinator_actor_->outgoing_migrations_ += 1;
   }
 
+  if(current_iteration<coordinator_actor_->passive_migration_iteration_){
+    if(coordinator_actor_->successful_passive_migration_ +
+       coordinator_actor_->failed_passive_migration_ +
+       coordinator_actor_->null_passive_migration_  == coordinator_actor_->total_passive_migration_){
+      LOG(INFO)<<"The migration qouta : "<<coordinator_actor_->total_passive_migration_<<" flows";
+      LOG(INFO)<<"Successful migration : "<<coordinator_actor_->successful_passive_migration_;
+      LOG(INFO)<<"Failed migration : "<<coordinator_actor_->failed_passive_migration_;
+      LOG(INFO)<<"Null migration : "<<coordinator_actor_->null_passive_migration_;
+      uint64_t time = ctx.current_ns() -  coordinator_actor_->current_iteration_start_time_;
+      time = time/1000000;
+      LOG(INFO)<<"Migration takes "<<time<<"ms.";
+
+      current_iteration+=1;
+    }
+  }
 
   return ret;
 }

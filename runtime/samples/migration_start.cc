@@ -348,7 +348,7 @@ int main(int argc, char** argv) {
   // Test migration
   // LOG(INFO)<<checker_10240.AddOutputRt();
   LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
-  LOG(INFO)<<checker_10241.MigrateTo(10242,1000);
+  LOG(INFO)<<checker_10241.MigrateTo(10242,5000);
 
   // Test migration between runtimes with different input/output runtimes
   // LOG(INFO)<<checker_10242.DeleteInputRt(10240);

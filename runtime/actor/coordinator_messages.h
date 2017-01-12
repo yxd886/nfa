@@ -32,7 +32,6 @@ using change_vswitch_route_t = local_message(coordinator_messages, change_vswitc
 struct change_vswitch_route_request_cstruct{
   flow_key_t flow_key;
   uint32_t new_output_rt_id;
-  uint64_t new_output_rt_input_mac;
 };
 
 #endif

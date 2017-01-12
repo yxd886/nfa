@@ -129,6 +129,14 @@ struct task_result handle_command::RunTask(void *arg){
         if(coordinator_actor_->migration_qouta_==0){
           coordinator_actor_->migration_qouta_ = item->migration_qouta;
           coordinator_actor_->migration_target_rt_id_ = item->rt_config.runtime_id;
+          coordinator_actor_->outgoing_migrations_ = 0;
+
+          coordinator_actor_->passive_migration_iteration_+=1;
+          coordinator_actor_->total_passive_migration_ = item->migration_qouta;
+          coordinator_actor_->successful_passive_migration_ = 0;
+          coordinator_actor_->failed_passive_migration_ = 0;
+          coordinator_actor_->null_passive_migration_ = 0;
+          coordinator_actor_->current_iteration_start_time_ = ctx.current_ns();
         }
         break;
       }

@@ -58,6 +58,8 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
     fs_size_.nf_flow_state_size[i] = service_chain[i]->get_nf_state_size();
   }
 
+  current_state_ = flow_actor_normal_processing;
+
   coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
                                                 ctx.current_ns(),
                                                 idle_message_id,
@@ -69,6 +71,8 @@ void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
                                 flow_key_t* flow_key,
                                 vector<network_function_base*>& service_chain,
                                 create_migration_target_actor_cstruct* cstruct){
+  current_state_ = flow_actor_migration_target;
+
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
 
@@ -127,7 +131,21 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
 void flow_actor::handle_message(check_idle_t){
   idle_timer_.invalidate();
 
+  if((current_state_&0x00000001) == 0x00000000){
+    sample_counter_ = pkt_counter_;
+    coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
+                                                  ctx.current_ns(),
+                                                  idle_message_id,
+                                                  static_cast<uint16_t>(flow_actor_messages::check_idle));
+
+    return;
+  }
+
   if(sample_counter_ == pkt_counter_){
+    if(current_state_==flow_actor_migration_target){
+      // LOG(INFO)<<"migration target is killed due to idleness";
+    }
+
     for(size_t i=0; i<service_chain_length_; i++){
       nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
     }
@@ -144,23 +162,20 @@ void flow_actor::handle_message(check_idle_t){
 }
 
 void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid){
+  current_state_ = flow_actor_migration_source;
+
   create_migration_target_actor_cstruct cstruct;
   rte_memcpy(&(cstruct.input_header), &input_header_, sizeof(flow_ether_header));
   rte_memcpy(&(cstruct.output_header), &output_header_, sizeof(flow_ether_header));
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  bool flag = coordinator_actor_->reliables_.find(migration_target_rtid)->reliable_send(
+  coordinator_actor_->reliables_.find(migration_target_rtid)->reliable_send(
                                       msg_id,
                                       actor_id_,
                                       coordinator_actor_id,
                                       create_migration_target_actor_t::value,
                                       &cstruct);
-
-  if(flag == false){
-    // do some processing
-    return;
-  }
 
   coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
                                                 ctx.current_ns(),
@@ -170,38 +185,44 @@ void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid
 
 void flow_actor::handle_message(start_migration_timeout_t){
   migration_timer_.invalidate();
-  LOG(INFO)<<"start_migration_timeout is triggered";
+  // LOG(INFO)<<"start_migration_timeout is triggered";
+
+  // modify state
+  current_state_ = flow_actor_normal_processing;
+
+  // add itself to the tail of the active_flow_actor_list
+  coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+  // decrease outgoing_migration
+  coordinator_actor_->outgoing_migrations_ -= 1;
+
+  // update stats
+  coordinator_actor_->failed_passive_migration_ += 1;
 }
 
 void flow_actor::handle_message(start_migration_response_t, start_migration_response_cstruct* cstruct_ptr){
   if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
-    LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    // LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
     return;
   }
 
-  LOG(INFO)<<"The response is successfully received, the id of the migration target is "
-           <<cstruct_ptr->migration_target_actor_id;
+  //LOG(INFO)<<"The response is successfully received, the id of the migration target is "
+  //         <<cstruct_ptr->migration_target_actor_id;
   migration_timer_.invalidate();
 
   migration_target_actor_id_ = cstruct_ptr->migration_target_actor_id;
 
   change_vswitch_route_request_cstruct cstruct;
   cstruct.new_output_rt_id = coordinator_actor_->migration_target_rt_id_;
-  cstruct.new_output_rt_input_mac = cstruct_ptr->migration_target_input_mac;
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  bool flag = coordinator_actor_->reliables_.find(input_header_.dest_rtid)->reliable_send(
-                                        msg_id,
-                                        actor_id_,
-                                        coordinator_actor_id,
-                                        change_vswitch_route_t::value,
-                                        &cstruct);
-
-  if(flag == false){
-    // do some processing
-    return;
-  }
+  coordinator_actor_->reliables_.find(input_header_.dest_rtid)->reliable_send(
+                                      msg_id,
+                                      actor_id_,
+                                      coordinator_actor_id,
+                                      change_vswitch_route_t::value,
+                                      &cstruct);
 
   coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
                                                 ctx.current_ns(),
@@ -209,26 +230,58 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
                                                 static_cast<uint16_t>(flow_actor_messages::change_vswitch_route_timeout));
 }
 
-void flow_actor::handle_message(change_vswitch_route_timeout_t){
-  migration_timer_.invalidate();
-  LOG(INFO)<<"change_vswitch_route_timeout is triggered";
+void flow_actor::failure_handling(){
+  current_state_ = flow_actor_migration_failure_processing;
+
+  change_vswitch_route_request_cstruct cstruct;
+  cstruct.new_output_rt_id = coordinator_actor_->local_runtime_.runtime_id;
+  rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
+
+  uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+  coordinator_actor_->reliables_.find(input_header_.dest_rtid)->reliable_send(
+                                      msg_id,
+                                      actor_id_,
+                                      coordinator_actor_id,
+                                      change_vswitch_route_t::value,
+                                      &cstruct);
+
+  coordinator_actor_->idle_flow_list_.add_timer(&migration_timer_,
+                                                ctx.current_ns(),
+                                                msg_id,
+                                                static_cast<uint16_t>(flow_actor_messages::change_vswitch_route_timeout));
 }
 
-void flow_actor::handle_message(change_vswtich_route_execution_t,
-                                int32_t new_output_rtid,
-                                uint64_t new_output_rt_input_mac){
-  output_header_.dest_rtid = new_output_rtid;
-  output_header_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&new_output_rt_input_mac));
+void flow_actor::handle_message(change_vswitch_route_timeout_t){
+  migration_timer_.invalidate();
+  // LOG(INFO)<<"change_vswitch_route_timeout is triggered";
+
+  failure_handling();
 }
 
 void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr){
   if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
-    LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    // LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
     return;
   }
 
-  LOG(INFO)<<"The response is successfully received, the route has been changed";
+  // LOG(INFO)<<"The response is successfully received, the route has been changed";
   migration_timer_.invalidate();
+
+  if(current_state_ == flow_actor_migration_failure_processing){
+    // modify state
+    current_state_ = flow_actor_normal_processing;
+
+    // add itself to the tail of the active_flow_actor_list
+    coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+    // decrease outgoing_migration
+    coordinator_actor_->outgoing_migrations_ -= 1;
+
+    // update stats
+    coordinator_actor_->failed_passive_migration_ += 1;
+
+    return;
+  }
 
   bess::Packet* pkt = bess::Packet::Alloc();
   pkt->set_data_off(SNBUF_HEADROOM);
@@ -239,17 +292,12 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
   batch.add(pkt);
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reliable_send(
+  coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reliable_send(
                                                   msg_id,
                                                   actor_id_,
                                                   migration_target_actor_id_,
                                                   migrate_flow_state_t::value,
                                                   &batch);
-
-  if(flag == false){
-    coordinator_actor_->gp_collector_.collect(&batch);
-    return;
-  }
 
   coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
                                                 ctx.current_ns(),
@@ -262,36 +310,48 @@ void flow_actor::handle_message(migrate_flow_state_t,
                                 uint32_t sender_actor_id,
                                 uint32_t request_msg_id,
                                 bess::PacketBatch* fs_pkt_batch){
-  LOG(INFO)<<"Receive fs_pkt_batch!!!";
+  // LOG(INFO)<<"Receive fs_pkt_batch!!!";
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   migrate_flow_state_response_cstruct cstruct;
   cstruct.request_msg_id = request_msg_id;
 
-  bool flag = coordinator_actor_->reliables_.find(sender_rtid)->reliable_send(
+  coordinator_actor_->reliables_.find(sender_rtid)->reliable_send(
                                                   msg_id,
                                                   actor_id_,
                                                   sender_actor_id,
                                                   migrate_flow_state_response_t::value,
                                                   &cstruct);
 
-  if(flag == false){
-    return;
-  }
+  current_state_ = flow_actor_normal_processing;
 
+  coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
 }
 
 void flow_actor::handle_message(migrate_flow_state_timeout_t){
   migration_timer_.invalidate();
-  LOG(INFO)<<"Receive migrate_flow_state_timeout";
+  // LOG(INFO)<<"Receive migrate_flow_state_timeout";
+
+  failure_handling();
 }
 
 void flow_actor::handle_message(migrate_flow_state_response_t, migrate_flow_state_response_cstruct* cstruct_ptr){
   if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
-    LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    // LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
     return;
   }
 
-  LOG(INFO)<<"The response is successfully received, the migration has completed";
+  // LOG(INFO)<<"The response is successfully received, the migration has completed";
   migration_timer_.invalidate();
+
+  // modify state
+  current_state_ = flow_actor_normal_processing;
+
+  // decrease outgoing_migration
+  coordinator_actor_->outgoing_migrations_ -= 1;
+
+  // update stats
+  coordinator_actor_->successful_passive_migration_ += 1;
+
+  send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
 }
