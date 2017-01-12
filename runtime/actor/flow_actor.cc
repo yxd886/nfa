@@ -2,6 +2,7 @@
 #include "coordinator.h"
 #include "./base/local_send.h"
 #include "../bessport/utils/time.h"
+#include "deduplication.h"
 
 void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                 coordinator* coordinator_actor,
@@ -113,15 +114,25 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
 
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
+  if(FLAGS_deduplicate_flag&&is_duplicate_packet(pkt)){
 
-  for(size_t i=0; i<service_chain_length_; i++){
-    rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-    nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+  	handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
+
+  }else{
+
+    for(size_t i=0; i<service_chain_length_; i++){
+      rte_prefetch0(fs_.nf_flow_state_ptr[i]);
+      nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+    }
+
+    rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
+
+    coordinator_actor_->ec_scheduler_batch_.add(pkt);
+
+
   }
 
-  rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
 
-  coordinator_actor_->ec_scheduler_batch_.add(pkt);
 }
 
 void flow_actor::handle_message(check_idle_t){

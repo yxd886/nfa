@@ -37,3 +37,7 @@ DEFINE_string(default_input_mac,  "01:02:03:04:05:06", "Default mac address when
 
 DEFINE_string(default_output_mac, "02:03:04:05:06:07", "Default mac address when sending packets out from output port.");
 
+DECLARE_bool(deduplicate_flag, false, "choose whether to use deduplication application");
+
+DECLARE_int32(deduplicate_rtm_id, -1, "select a runtime for deduplication");
+
