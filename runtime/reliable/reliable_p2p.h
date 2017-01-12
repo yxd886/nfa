@@ -31,7 +31,7 @@ public:
                      T* cstruct_ptr){
     bess::Packet* cstruct_msg_pkt = create_cstruct_sub_msg(cstruct_ptr);
     if(unlikely(cstruct_msg_pkt == nullptr)){
-      assert(1==0);
+      // assert(1==0);
       return false;
     }
 
@@ -47,7 +47,7 @@ public:
     bool flag = send_queue_.push(cstruct_msg_pkt);
     if(unlikely(flag == false)){
       bess::Packet::Free(cstruct_msg_pkt);
-      assert(1==0);
+      // assert(1==0);
       return false;
     }
 
@@ -77,7 +77,7 @@ public:
 
     bool flag = send_queue_.push(batch);
     if(unlikely(flag == false)){
-      assert(1==0);
+      // assert(1==0);
       return false;
     }
 

@@ -231,7 +231,7 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
 }
 
 void flow_actor::failure_handling(){
-  current_state_ = flow_actor_migration_failure_processing;
+  /*current_state_ = flow_actor_migration_failure_processing;
 
   change_vswitch_route_request_cstruct cstruct;
   cstruct.new_output_rt_id = coordinator_actor_->local_runtime_.runtime_id;
@@ -248,7 +248,18 @@ void flow_actor::failure_handling(){
   coordinator_actor_->idle_flow_list_.add_timer(&migration_timer_,
                                                 ctx.current_ns(),
                                                 msg_id,
-                                                static_cast<uint16_t>(flow_actor_messages::change_vswitch_route_timeout));
+                                                static_cast<uint16_t>(flow_actor_messages::change_vswitch_route_timeout));*/
+  // modify state
+  current_state_ = flow_actor_normal_processing;
+
+  // add itself to the tail of the active_flow_actor_list
+  coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+  // decrease outgoing_migration
+  coordinator_actor_->outgoing_migrations_ -= 1;
+
+  // update stats
+  coordinator_actor_->failed_passive_migration_ += 1;
 }
 
 void flow_actor::handle_message(change_vswitch_route_timeout_t){
