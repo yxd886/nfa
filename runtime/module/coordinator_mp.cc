@@ -43,17 +43,21 @@ struct task_result coordinator_mp::RunTask(void *arg){
     }
   }*/
 
-  if(unlikely(coordinator_actor_->migration_qouta_>0)){
-    for(int i=0; i<32; i++){
-      flow_actor* actor_ptr = coordinator_actor_->active_flows_rrlist_.pop_head();
-      if(actor_ptr==nullptr){
-        break;
-      }
-
-      coordinator_actor_->migration_qouta_ -= 1;
-      send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
+  for(int i=0; i<32; i++){
+    if(coordinator_actor_->migration_qouta_==0){
+      break;
     }
+
+    flow_actor* actor_ptr = coordinator_actor_->active_flows_rrlist_.pop_head();
+    if(actor_ptr==nullptr){
+      coordinator_actor_->migration_qouta_ -= 1;
+      continue;
+    }
+
+    send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
+    coordinator_actor_->migration_qouta_ -= 1;
   }
+
 
   return ret;
 }

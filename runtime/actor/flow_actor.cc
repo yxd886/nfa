@@ -4,25 +4,99 @@
 #include "../bessport/utils/time.h"
 #include "mp_tcp.h"
 
-void flow_actor::handle_message(flow_actor_init_t,
+void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
                                 vector<network_function_base*>& service_chain,
-                                uint32_t input_rtid,
-                                uint64_t input_rt_output_mac,
-                                uint64_t local_rt_input_mac,
-                                uint32_t output_rtid,
-                                uint64_t output_rt_input_mac,
-                                uint64_t local_rt_output_mac){
+                                bess::Packet* first_packet){
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
 
   pkt_counter_ = 0;
   sample_counter_ = 0;
-  idle_counter_ = 0;
 
-  input_header_.init(input_rtid, input_rt_output_mac, local_rt_input_mac);
-  output_header_.init(output_rtid, output_rt_input_mac, local_rt_output_mac);
+  int32_t input_rtid;
+  uint64_t input_rt_output_mac =  (*(first_packet->head_data<uint64_t*>(6)) & 0x0000FFffFFffFFfflu);
+  reliable_p2p** r_ptr = coordinator_actor->mac_to_reliables_.Get(&input_rt_output_mac);
+  if(unlikely(r_ptr == nullptr)){
+    input_rtid = 0;
+  }
+  else{
+    input_rtid = (*r_ptr)->get_rt_config()->runtime_id;
+  }
+  input_header_.init(input_rtid, input_rt_output_mac, coordinator_actor->local_runtime_.input_port_mac);
+
+  int32_t output_rtid;
+  uint64_t output_rt_input_mac;
+  generic_list_item* first_item = coordinator_actor->output_runtime_mac_rrlist_.rotate();
+  if(unlikely(first_item==nullptr)){
+    output_rtid = 0;
+    output_rt_input_mac = coordinator_actor->default_output_mac_;
+  }
+  else{
+    output_rt_input_mac = first_item->dst_mac_addr;
+    output_rtid = first_item->dst_rtid;
+  }
+  output_header_.init(output_rtid, output_rt_input_mac, coordinator_actor->local_runtime_.output_port_mac);
+
+  size_t i = 0;
+  service_chain_length_ = service_chain.size();
+
+  for(; i<service_chain_length_; i++){
+    char* fs_state_ptr = service_chain[i]->allocate();
+
+    if(unlikely(fs_state_ptr == nullptr)){
+      LOG(WARNING)<<"flow state allocation failed";
+      for(size_t j=0; j<i; j++){
+        nfs_.nf[j]->deallocate(fs_.nf_flow_state_ptr[j]);
+      }
+      service_chain_length_ = 0;
+      break;
+    }
+
+    nfs_.nf[i] = service_chain[i];
+    fs_.nf_flow_state_ptr[i] = fs_state_ptr;
+    fs_size_.nf_flow_state_size[i] = service_chain[i]->get_nf_state_size();
+  }
+
+  coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
+                                                ctx.current_ns(),
+                                                idle_message_id,
+                                                static_cast<uint16_t>(flow_actor_messages::check_idle));
+
+
+	int32_t migration_target_id;
+	//LOG(INFO)<<"FLAGS_mptcp_flag:"<<FLAGS_mptcp_flag;
+  if(FLAGS_mptcp_flag&&is_mptcp_flow(first_packet,
+			                               coordinator_actor_->local_runtime_.runtime_id,
+																		 coordinator_actor_->migration_targets_.size(),//size of the migration target map. now it is 1
+			                               migration_target_id)){
+
+
+  		//TODO:begin to migrate this flow to migration target.
+  	coordinator_actor_->migration_target_rt_id_=migration_target_id;
+  	handle_message(start_migration_t::value, migration_target_id);
+
+  }
+}
+
+void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
+                                coordinator* coordinator_actor,
+                                flow_key_t* flow_key,
+                                vector<network_function_base*>& service_chain,
+                                create_migration_target_actor_cstruct* cstruct){
+  flow_key_ = *flow_key;
+  coordinator_actor_ = coordinator_actor;
+
+  pkt_counter_ = 0;
+  sample_counter_ = 0;
+
+  input_header_.init(cstruct->input_header.dest_rtid,
+                     &(cstruct->input_header.ethh.d_addr),
+                     coordinator_actor->local_runtime_.input_port_mac);
+  output_header_.init(cstruct->output_header.dest_rtid,
+                      &(cstruct->output_header.ethh.d_addr),
+                      coordinator_actor->local_runtime_.output_port_mac);
 
   size_t i = 0;
   service_chain_length_ = service_chain.size();
@@ -56,52 +130,31 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
 
-	int32_t migration_target_id;
-	//LOG(INFO)<<"FLAGS_mptcp_flag:"<<FLAGS_mptcp_flag;
-  if(FLAGS_mptcp_flag&&is_mptcp_flow(pkt,
-			                               coordinator_actor_->local_runtime_.runtime_id,
-																		 coordinator_actor_->migration_targets_.size(),//size of the migration target map. now it is 1
-			                               migration_target_id)){
 
 
-  		//TODO:begin to migrate this flow to migration target.
-  	handle_message(start_migration_t::value, migration_target_id);
-
-  }else{
-
-		for(size_t i=0; i<service_chain_length_; i++){
-			rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-			nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
-		}
-
-		rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
-
-		coordinator_actor_->ec_scheduler_batch_.add(pkt);
-
+	for(size_t i=0; i<service_chain_length_; i++){
+		rte_prefetch0(fs_.nf_flow_state_ptr[i]);
+		nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
 	}
+
+	rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
+
+	coordinator_actor_->ec_scheduler_batch_.add(pkt);
+
+
 }
 
 void flow_actor::handle_message(check_idle_t){
   idle_timer_.invalidate();
 
   if(sample_counter_ == pkt_counter_){
-    idle_counter_ += 1;
-    if(idle_counter_ == 3){
-      for(size_t i=0; i<service_chain_length_; i++){
-        nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
-      }
+    for(size_t i=0; i<service_chain_length_; i++){
+      nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
+    }
 
-      send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
-    }
-    else{
-      coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
-                                                    ctx.current_ns(),
-                                                    idle_message_id,
-                                                    static_cast<uint16_t>(flow_actor_messages::check_idle));
-    }
+    send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
   }
   else{
-    idle_counter_ = 0;
     sample_counter_ = pkt_counter_;
     coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
                                                   ctx.current_ns(),
@@ -112,13 +165,8 @@ void flow_actor::handle_message(check_idle_t){
 
 void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid){
   create_migration_target_actor_cstruct cstruct;
-  cstruct.input_rtid = input_header_.dest_rtid;
-  cstruct.input_rt_output_mac = (*reinterpret_cast<uint64_t *>(&(input_header_.ethh.d_addr))) &
-                                0x0000FFffFFffFFfflu;
-  cstruct.output_rtid = output_header_.dest_rtid;
-  cstruct.output_rt_input_mac = (*reinterpret_cast<uint64_t *>(&(output_header_.ethh.d_addr))) &
-                                0x0000FFffFFffFFfflu;
-
+  rte_memcpy(&(cstruct.input_header), &input_header_, sizeof(flow_ether_header));
+  rte_memcpy(&(cstruct.output_header), &output_header_, sizeof(flow_ether_header));
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();

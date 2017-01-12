@@ -52,6 +52,11 @@ struct reliable_single_msg{
 
   bess::PacketBatch garbage;
 
+  inline void init(){
+    fs_msg_batch.clear();
+    garbage.clear();
+  }
+
   inline void format(bess::PacketBatch* batch){
     int i = 0;
     while(i<batch->cnt()){
