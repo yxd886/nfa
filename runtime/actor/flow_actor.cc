@@ -63,6 +63,13 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                                 ctx.current_ns(),
                                                 idle_message_id,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
+
+
+  if(FLAGS_deduplicate_flag&&is_duplicate_packet(pkt)){
+
+  	handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
+
+  }
 }
 
 void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
@@ -114,11 +121,6 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
 
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
-  if(FLAGS_deduplicate_flag&&is_duplicate_packet(pkt)){
-
-  	handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
-
-  }else{
 
     for(size_t i=0; i<service_chain_length_; i++){
       rte_prefetch0(fs_.nf_flow_state_ptr[i]);
@@ -130,7 +132,7 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
     coordinator_actor_->ec_scheduler_batch_.add(pkt);
 
 
-  }
+
 
 
 }
