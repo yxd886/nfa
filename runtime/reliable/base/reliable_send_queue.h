@@ -105,7 +105,7 @@ public:
     assert(pop_num<=cur_size_);
 
     for(uint64_t i=0; i<pop_num; i++){
-      gp_collector->collect(ring_buf_[head_pos_+i]);
+      gp_collector->collect(ring_buf_[(head_pos_+i)&mask]);
     }
 
     uint64_t current_ns = rdtsc()*ns_per_cycle_;
