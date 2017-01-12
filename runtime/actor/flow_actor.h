@@ -99,8 +99,6 @@ public:
   }
 
 private:
-  void failure_handling();
-
   struct cdlist_item list_item;
 
   flow_actor_id_t actor_id_;
@@ -134,6 +132,8 @@ private:
   uint32_t migration_target_actor_id_;
 
   uint32_t current_state_;
+
+  void failure_handling();
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

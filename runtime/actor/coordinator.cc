@@ -124,16 +124,11 @@ void coordinator::handle_message(create_migration_target_actor_t,
   cstruct.request_msg_id = msg_id;
   cstruct.migration_target_actor_id = actor->get_id();
 
-  bool flag = reliables_.find(sender_rtid)->reliable_send(response_msg_id,
-                                                         coordinator_actor_id,
-                                                         sender_actor_id,
-                                                         start_migration_response_t::value,
-                                                         &cstruct);
-
-  if(flag == false){
-    // LOG(INFO)<<"coordinator fails to send response_msg_id";
-    return;
-  }
+  reliables_.find(sender_rtid)->reliable_send(response_msg_id,
+                                              coordinator_actor_id,
+                                              sender_actor_id,
+                                              start_migration_response_t::value,
+                                              &cstruct);
 }
 
 void coordinator::handle_message(change_vswitch_route_t,
@@ -146,28 +141,25 @@ void coordinator::handle_message(change_vswitch_route_t,
 
   flow_actor** actor_ptr = htable_.Get(&(cstruct_ptr->flow_key));
   flow_actor* actor = 0;
-
-  if(unlikely(actor_ptr==nullptr)){
-    //error handling
-  }
-
-  reliable_p2p* r = reliables_.find(cstruct_ptr->new_output_rt_id);
-
-  actor = *actor_ptr;
-  actor->update_output_header(cstruct_ptr->new_output_rt_id, r->get_rt_config()->input_port_mac);
-
-  uint32_t response_msg_id = allocate_msg_id();
   change_vswitch_route_response_cstruct cstruct;
   cstruct.request_msg_id = msg_id;
-  bool flag = reliables_.find(sender_rtid)->reliable_send(response_msg_id,
-                                                           coordinator_actor_id,
-                                                           sender_actor_id,
-                                                           change_vswitch_route_response_t::value,
-                                                           &cstruct);
 
-  if(flag == false){
-    // LOG(INFO)<<"coordinator fails to send response_msg_id";
-    return;
+  if(likely(actor_ptr!=nullptr)){
+    reliable_p2p* r = reliables_.find(cstruct_ptr->new_output_rt_id);
+
+    actor = *actor_ptr;
+    actor->update_output_header(cstruct_ptr->new_output_rt_id, r->get_rt_config()->input_port_mac);
+
+    cstruct.change_route_succeed = 0;
+  }
+  else{
+    cstruct.change_route_succeed = 1;
   }
 
+  uint32_t response_msg_id = allocate_msg_id();
+  reliables_.find(sender_rtid)->reliable_send(response_msg_id,
+                                              coordinator_actor_id,
+                                              sender_actor_id,
+                                              change_vswitch_route_response_t::value,
+                                              &cstruct);
 }

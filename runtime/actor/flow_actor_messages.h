@@ -40,6 +40,7 @@ using change_vswitch_route_timeout_t = local_message(flow_actor_messages, change
 using change_vswitch_route_response_t = local_message(flow_actor_messages, change_vswitch_route_response);
 struct change_vswitch_route_response_cstruct{
   uint32_t request_msg_id;
+  uint32_t change_route_succeed;
 };
 
 
