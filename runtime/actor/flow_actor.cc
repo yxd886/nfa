@@ -208,7 +208,7 @@ void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid
 
 void flow_actor::handle_message(start_migration_timeout_t){
   migration_timer_.invalidate();
-  // LOG(INFO)<<"start_migration_timeout is triggered";
+  //LOG(INFO)<<"start_migration_timeout is triggered";
 
   // modify state
   current_state_ = flow_actor_normal_processing;
@@ -225,7 +225,7 @@ void flow_actor::handle_message(start_migration_timeout_t){
 
 void flow_actor::handle_message(start_migration_response_t, start_migration_response_cstruct* cstruct_ptr){
   if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
-    // LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    //LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
     return;
   }
 
@@ -276,18 +276,18 @@ void flow_actor::failure_handling(){
 
 void flow_actor::handle_message(change_vswitch_route_timeout_t){
   migration_timer_.invalidate();
-  // LOG(INFO)<<"change_vswitch_route_timeout is triggered";
+  //LOG(INFO)<<"change_vswitch_route_timeout is triggered";
 
   failure_handling();
 }
 
 void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr){
   if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
-    // LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    //LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
     return;
   }
 
-  // LOG(INFO)<<"The response is successfully received, the route has been changed";
+  //LOG(INFO)<<"The response is successfully received, the route has been changed";
   migration_timer_.invalidate();
 
   if( (current_state_ == flow_actor_migration_failure_processing) ||
@@ -336,7 +336,7 @@ void flow_actor::handle_message(migrate_flow_state_t,
                                 uint32_t sender_actor_id,
                                 uint32_t request_msg_id,
                                 bess::PacketBatch* fs_pkt_batch){
-  // LOG(INFO)<<"Receive fs_pkt_batch!!!";
+  //LOG(INFO)<<"Receive fs_pkt_batch!!!";
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   migrate_flow_state_response_cstruct cstruct;
@@ -354,12 +354,12 @@ void flow_actor::handle_message(migrate_flow_state_t,
   coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
 
   pkt_counter_+=buffer_batch_.cnt();
-  for(int i=0; i<buffer_batch_.cnt(); i++){
-    bess::Packet* pkt = buffer_batch_.pkts()[i];
+  for(int pkt_index=0; pkt_index<buffer_batch_.cnt(); pkt_index++){
+    bess::Packet* pkt = buffer_batch_.pkts()[pkt_index];
 
-    for(size_t j=0; j<service_chain_length_; j++){
-      rte_prefetch0(fs_.nf_flow_state_ptr[j]);
-      nfs_.nf[j]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+    for(size_t nf_index=0; nf_index<service_chain_length_; nf_index++){
+      rte_prefetch0(fs_.nf_flow_state_ptr[nf_index]);
+      nfs_.nf[nf_index]->nf_logic(pkt, fs_.nf_flow_state_ptr[nf_index]);
     }
 
     rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
@@ -370,18 +370,18 @@ void flow_actor::handle_message(migrate_flow_state_t,
 
 void flow_actor::handle_message(migrate_flow_state_timeout_t){
   migration_timer_.invalidate();
-  // LOG(INFO)<<"Receive migrate_flow_state_timeout";
+  //LOG(INFO)<<"Receive migrate_flow_state_timeout";
 
   failure_handling();
 }
 
 void flow_actor::handle_message(migrate_flow_state_response_t, migrate_flow_state_response_cstruct* cstruct_ptr){
   if(unlikely(cstruct_ptr->request_msg_id != migration_timer_.request_msg_id_)){
-    // LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    //LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
     return;
   }
 
-  // LOG(INFO)<<"The response is successfully received, the migration has completed";
+  //LOG(INFO)<<"The response is successfully received, the migration has completed";
   migration_timer_.invalidate();
 
   // modify state

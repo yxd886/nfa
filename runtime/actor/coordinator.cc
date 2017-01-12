@@ -24,6 +24,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
 
   mac_list_item_allocator_ = mac_list_item_allocator;
 
+  gp_collector_.init();
+
   idle_flow_list_.init_list(flow_actor_idle_timeout);
   req_timer_list_.init_list(request_timeout);
 
@@ -80,7 +82,7 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
   counter += 1;
 
   if(counter%30000000 == 0){
-    LOG(INFO)<<"Receive "<<counter<<" messages.";
+    //LOG(INFO)<<"Receive "<<counter<<" messages.";
   }
 }
 
@@ -89,11 +91,11 @@ void coordinator::handle_message(create_migration_target_actor_t,
                                  uint32_t sender_actor_id,
                                  uint32_t msg_id,
                                  create_migration_target_actor_cstruct* cstruct_ptr){
-  //LOG(INFO)<<"Receive create_migration_target_actor message sent from runtime "<<sender_rtid
-  //         <<", actor id "<<sender_actor_id
-  //         <<", msg id "<<msg_id
-  //         <<", input runtime id "<<cstruct_ptr->input_header.dest_rtid
-  //         <<", output_runtime_id "<<cstruct_ptr->output_header.dest_rtid;
+  /*LOG(INFO)<<"Receive create_migration_target_actor message sent from runtime "<<sender_rtid
+           <<", actor id "<<sender_actor_id
+           <<", msg id "<<msg_id
+           <<", input runtime id "<<cstruct_ptr->input_header.dest_rtid
+           <<", output_runtime_id "<<cstruct_ptr->output_header.dest_rtid;*/
 
 
   flow_actor* actor = allocator_->allocate();

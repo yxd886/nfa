@@ -21,6 +21,10 @@ public:
     garbage_pkt_batch.CopyAddr(batch->pkts(), batch->cnt());
   }
 
+  inline void init(){
+    garbage_pkt_batch.clear();
+  }
+
 
 private:
   bess::PacketBatch garbage_pkt_batch;
