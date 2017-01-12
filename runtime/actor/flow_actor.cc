@@ -65,7 +65,7 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
 
 
-  if(FLAGS_deduplicate_flag&&is_duplicate_packet(pkt)){
+  if(FLAGS_deduplicate_flag&&is_duplicate_packet(first_packet)){
 
   	handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
 
