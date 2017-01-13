@@ -29,6 +29,10 @@ public:
                      uint32_t recv_actor_id,
                      local_message_derived<N>,
                      T* cstruct_ptr){
+    if(is_connection_up_ == false){
+      return false;
+    }
+
     bess::Packet* cstruct_msg_pkt = create_cstruct_sub_msg(cstruct_ptr);
     if(unlikely(cstruct_msg_pkt == nullptr)){
       // assert(1==0);
@@ -62,6 +66,9 @@ public:
                      uint32_t recv_actor_id,
                      local_message_derived<N>,
                      bess::PacketBatch* batch){
+    if(is_connection_up_ == false){
+      return false;
+    }
 
     encode_binary_fs_sub_msg(batch);
 
@@ -78,6 +85,7 @@ public:
     bool flag = send_queue_.push(batch);
     if(unlikely(flag == false)){
       // assert(1==0);
+      bess::Packet::Free(batch);
       return false;
     }
 
@@ -143,6 +151,10 @@ public:
 
   inline runtime_config* get_rt_config(){
     return &remote_rt_config_;
+  }
+
+  inline bool check_connection_status(){
+    return is_connection_up_;
   }
 
 private:
@@ -241,10 +253,12 @@ private:
   uint32_t next_seq_num_to_recv_snapshot_;
 
   uint64_t next_check_time_;
-  uint64_t previous_check_time_;
   uint64_t last_check_head_seq_num_;
+  uint64_t consecutive_counter_;
 
   runtime_config remote_rt_config_;
+
+  bool is_connection_up_;
 };
 
 #endif
