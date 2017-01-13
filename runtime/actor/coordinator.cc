@@ -6,20 +6,19 @@
 
 #include <glog/logging.h>
 
-coordinator::coordinator(flow_actor_allocator* allocator,
-                         generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
+coordinator::coordinator(generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
                          llring_holder& holder){
-  allocator_ = allocator;
+  allocator_.init(num_flow_actors);
 
   htable_.Init(flow_key_size, sizeof(flow_actor*));
 
   actorid_htable_.Init(sizeof(uint64_t), sizeof(flow_actor*));
 
-  deadend_flow_actor_ = allocator_->allocate();
+  deadend_flow_actor_ = allocator_.allocate();
 
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
 
-  static_nf_register::get_register().init(allocator->get_max_actor());
+  static_nf_register::get_register().init(allocator_.get_max_actor());
   service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
 
   mac_list_item_allocator_ = mac_list_item_allocator;
@@ -77,7 +76,7 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
     flow_actor->get_idle_timer()->invalidate();
     flow_actor->get_migration_timer()->invalidate();
     cdlist_del(reinterpret_cast<cdlist_item*>(flow_actor));
-    allocator_->deallocate(flow_actor);
+    allocator_.deallocate(flow_actor);
   }
   else{
   }
@@ -105,7 +104,7 @@ void coordinator::handle_message(create_migration_target_actor_t,
            <<", output_runtime_id "<<cstruct_ptr->output_header.dest_rtid;*/
 
 
-  flow_actor* actor = allocator_->allocate();
+  flow_actor* actor = allocator_.allocate();
 
   if(unlikely(actor==nullptr)){
     LOG(WARNING)<<"No available flow actors to allocate";

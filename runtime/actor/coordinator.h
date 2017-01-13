@@ -25,8 +25,7 @@ class coordinator : public core, public garbage, public local_batch, public time
                     public migration_target_source_holder, public reliables_holder, public migration_stats,
                     public giant_batch_holder{
 public:
-  coordinator(flow_actor_allocator* allocator,
-              generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
+  coordinator(generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
               llring_holder& holder);
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);

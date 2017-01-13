@@ -3,6 +3,9 @@
 
 #include "../../bessport/packet.h"
 
+// size of the flow actor allocator
+static constexpr int num_flow_actors = 1024*512;
+
 // actor ids
 static constexpr int32_t invalid_flow_actor_id = 0;
 

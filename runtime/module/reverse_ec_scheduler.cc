@@ -46,7 +46,7 @@ void reverse_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
     flow_actor* actor = 0;
 
     if(unlikely(actor_ptr==nullptr)){
-      actor = coordinator_actor_->allocator_->allocate();
+      actor = coordinator_actor_->allocator_.allocate();
 
       if(unlikely(actor==nullptr)){
         LOG(WARNING)<<"No available flow actors to allocate";

@@ -220,7 +220,7 @@ private:
     return batch;
   }
 
-  reliable_send_queue<4096> send_queue_;
+  reliable_send_queue<reliable_send_queue_size> send_queue_;
   uint32_t next_seq_num_to_recv_;
   int ref_cnt_;
 

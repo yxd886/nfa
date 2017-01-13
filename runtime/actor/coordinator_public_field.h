@@ -21,7 +21,7 @@
 #include "../utils/buffered_packet.h"
 
 struct core{
-  flow_actor_allocator* allocator_;
+  flow_actor_allocator allocator_;
 
   HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash> htable_;
 
