@@ -53,8 +53,13 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   successful_passive_migration_ = 0;
   failed_passive_migration_ = 0;
   null_passive_migration_ = 0;
+  migration_source_loss_counter_ = 0;
   current_iteration_start_time_ = 0;
   current_iteration_end_time_ = 0;
+
+  migration_target_loss_counter_ = 0;
+  migration_target_buffer_size_counter_ = 0;
+  migrated_in_flow_num_ = 0;
 
   next_msg_id_ = message_id_start;
 }

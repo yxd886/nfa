@@ -84,13 +84,19 @@ struct reliables_holder{
 };
 
 struct migration_stats{
+
   uint64_t passive_migration_iteration_;
   uint64_t total_passive_migration_;
   uint64_t successful_passive_migration_;
   uint64_t failed_passive_migration_;
   uint64_t null_passive_migration_;
+  uint64_t migration_source_loss_counter_;
   uint64_t current_iteration_start_time_;
   uint64_t current_iteration_end_time_;
+
+  uint64_t migration_target_loss_counter_;
+  uint64_t migration_target_buffer_size_counter_;
+  uint64_t migrated_in_flow_num_;
 };
 
 struct giant_batch_holder{

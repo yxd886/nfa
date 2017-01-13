@@ -136,6 +136,7 @@ struct task_result handle_command::RunTask(void *arg){
           coordinator_actor_->successful_passive_migration_ = 0;
           coordinator_actor_->failed_passive_migration_ = 0;
           coordinator_actor_->null_passive_migration_ = 0;
+          coordinator_actor_->migration_source_loss_counter_ = 0;
           coordinator_actor_->current_iteration_start_time_ = ctx.current_ns();
         }
         break;

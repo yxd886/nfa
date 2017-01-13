@@ -70,12 +70,23 @@ struct task_result coordinator_mp::RunTask(void *arg){
       LOG(INFO)<<"Successful migration : "<<coordinator_actor_->successful_passive_migration_;
       LOG(INFO)<<"Failed migration : "<<coordinator_actor_->failed_passive_migration_;
       LOG(INFO)<<"Null migration : "<<coordinator_actor_->null_passive_migration_;
+      LOG(INFO)<<"migration_source_loss_counter : "<<coordinator_actor_->migration_source_loss_counter_;
       uint64_t time = ctx.current_ns() -  coordinator_actor_->current_iteration_start_time_;
       time = time/1000000;
       LOG(INFO)<<"Migration takes "<<time<<"ms.";
 
       current_iteration+=1;
     }
+  }
+
+  if(coordinator_actor_->migrated_in_flow_num_ == 1 && send_end_flag==false){
+    LOG(INFO)<<"The migration_target_loss_counter is "
+             <<coordinator_actor_->migration_target_loss_counter_;
+    LOG(INFO)<<"The migration_target_buffer_size_counter is "
+             <<coordinator_actor_->migration_target_buffer_size_counter_;
+    LOG(INFO)<<"The average migration_target_buffer_size is "
+             <<coordinator_actor_->migration_target_buffer_size_counter_/coordinator_actor_->migrated_in_flow_num_;
+    send_end_flag = true;
   }
 
   return ret;

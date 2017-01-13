@@ -141,13 +141,16 @@ void flow_actor::pkt_migration_target_processing(bess::Packet* pkt){
 
   if(unlikely(buffer_batch_.cnt())>buffer_batch_size){
     coordinator_actor_->gp_collector_.collect(pkt);
+    coordinator_actor_->migration_target_loss_counter_ += 1;
   }
 
   buffer_batch_.add(pkt);
 }
 
 void flow_actor::pkt_process_after_route_change(bess::Packet* pkt){
-  assert(1==0);
+  // assert(1==0);
+  coordinator_actor_->gp_collector_.collect(pkt);
+  coordinator_actor_->migration_source_loss_counter_ += 1;
 }
 
 
@@ -337,6 +340,9 @@ void flow_actor::handle_message(migrate_flow_state_t,
                                 uint32_t request_msg_id,
                                 bess::PacketBatch* fs_pkt_batch){
   //LOG(INFO)<<"Receive fs_pkt_batch!!!";
+
+  coordinator_actor_->migration_target_buffer_size_counter_ += buffer_batch_.cnt();
+  coordinator_actor_->migrated_in_flow_num_ += 1;
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   migrate_flow_state_response_cstruct cstruct;
