@@ -156,6 +156,8 @@ private:
   pkt_processing_func funcs_[7];
 
   struct cdlist_head buffer_head_;
+
+  uint32_t replication_state_;
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");
