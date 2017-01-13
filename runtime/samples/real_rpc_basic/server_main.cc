@@ -98,10 +98,7 @@ int main(int argc, char* argv[]){
   // create the llring used for communication
   llring_holder communication_ring;
 
-  // create the allocator for mac_list_item
-  generic_ring_allocator<generic_list_item> mac_list_item_allocator(512*40);
-
-  coordinator coordinator_actor(&mac_list_item_allocator, communication_ring);
+  coordinator coordinator_actor(communication_ring);
 
   /*LOG(INFO)<<"fast_hash_map test starts";
   fixed_array<int32_t> fa;

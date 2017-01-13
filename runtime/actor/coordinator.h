@@ -25,8 +25,7 @@ class coordinator : public core, public garbage, public local_batch, public time
                     public migration_target_source_holder, public reliables_holder, public migration_stats,
                     public giant_batch_holder{
 public:
-  coordinator(generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
-              llring_holder& holder);
+  coordinator(llring_holder& holder);
 
   void handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key);
 
@@ -46,7 +45,7 @@ public:
                       change_vswitch_route_request_cstruct* cstruct_ptr);
 
   inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
-    return mac_list_item_allocator_;
+    return &mac_list_item_allocator_;
   }
 
   inline uint32_t allocate_msg_id(){

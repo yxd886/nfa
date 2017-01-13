@@ -6,8 +6,7 @@
 
 #include <glog/logging.h>
 
-coordinator::coordinator(generic_ring_allocator<generic_list_item>* mac_list_item_allocator,
-                         llring_holder& holder){
+coordinator::coordinator(llring_holder& holder){
   allocator_.init(num_flow_actors);
 
   htable_.Init(flow_key_size, sizeof(flow_actor*));
@@ -21,7 +20,7 @@ coordinator::coordinator(generic_ring_allocator<generic_list_item>* mac_list_ite
   static_nf_register::get_register().init(allocator_.get_max_actor());
   service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
 
-  mac_list_item_allocator_ = mac_list_item_allocator;
+  mac_list_item_allocator_.init(reliable_send_queue_size*10);
 
   gp_collector_.init();
 

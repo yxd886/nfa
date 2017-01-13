@@ -33,7 +33,7 @@ struct core{
 
   std::vector<network_function_base*> service_chain_;
 
-  generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
+  generic_ring_allocator<generic_list_item> mac_list_item_allocator_;
 };
 
 struct garbage{
