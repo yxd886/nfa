@@ -65,7 +65,7 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                                 idle_message_id,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
 
-  buffer_batch_.clear();
+  cdlist_head_init(&buffer_head_);
 }
 
 void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
@@ -113,7 +113,7 @@ void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
                                                 idle_message_id,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
 
-  buffer_batch_.clear();
+  cdlist_head_init(&buffer_head_);
 }
 
 void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
@@ -139,12 +139,17 @@ void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){
 void flow_actor::pkt_migration_target_processing(bess::Packet* pkt){
   pkt_counter_ += 1;
 
-  if(unlikely(buffer_batch_.cnt())>buffer_batch_size){
+  buffered_packet* buf_pkt = coordinator_actor_->collective_buffer_.allocate();
+
+  if(unlikely(buf_pkt == nullptr)){
     coordinator_actor_->gp_collector_.collect(pkt);
     coordinator_actor_->migration_target_loss_counter_ += 1;
+    return;
   }
 
-  buffer_batch_.add(pkt);
+  buf_pkt->packet = pkt;
+
+  cdlist_add_tail(&buffer_head_, &(buf_pkt->list_item));
 }
 
 void flow_actor::pkt_process_after_route_change(bess::Packet* pkt){
@@ -169,7 +174,16 @@ void flow_actor::handle_message(check_idle_t){
 
   if(sample_counter_ == pkt_counter_){
     if(current_state_==flow_actor_migration_target){
-      coordinator_actor_->gp_collector_.collect(&buffer_batch_);
+      cdlist_item* list_item = cdlist_pop_head(&buffer_head_);
+
+      while(list_item!=nullptr){
+        buffered_packet* buf_pkt = reinterpret_cast<buffered_packet*>(list_item);
+        coordinator_actor_->gp_collector_.collect(buf_pkt->packet);
+
+        coordinator_actor_->collective_buffer_.deallocate(buf_pkt);
+
+        list_item = cdlist_pop_head(&buffer_head_);
+      }
     }
 
     for(size_t i=0; i<service_chain_length_; i++){
@@ -341,9 +355,6 @@ void flow_actor::handle_message(migrate_flow_state_t,
                                 bess::PacketBatch* fs_pkt_batch){
   //LOG(INFO)<<"Receive fs_pkt_batch!!!";
 
-  coordinator_actor_->migration_target_buffer_size_counter_ += buffer_batch_.cnt();
-  coordinator_actor_->migrated_in_flow_num_ += 1;
-
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   migrate_flow_state_response_cstruct cstruct;
   cstruct.request_msg_id = request_msg_id;
@@ -359,9 +370,12 @@ void flow_actor::handle_message(migrate_flow_state_t,
 
   coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
 
-  pkt_counter_+=buffer_batch_.cnt();
-  for(int pkt_index=0; pkt_index<buffer_batch_.cnt(); pkt_index++){
-    bess::Packet* pkt = buffer_batch_.pkts()[pkt_index];
+  coordinator_actor_->migrated_in_flow_num_ += 1;
+
+  cdlist_item* list_item = cdlist_pop_head(&buffer_head_);
+  while(list_item!=nullptr){
+    buffered_packet* buf_pkt = reinterpret_cast<buffered_packet*>(list_item);
+    bess::Packet* pkt = buf_pkt->packet;
 
     for(size_t nf_index=0; nf_index<service_chain_length_; nf_index++){
       rte_prefetch0(fs_.nf_flow_state_ptr[nf_index]);
@@ -371,6 +385,13 @@ void flow_actor::handle_message(migrate_flow_state_t,
     rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
 
     coordinator_actor_->gb_.add_pkt_set_gate(pkt, 1);
+
+    pkt_counter_+=1;
+    coordinator_actor_->migration_target_buffer_size_counter_ += 1;
+
+    coordinator_actor_->collective_buffer_.deallocate(buf_pkt);
+
+    list_item = cdlist_pop_head(&buffer_head_);
   }
 }
 

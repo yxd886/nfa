@@ -23,6 +23,7 @@ public:
       flow_actor_array_[i].get_replication_timer()->init(static_cast<uint16_t>(actor_type::flow_actor),
                                                   &flow_actor_array_[i]);
       flow_actor_array_[i].set_up_pkt_processing_funcs();
+      flow_actor_array_[i].init_buffer_head();
       ring_buf_.push(&flow_actor_array_[i]);
     }
   }

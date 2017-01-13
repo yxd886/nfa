@@ -79,7 +79,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
     }
   }
 
-  if(coordinator_actor_->migrated_in_flow_num_ == 1 && send_end_flag==false){
+  if(coordinator_actor_->migrated_in_flow_num_ == 50000 && send_end_flag==false){
     LOG(INFO)<<"The migration_target_loss_counter is "
              <<coordinator_actor_->migration_target_loss_counter_;
     LOG(INFO)<<"The migration_target_buffer_size_counter is "

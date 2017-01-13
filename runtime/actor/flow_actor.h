@@ -104,6 +104,10 @@ public:
     funcs_[5] = &flow_actor::pkt_normal_nf_processing;
   }
 
+  inline void init_buffer_head(){
+    cdlist_head_init(&buffer_head_);
+  }
+
 private:
   struct cdlist_item list_item;
 
@@ -151,7 +155,7 @@ private:
 
   pkt_processing_func funcs_[7];
 
-  bess::PacketBatch buffer_batch_;
+  struct cdlist_head buffer_head_;
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

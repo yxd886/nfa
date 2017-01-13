@@ -17,6 +17,8 @@
 #include "../utils/fixed_array.h"
 #include "flow_actor_allocator.h"
 #include "./base/giant_batch.h"
+#include "../utils/generic_ring_allocator.h"
+#include "../utils/buffered_packet.h"
 
 struct core{
   flow_actor_allocator* allocator_;
@@ -100,7 +102,9 @@ struct migration_stats{
 };
 
 struct giant_batch_holder{
+  generic_ring_allocator<buffered_packet> collective_buffer_;
   giant_batch gb_;
+
 };
 
 #endif

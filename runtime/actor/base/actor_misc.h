@@ -1,6 +1,8 @@
 #ifndef ACTOR_MISC_H
 #define ACTOR_MISC_H
 
+#include "../../bessport/packet.h"
+
 // actor ids
 static constexpr int32_t invalid_flow_actor_id = 0;
 
@@ -44,7 +46,7 @@ static constexpr uint32_t flow_actor_migration_source_after_route_change = 0x6; 
 
 static constexpr uint32_t flow_actor_migration_failure_processing = 0x4; //0100
 
-// the size of the packet buffer batch size during migration
-static constexpr int buffer_batch_size = 5;
+// The number of packet batches in giant batch
+static constexpr int buffer_batch_size = 50;
 
 #endif

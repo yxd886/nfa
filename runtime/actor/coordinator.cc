@@ -62,6 +62,8 @@ coordinator::coordinator(flow_actor_allocator* allocator,
   migrated_in_flow_num_ = 0;
 
   next_msg_id_ = message_id_start;
+
+  collective_buffer_.init(buffer_batch_size*bess::PacketBatch::kMaxBurst);
 }
 
 void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key_t* flow_key){
