@@ -228,12 +228,7 @@ struct task_result handle_command::RunTask(void *arg){
                                             2,
                                             &(item->rt_config));
 
-
           coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.control_port_mac), &r);
-
-          coordinator_actor_->replica_flow_lists_.emplace(item->rt_config.runtime_id);
-
-          cdlist_head_init(coordinator_actor_->replica_flow_lists_.find(item->rt_config.runtime_id));
 
           r->inc_ref_cnt();
         }
@@ -246,7 +241,7 @@ struct task_result handle_command::RunTask(void *arg){
       case rpc_operation::add_storage :{
         reliable_p2p* r = coordinator_actor_->reliables_.find(item->rt_config.runtime_id);
         if(r==nullptr){
-          coordinator_actor_->reliables_.emplace(item->rt_config.runtime_id,
+          r = coordinator_actor_->reliables_.emplace(item->rt_config.runtime_id,
                                             coordinator_actor_->local_runtime_.control_port_mac,
                                             item->rt_config.control_port_mac,
                                             coordinator_actor_->local_runtime_.runtime_id,
@@ -256,6 +251,10 @@ struct task_result handle_command::RunTask(void *arg){
                                             &(item->rt_config));
 
           coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.control_port_mac), &r);
+
+          coordinator_actor_->replica_flow_lists_.emplace(item->rt_config.runtime_id);
+
+          cdlist_head_init(coordinator_actor_->replica_flow_lists_.find(item->rt_config.runtime_id));
 
           r->inc_ref_cnt();
         }
@@ -281,7 +280,6 @@ struct task_result handle_command::RunTask(void *arg){
         if(r->is_ref_cnt_zero()){
           coordinator_actor_->mac_to_reliables_.Del(&(r->get_rt_config()->control_port_mac));
           coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
-          coordinator_actor_->replica_flow_lists_.erase(item->rt_config.runtime_id);
         }
 
         break;
@@ -293,6 +291,7 @@ struct task_result handle_command::RunTask(void *arg){
         if(r->is_ref_cnt_zero()){
           coordinator_actor_->mac_to_reliables_.Del(&(r->get_rt_config()->control_port_mac));
           coordinator_actor_->reliables_.erase(item->rt_config.runtime_id);
+          coordinator_actor_->replica_flow_lists_.erase(item->rt_config.runtime_id);
         }
 
         break;

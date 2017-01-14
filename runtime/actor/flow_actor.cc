@@ -13,20 +13,20 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
 
   current_state_ = flow_actor_normal_processing;
 
-  if(replica_item!=nullptr){
-    replication_state_ = have_replica;
-    r_ = coordinator_actor_->reliables_.find(replica_item->replica_rtid_);
-    r_->inc_ref_cnt();
-  }
-  else{
-    replication_state_ = no_replica;
-  }
-
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
 
   pkt_counter_ = 0;
   sample_counter_ = 0;
+
+  if(replica_item!=nullptr){
+    replication_state_ = have_replica;
+    r_ = coordinator_actor_->reliables_.find(3);
+    r_->inc_ref_cnt();
+  }
+  else{
+    replication_state_ = no_replica;
+  }
 
   int32_t input_rtid;
   uint64_t input_rt_output_mac =  (*(first_packet->head_data<uint64_t*>(6)) & 0x0000FFffFFffFFfflu);
@@ -242,7 +242,10 @@ void flow_actor::handle_message(check_idle_t){
 
 // replica handling packet and flow state message
 void flow_actor::handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batch, bess::Packet* pkt){
+  pkt_counter_ += 1;
+
   // copy the fs_msg_batch.
+
 
   coordinator_actor_->gb_.add_pkt_set_gate(pkt, 1);
 }
@@ -267,6 +270,7 @@ void flow_actor::replication_output(bess::Packet* pkt){
   }
 
   bess::Packet* fs_state_pkt = bess::Packet::Alloc();
+  assert(fs_state_pkt!=nullptr);
   fs_state_pkt->set_data_off(SNBUF_HEADROOM);
   fs_state_pkt->set_total_len(fs_size_.nf_flow_state_size[0]);
   fs_state_pkt->set_data_len(fs_size_.nf_flow_state_size[0]);
@@ -286,6 +290,8 @@ void flow_actor::replication_output(bess::Packet* pkt){
     coordinator_actor_->gp_collector_.collect(&batch);
     coordinator_actor_->gp_collector_.collect(pkt);
   }
+
+  // assert(flag == true);
 }
 
 void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){

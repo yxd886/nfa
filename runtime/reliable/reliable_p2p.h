@@ -225,11 +225,12 @@ private:
     *sub_msg_num = batch->cnt();
 
     char* sub_msg_tag = reinterpret_cast<char*>(batch->pkts()[0]->prepend(1));
-    *sub_msg_tag =  static_cast<char>(sub_message_type_enum::packet);
+    *sub_msg_tag =  static_cast<char>(sub_message_type_enum::binary_flow_state);
   }
 
   inline bess::PacketBatch create_packet_sub_msg(bess::Packet* pkt){
     bess::PacketBatch batch;
+    batch.clear();
 
     batch.add(pkt);
     char* pkt_data_start = reinterpret_cast<char *>(pkt->buffer()) + pkt->data_off();
