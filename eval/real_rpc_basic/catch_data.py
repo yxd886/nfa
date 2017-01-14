@@ -43,6 +43,7 @@ def main():
   xlist=[]
   ylist=[]
   ylist2=[]
+  ylist3=[]
   for i in range(20):
     xlist.append(i*2)
 
@@ -61,12 +62,30 @@ def main():
     print(packets)
     ylist2.append(packets)
 
+
+  for i in range(10):
+    time.sleep(2)
+    packets=read_data()
+    print(packets)
+    ylist3.append(packets)
+
+  press_anykey_exit("press any key continue")
+
+
+  for i in range(10):
+    time.sleep(2)
+    packets=read_data()
+    print(packets)
+    ylist3.append(packets)
+
+
   pl.figure(num=1,figsize=(8,6))
   pl.title('throughput with/without dynamic update',size=14)
   pl.xlabel("time(s)",size=14)
   pl.ylabel("throughput(pkt/s)",size=14)
   pl.plot(xlist,ylist,color='b',label="with deduplicate")
   pl.plot(xlist,ylist2,color='r',label="without deduplicate")
+  pl.plot(xlist,ylist3,color='y',label="without->with deduplicate")
   pl.legend(loc="lower right")
   pl.savefig('figure_deduplicate.png',format='png')
 
