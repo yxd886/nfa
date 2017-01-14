@@ -45,11 +45,15 @@ public:
                       vector<network_function_base*>& service_chain,
                       bess::Packet* first_packet);
 
+
+  void handle_message(check_idle_t);
+
+
   void handle_message(pkt_msg_t, bess::Packet* pkt);
+
 
   void handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batch, bess::Packet* pkt);
 
-  void handle_message(check_idle_t);
 
   void handle_message(start_migration_t, int32_t migration_target_rtid);
 
@@ -57,9 +61,11 @@ public:
 
   void handle_message(start_migration_response_t, start_migration_response_cstruct* cstruct_ptr);
 
+
   void handle_message(change_vswitch_route_timeout_t);
 
   void handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr);
+
 
   void handle_message(migrate_flow_state_t,
                       int32_t sender_rtid,

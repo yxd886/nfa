@@ -4,18 +4,20 @@
 #include "./base/local_message.h"
 
 enum class flow_actor_messages : uint16_t{
-  pkt_msg,
   flow_actor_init_with_pkt,
   flow_actor_init_with_cstruct,
   flow_actor_init_with_first_rep_pkt,
-  rep_fs_pkt_msg,
+
   check_idle,
 
-  start_migration,
-  start_migration_response,
-  start_migration_timeout,
+  pkt_msg,
 
-  change_vswtich_route_execution,
+  rep_fs_pkt_msg,
+
+  start_migration,
+  start_migration_timeout,
+  start_migration_response,
+
   change_vswitch_route_timeout,
   change_vswitch_route_response,
 
@@ -24,12 +26,15 @@ enum class flow_actor_messages : uint16_t{
   migrate_flow_state_response
 };
 
-using pkt_msg_t = local_message(flow_actor_messages, pkt_msg);
 using flow_actor_init_with_pkt_t = local_message(flow_actor_messages, flow_actor_init_with_pkt);
 using flow_actor_init_with_cstruct_t = local_message(flow_actor_messages, flow_actor_init_with_cstruct);
 using flow_actor_init_with_first_rep_pkt_t = local_message(flow_actor_messages, flow_actor_init_with_first_rep_pkt);
-using rep_fs_pkt_msg_t = local_message(flow_actor_messages, rep_fs_pkt_msg);
+
 using check_idle_t = local_message(flow_actor_messages, check_idle);
+
+using pkt_msg_t = local_message(flow_actor_messages, pkt_msg);
+
+using rep_fs_pkt_msg_t = local_message(flow_actor_messages, rep_fs_pkt_msg);
 
 using start_migration_t = local_message(flow_actor_messages, start_migration);
 using start_migration_timeout_t = local_message(flow_actor_messages, start_migration_timeout);
@@ -39,7 +44,6 @@ struct start_migration_response_cstruct{
   uint32_t migration_target_actor_id;
 };
 
-using change_vswtich_route_execution_t = local_message(flow_actor_messages, change_vswtich_route_execution);
 using change_vswitch_route_timeout_t = local_message(flow_actor_messages, change_vswitch_route_timeout);
 using change_vswitch_route_response_t = local_message(flow_actor_messages, change_vswitch_route_response);
 struct change_vswitch_route_response_cstruct{

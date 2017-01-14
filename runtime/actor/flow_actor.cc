@@ -3,6 +3,7 @@
 #include "./base/local_send.h"
 #include "../bessport/utils/time.h"
 
+// flow actor initialization functions
 void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
@@ -192,14 +193,63 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
   cdlist_head_init(&buffer_head_);
 }
 
-void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
-  (this->*funcs_[current_state_])(pkt);
+// flow actor idle checking
+void flow_actor::handle_message(check_idle_t){
+  idle_timer_.invalidate();
+
+  if((current_state_&0x00000001) == 0x00000000){
+    sample_counter_ = pkt_counter_;
+    coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
+                                                  ctx.current_ns(),
+                                                  idle_message_id,
+                                                  static_cast<uint16_t>(flow_actor_messages::check_idle));
+
+    return;
+  }
+
+  if(sample_counter_ == pkt_counter_){
+    if(current_state_==flow_actor_migration_target){
+      cdlist_item* list_item = cdlist_pop_head(&buffer_head_);
+
+      while(list_item!=nullptr){
+        buffered_packet* buf_pkt = reinterpret_cast<buffered_packet*>(list_item);
+        coordinator_actor_->gp_collector_.collect(buf_pkt->packet);
+
+        coordinator_actor_->collective_buffer_.deallocate(buf_pkt);
+
+        list_item = cdlist_pop_head(&buffer_head_);
+      }
+    }
+
+    if(replication_state_ == have_replica){
+      r_->dec_ref_cnt();
+    }
+
+    for(size_t i=0; i<service_chain_length_; i++){
+      nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
+    }
+
+    send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
+  }
+  else{
+    sample_counter_ = pkt_counter_;
+    coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
+                                                  ctx.current_ns(),
+                                                  idle_message_id,
+                                                  static_cast<uint16_t>(flow_actor_messages::check_idle));
+  }
 }
 
+// replica handling packet and flow state message
 void flow_actor::handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batch, bess::Packet* pkt){
   // copy the fs_msg_batch.
 
   coordinator_actor_->ec_scheduler_batch_.add(pkt);
+}
+
+// normal flow actor handling packet message
+void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
+  (this->*funcs_[current_state_])(pkt);
 }
 
 void flow_actor::no_replication_output(bess::Packet* pkt){
@@ -274,53 +324,7 @@ void flow_actor::pkt_process_after_route_change(bess::Packet* pkt){
   coordinator_actor_->migration_source_loss_counter_ += 1;
 }
 
-
-void flow_actor::handle_message(check_idle_t){
-  idle_timer_.invalidate();
-
-  if((current_state_&0x00000001) == 0x00000000){
-    sample_counter_ = pkt_counter_;
-    coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
-                                                  ctx.current_ns(),
-                                                  idle_message_id,
-                                                  static_cast<uint16_t>(flow_actor_messages::check_idle));
-
-    return;
-  }
-
-  if(sample_counter_ == pkt_counter_){
-    if(current_state_==flow_actor_migration_target){
-      cdlist_item* list_item = cdlist_pop_head(&buffer_head_);
-
-      while(list_item!=nullptr){
-        buffered_packet* buf_pkt = reinterpret_cast<buffered_packet*>(list_item);
-        coordinator_actor_->gp_collector_.collect(buf_pkt->packet);
-
-        coordinator_actor_->collective_buffer_.deallocate(buf_pkt);
-
-        list_item = cdlist_pop_head(&buffer_head_);
-      }
-    }
-
-    if(replication_state_ == have_replica){
-      r_->dec_ref_cnt();
-    }
-
-    for(size_t i=0; i<service_chain_length_; i++){
-      nfs_.nf[i]->deallocate(fs_.nf_flow_state_ptr[i]);
-    }
-
-    send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
-  }
-  else{
-    sample_counter_ = pkt_counter_;
-    coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
-                                                  ctx.current_ns(),
-                                                  idle_message_id,
-                                                  static_cast<uint16_t>(flow_actor_messages::check_idle));
-  }
-}
-
+// the first migration transaction
 void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid){
   if(replication_state_ == have_replica){
     // modify state
@@ -406,6 +410,7 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
                                                 static_cast<uint16_t>(flow_actor_messages::change_vswitch_route_timeout));
 }
 
+// the second migration transaction, plus failure handling
 void flow_actor::failure_handling(){
   current_state_ = flow_actor_migration_failure_processing;
 
@@ -500,6 +505,7 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
                                                 static_cast<uint16_t>(flow_actor_messages::migrate_flow_state_timeout));
 }
 
+// the final migration transaction
 void flow_actor::handle_message(migrate_flow_state_t,
                                 int32_t sender_rtid,
                                 uint32_t sender_actor_id,

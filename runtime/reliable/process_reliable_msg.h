@@ -65,8 +65,6 @@ public:
             }
             else{
 
-              coordinator_actor_->active_flows_rrlist_.add_to_tail(actor);
-
               // Here add to a map!!!
 
               send(actor, flow_actor_init_with_first_rep_pkt_t::value,
