@@ -39,7 +39,15 @@ public:
                       vector<network_function_base*>& service_chain,
                       create_migration_target_actor_cstruct* cstruct);
 
+  void handle_message(flow_actor_init_with_first_rep_pkt_t,
+                      coordinator* coordinator_actor,
+                      flow_key_t* flow_key,
+                      vector<network_function_base*>& service_chain,
+                      bess::Packet* first_packet);
+
   void handle_message(pkt_msg_t, bess::Packet* pkt);
+
+  void handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batch, bess::Packet* pkt);
 
   void handle_message(check_idle_t);
 

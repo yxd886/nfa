@@ -38,6 +38,56 @@ public:
 
           break;
         }
+        case coordinator_messages::replication_msg : {
+          // msg_ptr->send_runtime_id,
+          // msg_ptr->fs_msg_batch,
+          // msg_ptr->raw_pkt,
+          char* data_start = msg_ptr->raw_pkt->head_data<char*>();
+
+          char single_key[flow_key_size];
+          memset(&single_key[flow_key_size-8], 0, sizeof(uint64_t));
+
+          for(int j=0; j<3; j++){
+            char* key = single_key+coordinator_actor_->fields_[j].pos;
+            *(uint64_t *)key = *(uint64_t *)(data_start + coordinator_actor_->fields_[j].offset) &
+                               coordinator_actor_->fields_[j].mask;
+          }
+
+          flow_actor** actor_ptr = coordinator_actor_->htable_.Get(reinterpret_cast<flow_key_t*>(single_key));
+          flow_actor* actor = 0;
+
+          if(unlikely(actor_ptr==nullptr)){
+            actor = coordinator_actor_->allocator_.allocate();
+
+            if(unlikely(actor==nullptr)){
+              LOG(WARNING)<<"No available flow actors to allocate";
+              actor = coordinator_actor_->deadend_flow_actor_;
+            }
+            else{
+
+              coordinator_actor_->active_flows_rrlist_.add_to_tail(actor);
+
+              // Here add to a map!!!
+
+              send(actor, flow_actor_init_with_first_rep_pkt_t::value,
+                   coordinator_actor_,
+                   reinterpret_cast<flow_key_t*>(single_key),
+                   coordinator_actor_->service_chain_,
+                   msg_ptr->raw_pkt);
+            }
+
+            coordinator_actor_->htable_.Set(reinterpret_cast<flow_key_t*>(single_key), &actor);
+
+            uint64_t actor_id_64 = actor->get_id_64();
+            coordinator_actor_->actorid_htable_.Set(&actor_id_64, &actor);
+
+            actor_ptr = &actor;
+          }
+
+          send(*actor_ptr, rep_fs_pkt_msg_t::value, &(msg_ptr->fs_msg_batch), msg_ptr->raw_pkt);
+
+          break;
+        }
         default : {
           assert(1==0);
           break;
