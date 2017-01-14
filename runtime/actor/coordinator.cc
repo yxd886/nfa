@@ -86,8 +86,8 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
 
   counter += 1;
 
-  if(counter%30000000 == 0){
-    //LOG(INFO)<<"Receive "<<counter<<" messages.";
+  if(counter == 32*2500000){
+    LOG(INFO)<<"Receive "<<counter<<" messages.";
   }
 }
 

@@ -85,7 +85,7 @@ public:
     bool flag = send_queue_.push(batch);
     if(unlikely(flag == false)){
       // assert(1==0);
-      bess::Packet::Free(batch);
+      // bess::Packet::Free(batch);
       return false;
     }
 
