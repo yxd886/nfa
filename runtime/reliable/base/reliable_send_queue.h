@@ -173,6 +173,10 @@ public:
     return cur_size_;
   }
 
+  inline uint64_t peek_remaining_size(){
+    return N-cur_size_;
+  }
+
 private:
   inline int smaller(uint64_t first, uint64_t second){
     return (first>second)?second:first;

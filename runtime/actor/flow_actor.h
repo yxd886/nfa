@@ -15,6 +15,8 @@
 #include "../utils/cdlist.h"
 #include "actor_timer.h"
 #include "./base/actor_misc.h"
+#include "../utils/generic_list_item.h"
+#include "../reliable/reliable_p2p.h"
 
 using namespace std;
 
@@ -28,7 +30,8 @@ public:
                       coordinator* coordinator_actor,
                       flow_key_t* flow_key,
                       vector<network_function_base*>& service_chain,
-                      bess::Packet* first_packet);
+                      bess::Packet* first_packet,
+                      generic_list_item* replica_item);
 
   void handle_message(flow_actor_init_with_cstruct_t,
                       coordinator* coordinator_actor,
@@ -104,6 +107,11 @@ public:
     funcs_[5] = &flow_actor::pkt_normal_nf_processing;
   }
 
+  inline void set_up_replication_processing_funcs(){
+    replication_funcs_[0] = &flow_actor::no_replication_output;
+    replication_funcs_[1] = &flow_actor::replication_output;
+  }
+
   inline void init_buffer_head(){
     cdlist_head_init(&buffer_head_);
   }
@@ -139,6 +147,7 @@ private:
 
   actor_timer<actor_timer_type::flow_actor_req_timer> replication_timer_;
 
+  // for migration
   uint32_t migration_target_actor_id_;
 
   uint32_t current_state_;
@@ -157,7 +166,18 @@ private:
 
   struct cdlist_head buffer_head_;
 
+  // for replication
   uint32_t replication_state_;
+
+  reliable_p2p* r_;
+
+  void no_replication_output(bess::Packet* pkt);
+
+  void replication_output(bess::Packet* pkt);
+
+  typedef void(flow_actor::*replication_processing_func)(bess::Packet*);
+
+  replication_processing_func replication_funcs_[2];
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

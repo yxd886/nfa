@@ -29,13 +29,12 @@ public:
                      uint32_t recv_actor_id,
                      local_message_derived<N>,
                      T* cstruct_ptr){
-    if(is_connection_up_ == false){
+    if(is_connection_up_ == false || send_queue_.peek_remaining_size()==0){
       return false;
     }
 
     bess::Packet* cstruct_msg_pkt = create_cstruct_sub_msg(cstruct_ptr);
     if(unlikely(cstruct_msg_pkt == nullptr)){
-      // assert(1==0);
       return false;
     }
 
@@ -48,12 +47,7 @@ public:
     msg_header->msg_type = N;
     msg_header->msg_pkt_num = 1;
 
-    bool flag = send_queue_.push(cstruct_msg_pkt);
-    if(unlikely(flag == false)){
-      bess::Packet::Free(cstruct_msg_pkt);
-      // assert(1==0);
-      return false;
-    }
+    send_queue_.push(cstruct_msg_pkt);
 
     add_to_reliable_send_list(1);
 
@@ -66,7 +60,7 @@ public:
                      uint32_t recv_actor_id,
                      local_message_derived<N>,
                      bess::PacketBatch* batch){
-    if(is_connection_up_ == false){
+    if(is_connection_up_ == false || send_queue_.peek_remaining_size()<batch->cnt()){
       return false;
     }
 
@@ -82,17 +76,54 @@ public:
     msg_header->msg_pkt_num = batch->cnt();
 
 
-    bool flag = send_queue_.push(batch);
-    if(unlikely(flag == false)){
-      // assert(1==0);
-      // bess::Packet::Free(batch);
-      return false;
-    }
+    send_queue_.push(batch);
 
     add_to_reliable_send_list(batch->cnt());
 
     return true;
   }
+
+  template<uint16_t N>
+  bool reliable_send(uint32_t msg_id,
+                     uint32_t send_actor_id,
+                     uint32_t recv_actor_id,
+                     local_message_derived<N>,
+                     bess::PacketBatch* fs_state_batch,
+                     bess::Packet* dp_pkt){
+
+    int total_pkt_num = fs_state_batch->cnt()+1;
+    if(dp_pkt->data_len()>pkt_sub_msg_cutting_thresh){
+      total_pkt_num+=1;
+    }
+
+    if(total_pkt_num>send_queue_.peek_remaining_size()){
+      return false;
+    }
+
+    bess::PacketBatch dp_pkt_batch = create_packet_sub_msg(dp_pkt);
+    if(dp_pkt_batch.cnt() == 0){
+      return false;
+    }
+
+    encode_binary_fs_sub_msg(fs_state_batch);
+
+    reliable_message_header* fs_state_msg_header = reinterpret_cast<reliable_message_header*>(
+                                           fs_state_batch->pkts()[0]->prepend(sizeof(reliable_message_header)));
+
+    fs_state_msg_header->send_actor_id = send_actor_id;
+    fs_state_msg_header->recv_actor_id = recv_actor_id;
+    fs_state_msg_header->msg_id = msg_id;
+    fs_state_msg_header->msg_type = N;
+    fs_state_msg_header->msg_pkt_num = fs_state_batch->cnt()+dp_pkt_batch.cnt();
+
+    send_queue_.push(fs_state_batch);
+    send_queue_.push(&dp_pkt_batch);
+
+    add_to_reliable_send_list(fs_state_msg_header->msg_pkt_num);
+
+    return true;
+  }
+
 
   inline bess::PacketBatch get_send_batch(int batch_size){
     return send_queue_.get_window_batch(batch_size);

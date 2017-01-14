@@ -53,8 +53,8 @@ static constexpr uint32_t flow_actor_migration_failure_processing = 0x4; //0100
 static constexpr int buffer_batch_size = 50;
 
 // replication state
-static constexpr uint32_t no_replica = 0x1;
+static constexpr uint32_t no_replica = 0x0;
 
-static constexpr uint32_t have_replica = 0x2;
+static constexpr uint32_t have_replica = 0x1;
 
 #endif

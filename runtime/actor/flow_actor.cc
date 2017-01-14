@@ -7,9 +7,19 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
                                 vector<network_function_base*>& service_chain,
-                                bess::Packet* first_packet){
+                                bess::Packet* first_packet,
+                                generic_list_item* replica_item){
+
   current_state_ = flow_actor_normal_processing;
-  replication_state_ = no_replica;
+
+  if(replica_item!=nullptr){
+    replication_state_ = have_replica;
+    r_ = coordinator_actor_->reliables_.find(replica_item->replica_rtid_);
+    r_->inc_ref_cnt();
+  }
+  else{
+    replication_state_ = no_replica;
+  }
 
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
@@ -122,6 +132,27 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
   (this->*funcs_[current_state_])(pkt);
 }
 
+void flow_actor::no_replication_output(bess::Packet* pkt){
+  coordinator_actor_->ec_scheduler_batch_.add(pkt);
+}
+
+void flow_actor::replication_output(bess::Packet* pkt){
+  if(unlikely(r_->check_connection_status()==false)){
+    replication_state_ = no_replica;
+    r_->dec_ref_cnt();
+    coordinator_actor_->ec_scheduler_batch_.add(pkt);
+    return;
+  }
+
+  bess::Packet* fs_state_pkt = bess::Packet::Alloc();
+  fs_state_pkt->set_data_off(SNBUF_HEADROOM);
+  fs_state_pkt->set_total_len(fs_size_.nf_flow_state_size[0]);
+  fs_state_pkt->set_data_len(fs_size_.nf_flow_state_size[0]);
+  bess::PacketBatch batch;
+  batch.clear();
+  batch.add(fs_state_pkt);
+}
+
 void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){
   pkt_counter_+=1;
 
@@ -186,6 +217,10 @@ void flow_actor::handle_message(check_idle_t){
 
         list_item = cdlist_pop_head(&buffer_head_);
       }
+    }
+
+    if(replication_state_ == have_replica){
+      r_->dec_ref_cnt();
     }
 
     for(size_t i=0; i<service_chain_length_; i++){
