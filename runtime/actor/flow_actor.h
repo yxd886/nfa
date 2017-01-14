@@ -130,12 +130,16 @@ public:
     cdlist_head_init(&buffer_head_);
   }
 
+  inline void init_cdlist_item(){
+    cdlist_item_init(&list_item_);
+  }
+
   inline struct cdlist_item* get_cdlist_item(){
-    return &list_item;
+    return &list_item_;
   }
 
 private:
-  struct cdlist_item list_item;
+  struct cdlist_item list_item_;
 
   flow_actor_id_t actor_id_;
 

@@ -35,6 +35,7 @@ public:
                                                   &flow_actor_array_[i]);
       flow_actor_array_[i].set_up_pkt_processing_funcs();
       flow_actor_array_[i].set_up_replication_processing_funcs();
+      flow_actor_array_[i].init_cdlist_item();
       flow_actor_array_[i].init_buffer_head();
       ring_buf_.push(&flow_actor_array_[i]);
     }

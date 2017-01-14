@@ -261,6 +261,8 @@ void flow_actor::replication_output(bess::Packet* pkt){
     replication_state_ = no_replica;
     r_->dec_ref_cnt();
     coordinator_actor_->ec_scheduler_batch_.add(pkt);
+    cdlist_del(&list_item_);
+    coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
     return;
   }
 
