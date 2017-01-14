@@ -80,7 +80,7 @@ def main():
 
 
   pl.figure(num=1,figsize=(8,6))
-  pl.title('throughput with/without dynamic update',size=14)
+  pl.title('throughput with/without deduplication application',size=14)
   pl.xlabel("time(s)",size=14)
   pl.ylabel("throughput(pkt/s)",size=14)
   pl.plot(xlist,ylist,color='b',label="with deduplicate")
