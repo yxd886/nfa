@@ -123,18 +123,23 @@ void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
 
-    for(size_t i=0; i<service_chain_length_; i++){
-      rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-      nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
-    }
 
-    rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
+  if(FLAGS_deduplicate_target_flag&&is_duplicate_packet(pkt)){
 
-    coordinator_actor_->ec_scheduler_batch_.add(pkt);
+  	coordinator_actor_->gp_collector_.collect(pkt);
 
+  }else{
 
+  	for(size_t i=0; i<service_chain_length_; i++){
+  		rte_prefetch0(fs_.nf_flow_state_ptr[i]);
+  		nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+  	}
 
+  	rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
 
+  	coordinator_actor_->ec_scheduler_batch_.add(pkt);
+
+  }
 
 }
 
