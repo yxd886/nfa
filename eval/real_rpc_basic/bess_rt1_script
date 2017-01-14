@@ -18,8 +18,8 @@ rt1_cport_portinc::PortInc(port=rt1_cport)
 rt1_cport_portout::PortOut(port=rt1_cport)
 
 print 'Adding Physical Port'
-rt1_pdport = PMDPort(name='rt1_pdport', port_id=0)
-rt1_pcport = PMDPort(name='rt1_pcport', port_id=1)
+rt1_pdport = PMDPort(port_id=0)
+rt1_pcport = PMDPort(port_id=1)
 
 rt1_pdport_portout::PortOut(port=rt1_pdport)
 rt1_pdport_portinc::PortInc(port=rt1_pdport)
@@ -39,7 +39,7 @@ rt1_oport_portinc -> dp_l2forward
 rt1_pdport_portinc -> dp_l2forward
 
 dp_l2forward:0 -> rt1_pdport_portout
-dp_l2forward:1 -> rt1_oport_portout
+dp_l2forward:1 -> rt1_iport_portout
 
 rt1_cport_portinc -> cp_l2forward
 cp_l2forward:0 -> rt1_pcport_portout

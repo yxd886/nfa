@@ -46,6 +46,7 @@ cp_l2forward:0 -> rt1_pcport_portout
 cp_l2forward:1 -> rt1_cport_portout
 rt1_pcport_portinc -> cp_l2forward
 
+rt1_oport_portinc -> sink
 
 ret = dp_l2forward.add([{'addr':'52:54:01:00:00:01', 'gate':0},
                         {'addr':'52:54:03:00:00:01', 'gate':0},
