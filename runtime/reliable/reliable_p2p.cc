@@ -87,12 +87,10 @@ void reliable_p2p::check(uint64_t current_ns){
       consecutive_counter_ += 1;
       if(consecutive_counter_ == 90){
         // The sequence number at the head position has not been changed for
-        // 10 consecutvie checks, the connection should be down.
+        // 90 consecutvie checks, the connection should be down.
         is_connection_up_ = false;
         reset();
         next_seq_num_to_recv_ = 0;
-
-        LOG(INFO)<<"Connection shutdown";
       }
     }
     else{

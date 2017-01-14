@@ -8,6 +8,9 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
                                 flow_key_t* flow_key,
                                 vector<network_function_base*>& service_chain,
                                 bess::Packet* first_packet){
+  current_state_ = flow_actor_normal_processing;
+  replication_state_ = no_replica;
+
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
 
@@ -58,8 +61,6 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
     fs_size_.nf_flow_state_size[i] = service_chain[i]->get_nf_state_size();
   }
 
-  current_state_ = flow_actor_normal_processing;
-
   coordinator_actor_->idle_flow_list_.add_timer(&idle_timer_,
                                                 ctx.current_ns(),
                                                 idle_message_id,
@@ -74,6 +75,7 @@ void flow_actor::handle_message(flow_actor_init_with_cstruct_t,
                                 vector<network_function_base*>& service_chain,
                                 create_migration_target_actor_cstruct* cstruct){
   current_state_ = flow_actor_migration_target;
+  replication_state_ = no_replica;
 
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
@@ -202,6 +204,22 @@ void flow_actor::handle_message(check_idle_t){
 }
 
 void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid){
+  if(replication_state_ == have_replica){
+    // modify state
+    current_state_ = flow_actor_normal_processing;
+
+    // add itself to the tail of the active_flow_actor_list
+    coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+    // decrease outgoing_migration
+    coordinator_actor_->outgoing_migrations_ -= 1;
+
+    // update stats
+    coordinator_actor_->failed_passive_migration_ += 1;
+
+    return;
+  }
+
   current_state_ = flow_actor_migration_source;
 
   create_migration_target_actor_cstruct cstruct;
@@ -295,7 +313,23 @@ void flow_actor::handle_message(change_vswitch_route_timeout_t){
   migration_timer_.invalidate();
   //LOG(INFO)<<"change_vswitch_route_timeout is triggered";
 
-  failure_handling();
+  reliable_p2p* r = coordinator_actor_->reliables_.find(input_header_.dest_rtid);
+  if(r->check_connection_status()==false){
+    // modify state
+    current_state_ = flow_actor_normal_processing;
+
+    // add itself to the tail of the active_flow_actor_list
+    coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+    // decrease outgoing_migration
+    coordinator_actor_->outgoing_migrations_ -= 1;
+
+    // update stats
+    coordinator_actor_->failed_passive_migration_ += 1;
+  }
+  else{
+    failure_handling();
+  }
 }
 
 void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_route_response_cstruct* cstruct_ptr){

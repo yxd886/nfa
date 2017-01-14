@@ -19,7 +19,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
-  if(coordinator_actor_->migration_target_rt_id_ != -1 && send_end_flag == false){
+  /*if(coordinator_actor_->migration_target_rt_id_ != -1 && send_end_flag == false){
     ping_cstruct cstruct;
     cstruct.val = 1024;
 
@@ -42,9 +42,9 @@ struct task_result coordinator_mp::RunTask(void *arg){
                <<"ns";
       send_end_flag = true;
     }
-  }
+  }*/
 
-  /*for(int i=0; i<32; i++){
+  for(int i=0; i<32; i++){
     if((coordinator_actor_->migration_qouta_==0) || (coordinator_actor_->outgoing_migrations_>1024)){
       break;
     }
@@ -58,9 +58,9 @@ struct task_result coordinator_mp::RunTask(void *arg){
     }
 
     coordinator_actor_->active_flows_rrlist_.pop_head();
-    send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
     coordinator_actor_->migration_qouta_ -= 1;
     coordinator_actor_->outgoing_migrations_ += 1;
+    send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
   }
 
   if(current_iteration<coordinator_actor_->passive_migration_iteration_){
@@ -88,7 +88,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
     LOG(INFO)<<"The average migration_target_buffer_size is "
              <<coordinator_actor_->migration_target_buffer_size_counter_/coordinator_actor_->migrated_in_flow_num_;
     send_end_flag = true;
-  }*/
+  }
 
   return ret;
 }

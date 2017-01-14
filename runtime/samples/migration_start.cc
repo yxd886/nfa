@@ -317,8 +317,8 @@ int main(int argc, char** argv) {
   LivenessCheckClient checker_10242(grpc::CreateChannel(
         "localhost:10242", grpc::InsecureChannelCredentials()));
 
-  LOG(INFO)<<checker_10240.AddOutputRt();
-  LOG(INFO)<<checker_10240.AddOutputMac(10241);
+  // LOG(INFO)<<checker_10240.AddOutputRt();
+  // LOG(INFO)<<checker_10240.AddOutputMac(10241);
   LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
   LOG(INFO)<<checker_10241.MigrateTo(10242,50000);
 
