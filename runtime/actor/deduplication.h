@@ -30,10 +30,10 @@ bool is_duplicate_packet(bess::Packet* pkt){
 	memset(tmp,0,sizeof(tmp));
 	rte_memcpy(tmp,format_packet.GetData(),sizeof(cmp));
 	if(strcmp(tmp,cmp)==0){
-    LOG(INFO)<<"DUPLICATE PACKET";
+    //LOG(INFO)<<"DUPLICATE PACKET";
 		return true;
 	}else{
-		LOG(INFO)<<"NO DUPLICATE PACKET";
+		//LOG(INFO)<<"NO DUPLICATE PACKET";
 		return false;
 	}
 
