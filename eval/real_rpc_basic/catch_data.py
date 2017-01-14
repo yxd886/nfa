@@ -65,10 +65,10 @@ def main():
   pl.title('throughput with/without dynamic update',size=14)
   pl.xlabel("time(s)",size=14)
   pl.ylabel("throughput(pkt/s)",size=14)
-  pl.plot(xlist,ylist,color='b',label="with dynamic_update")
-  pl.plot(xlist,ylist2,color='r',label="without dynamic_update")
+  pl.plot(xlist,ylist,color='b',label="with deduplicate")
+  pl.plot(xlist,ylist2,color='r',label="without deduplicate")
   pl.legend(loc="lower right")
-  pl.savefig('figure.png',format='png')
+  pl.savefig('figure_deduplicate.png',format='png')
 
 
 if __name__ == '__main__':
