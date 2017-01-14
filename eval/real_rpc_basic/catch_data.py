@@ -86,7 +86,7 @@ def main():
   pl.plot(xlist,ylist,color='b',label="with deduplicate")
   pl.plot(xlist,ylist2,color='r',label="without deduplicate")
   pl.plot(xlist,ylist3,color='y',label="without->with deduplicate")
-  pl.legend(loc="lower right")
+  pl.legend(loc="center right")
   pl.savefig('figure_deduplicate.png',format='png')
 
 
