@@ -65,7 +65,10 @@ public:
             }
             else{
 
-              // Here add to a map!!!
+              struct cdlist_head* replica_flow_list =
+                  coordinator_actor_->replica_flow_lists_.find(msg_ptr->send_runtime_id);
+
+              cdlist_add_tail(replica_flow_list, actor->get_cdlist_item());
 
               send(actor, flow_actor_init_with_first_rep_pkt_t::value,
                    coordinator_actor_,

@@ -85,6 +85,10 @@ struct reliables_holder{
   HTable<uint64_t, reliable_p2p*, uint64_keycmp, uint64_hash> mac_to_reliables_;
 };
 
+struct replica_flow_holder{
+  fast_hash_map<uint32_t, struct cdlist_head, uint32_keycmp, uint32_hash> replica_flow_lists_;
+};
+
 struct migration_stats{
 
   uint64_t passive_migration_iteration_;

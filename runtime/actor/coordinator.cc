@@ -74,6 +74,7 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
   if(flow_actor!=deadend_flow_actor_){
     flow_actor->get_idle_timer()->invalidate();
     flow_actor->get_migration_timer()->invalidate();
+    flow_actor->get_replication_timer()->invalidate();
     cdlist_del(reinterpret_cast<cdlist_item*>(flow_actor));
     allocator_.deallocate(flow_actor);
   }

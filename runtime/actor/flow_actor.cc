@@ -244,7 +244,7 @@ void flow_actor::handle_message(check_idle_t){
 void flow_actor::handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batch, bess::Packet* pkt){
   // copy the fs_msg_batch.
 
-  coordinator_actor_->ec_scheduler_batch_.add(pkt);
+  coordinator_actor_->gb_.add_pkt_set_gate(pkt, 1);
 }
 
 // normal flow actor handling packet message

@@ -130,6 +130,10 @@ public:
     cdlist_head_init(&buffer_head_);
   }
 
+  inline struct cdlist_item* get_cdlist_item(){
+    return &list_item;
+  }
+
 private:
   struct cdlist_item list_item;
 
