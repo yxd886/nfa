@@ -299,7 +299,7 @@ void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){
 
   rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
 
-  coordinator_actor_->ec_scheduler_batch_.add(pkt);
+  (this->*replication_funcs_[replication_state_])(pkt);
 }
 
 void flow_actor::pkt_migration_target_processing(bess::Packet* pkt){

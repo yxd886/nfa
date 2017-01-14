@@ -7,14 +7,6 @@
 template<class T>
 class generic_ring_allocator{
 public:
-  generic_ring_allocator(size_t size){
-    max_size_ = size;
-    obj_array_ = static_cast<T*>(mem_alloc(size*sizeof(T)));
-    ring_buf_.init(size);
-    for(size_t i=0; i<size; i++){
-      ring_buf_.push(&obj_array_[i]);
-    }
-  }
 
   generic_ring_allocator(){
     max_size_ = 0;
