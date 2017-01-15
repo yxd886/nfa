@@ -296,6 +296,17 @@ struct task_result handle_command::RunTask(void *arg){
 
         break;
       }
+      case rpc_operation::recover: {
+        if(coordinator_actor_->storage_rtid_ == -1){
+          coordinator_actor_->storage_rtid_ = item->rt_config.runtime_id;
+
+          coordinator_actor_->recovery_iteration_ +=1;
+          coordinator_actor_->successful_recovery_ = 0;
+          coordinator_actor_->unsuccessful_recovery_ = 0;
+          coordinator_actor_->current_recovery_iteration_start_time_ = ctx.current_ns();
+        }
+        break;
+      }
       case rpc_operation::get_stats :{
         break;
       }

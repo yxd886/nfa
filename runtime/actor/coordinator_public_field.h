@@ -105,10 +105,20 @@ struct migration_stats{
   uint64_t migrated_in_flow_num_;
 };
 
+struct replication_stats{
+  int32_t storage_rtid_;
+  uint64_t out_going_recovery_;
+
+  uint64_t recovery_iteration_;
+  uint64_t successful_recovery_;
+  uint64_t unsuccessful_recovery_;
+  uint64_t current_recovery_iteration_start_time_;
+  uint64_t current_recovery_iteration_end_time_;
+};
+
 struct giant_batch_holder{
   generic_ring_allocator<buffered_packet> collective_buffer_;
   giant_batch gb_;
-
 };
 
 #endif

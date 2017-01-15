@@ -59,6 +59,15 @@ coordinator::coordinator(llring_holder& holder){
   migration_target_buffer_size_counter_ = 0;
   migrated_in_flow_num_ = 0;
 
+  storage_rtid_ = -1;
+  out_going_recovery_ = 0;
+
+  recovery_iteration_ = 0;
+  successful_recovery_ = 0;
+  unsuccessful_recovery_ = 0;
+  current_recovery_iteration_start_time_ = 0;
+  current_recovery_iteration_end_time_ = 0;
+
   next_msg_id_ = message_id_start;
 
   collective_buffer_.init(buffer_batch_size*bess::PacketBatch::kMaxBurst);

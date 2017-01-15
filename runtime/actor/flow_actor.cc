@@ -620,12 +620,13 @@ void flow_actor::handle_message(replica_recover_timeout_t){
 
     replication_state_ = no_replica;
 
-    cdlist_del(&list_item_);
-
     // add itself to the tail of the active_flow_actor_list
     coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
 
     // replication stat accouting.
+    coordinator_actor_->unsuccessful_recovery_ += 1;
+
+    coordinator_actor_->out_going_recovery_ -= 1;
   }
   else{
     start_recover();
@@ -642,10 +643,11 @@ void flow_actor::handle_message(replica_recover_response_t, replica_recover_resp
 
   replication_state_ = no_replica;
 
-  cdlist_del(&list_item_);
-
   // add itself to the tail of the active_flow_actor_list
   coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
 
   // replication stat accouting.
+  coordinator_actor_->successful_recovery_ += 1;
+
+  coordinator_actor_->out_going_recovery_ -= 1;
 }
