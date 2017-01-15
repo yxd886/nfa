@@ -867,6 +867,36 @@ void derived_call_data<DeleteStorageReq, DeleteStorageRep>::Proceed(){
   }
 }
 
+//RPC implementation for MigrateTo
+template<>
+void derived_call_data<RecoverReq, RecoverRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestRecover(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+    string dest_addr = concat_with_colon(request_.addr().rpc_ip(),
+                                         std::to_string(request_.addr().rpc_port()));
+
+    if(storages_.find(dest_addr)!=storages_.end()){
+      runtime_config& migration_target_runtime = storages_.find(dest_addr)->second;
+
+      llring_item tmp_item(rpc_operation::recover, migration_target_runtime, 0, 0);
+
+      llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&tmp_item));
+
+      poll_worker2rpc_ring();
+    }
+
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
 // RPC implementation for GetRuntimeState
 
 template<>

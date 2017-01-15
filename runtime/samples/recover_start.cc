@@ -13,8 +13,9 @@ int main(int argc, char** argv) {
 
   // LOG(INFO)<<checker_10240.AddOutputRt();
   // LOG(INFO)<<checker_10240.AddOutputMac(10241);
-  LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
-  LOG(INFO)<<checker_10241.MigrateTo(10242,50000);
+  // LOG(INFO)<<checker_10240.AddOutputRt();
+  // LOG(INFO)<<checker_10240.AddOutputMac(10241);
+  LOG(INFO)<<checker_10242.Recover(10241);
 
   return 0;
 }
