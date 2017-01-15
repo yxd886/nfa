@@ -133,8 +133,9 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
                                 coordinator* coordinator_actor,
                                 flow_key_t* flow_key,
                                 vector<network_function_base*>& service_chain,
-                                bess::Packet* first_packet){
-  current_state_ = flow_actor_migration_target;
+                                bess::Packet* first_packet,
+                                bess::PacketBatch* first_fs_msg_batch){
+  current_state_ = flow_actor_normal_processing;
   replication_state_ = is_replica;
 
   flow_key_ = *flow_key;
@@ -143,26 +144,14 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
   pkt_counter_ = 0;
   sample_counter_ = 0;
 
-  int32_t input_rtid;
-  uint64_t input_rt_output_mac =  (*(first_packet->head_data<uint64_t*>(6)) & 0x0000FFffFFffFFfflu);
-  reliable_p2p** r_ptr = coordinator_actor->mac_to_reliables_.Get(&input_rt_output_mac);
-  if(unlikely(r_ptr == nullptr)){
-    input_rtid = 0;
-  }
-  else{
-    input_rtid = (*r_ptr)->get_rt_config()->runtime_id;
-  }
+  uint32_t input_rtid = *(first_fs_msg_batch->pkts()[0]->head_data<uint32_t*>());
+  uint64_t input_rt_output_mac =  (*(first_packet->head_data<uint64_t*>(sizeof(uint32_t))) & 0x0000FFffFFffFFfflu);
   input_header_.init(input_rtid, input_rt_output_mac, coordinator_actor->local_runtime_.input_port_mac);
 
-  int32_t output_rtid;
-  uint64_t output_rt_input_mac =  (*(first_packet->head_data<uint64_t*>()) & 0x0000FFffFFffFFfflu);
-  reliable_p2p** output_r_ptr = coordinator_actor->mac_to_reliables_.Get(&output_rt_input_mac);
-  if(unlikely(output_r_ptr==nullptr)){
-    output_rtid = 0;
-  }
-  else{
-    output_rtid = (*output_r_ptr)->get_rt_config()->runtime_id;
-  }
+  uint32_t output_rtid =
+      *(first_fs_msg_batch->pkts()[0]->head_data<uint32_t*>(sizeof(uint32_t)+sizeof(struct ether_addr)));
+  uint64_t output_rt_input_mac =
+      (*(first_packet->head_data<uint64_t*>(2*sizeof(uint32_t)+sizeof(struct ether_addr))) & 0x0000FFffFFffFFfflu);
   output_header_.init(output_rtid, output_rt_input_mac, coordinator_actor->local_runtime_.output_port_mac);
 
   size_t i = 0;
@@ -257,6 +246,7 @@ void flow_actor::handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batc
 
 // normal flow actor handling packet message
 void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
+  assert(current_state_ == flow_actor_normal_processing);
   (this->*funcs_[current_state_])(pkt);
 }
 
@@ -275,8 +265,14 @@ void flow_actor::replication_output(bess::Packet* pkt){
   bess::Packet* fs_state_pkt = bess::Packet::Alloc();
   assert(fs_state_pkt!=nullptr);
   fs_state_pkt->set_data_off(SNBUF_HEADROOM);
-  fs_state_pkt->set_total_len(fs_size_.nf_flow_state_size[0]);
-  fs_state_pkt->set_data_len(fs_size_.nf_flow_state_size[0]);
+  fs_state_pkt->set_total_len(2*(sizeof(uint32_t)+sizeof(struct ether_addr)));
+  fs_state_pkt->set_data_len(2*(sizeof(uint32_t)+sizeof(struct ether_addr)));
+  rte_memcpy(fs_state_pkt->head_data(),
+             &input_header_,
+             sizeof(uint32_t)+sizeof(struct ether_addr));
+  rte_memcpy(fs_state_pkt->head_data(sizeof(uint32_t)+sizeof(struct ether_addr)),
+             &output_header_,
+             sizeof(uint32_t)+sizeof(struct ether_addr));
   bess::PacketBatch batch;
   batch.clear();
   batch.add(fs_state_pkt);

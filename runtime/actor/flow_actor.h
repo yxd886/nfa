@@ -43,7 +43,8 @@ public:
                       coordinator* coordinator_actor,
                       flow_key_t* flow_key,
                       vector<network_function_base*>& service_chain,
-                      bess::Packet* first_packet);
+                      bess::Packet* first_packet,
+                      bess::PacketBatch* first_fs_msg_batch);
 
 
   void handle_message(check_idle_t);

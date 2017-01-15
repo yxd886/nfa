@@ -73,7 +73,8 @@ public:
                    coordinator_actor_,
                    reinterpret_cast<flow_key_t*>(single_key),
                    coordinator_actor_->service_chain_,
-                   msg_ptr->raw_pkt);
+                   msg_ptr->raw_pkt,
+                   &(msg_ptr->fs_msg_batch));
             }
 
             coordinator_actor_->htable_.Set(reinterpret_cast<flow_key_t*>(single_key), &actor);
@@ -138,6 +139,12 @@ public:
           send(*actor_ptr,
                migrate_flow_state_response_t::value,
                msg_ptr->cstruct_pkt->head_data<migrate_flow_state_response_cstruct*>());
+          break;
+        }
+        case flow_actor_messages::replica_recover_response : {
+          send(*actor_ptr,
+               replica_recover_response_t::value,
+               msg_ptr->cstruct_pkt->head_data<replica_recover_response_cstruct*>());
           break;
         }
         default : {
