@@ -132,6 +132,7 @@ public:
   inline void set_up_replication_processing_funcs(){
     replication_funcs_[0] = &flow_actor::no_replication_output;
     replication_funcs_[1] = &flow_actor::replication_output;
+    replication_funcs_[2] = &flow_actor::no_replication_output;
   }
 
   inline void init_buffer_head(){
@@ -207,7 +208,7 @@ private:
 
   typedef void(flow_actor::*replication_processing_func)(bess::Packet*);
 
-  replication_processing_func replication_funcs_[2];
+  replication_processing_func replication_funcs_[3];
 
 };
 

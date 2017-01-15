@@ -246,7 +246,6 @@ void flow_actor::handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batc
 
 // normal flow actor handling packet message
 void flow_actor::handle_message(pkt_msg_t, bess::Packet* pkt){
-  assert(current_state_ == flow_actor_normal_processing);
   (this->*funcs_[current_state_])(pkt);
 }
 
@@ -602,7 +601,7 @@ void flow_actor::start_recover(){
                                       replica_recover_t::value,
                                       &cstruct);
 
-  coordinator_actor_->idle_flow_list_.add_timer(&replication_timer_,
+  coordinator_actor_->req_timer_list_.add_timer(&replication_timer_,
                                                 ctx.current_ns(),
                                                 msg_id,
                                                 static_cast<uint16_t>(flow_actor_messages::replica_recover_timeout));
