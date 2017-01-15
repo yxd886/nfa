@@ -57,4 +57,6 @@ static constexpr uint32_t no_replica = 0x0;
 
 static constexpr uint32_t have_replica = 0x1;
 
+static constexpr uint32_t is_replica = 0x2;
+
 #endif

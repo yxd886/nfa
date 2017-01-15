@@ -13,7 +13,9 @@ enum class coordinator_messages : uint16_t{
 
   change_vswitch_route,
 
-  replication_msg
+  replication_msg,
+
+  replica_recover
 };
 
 using remove_flow_t = local_message(coordinator_messages, remove_flow);
@@ -37,5 +39,11 @@ struct change_vswitch_route_request_cstruct{
 };
 
 using replication_msg_t = local_message(coordinator_messages, replication_msg);
+
+using replica_recover_t = local_message(coordinator_messages, replica_recover);
+struct replica_recover_cstruct{
+  flow_key_t flow_key;
+  uint32_t new_output_rt_id;
+};
 
 #endif

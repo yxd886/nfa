@@ -77,6 +77,13 @@ public:
 
   void handle_message(migrate_flow_state_response_t, migrate_flow_state_response_cstruct* cstruct_ptr);
 
+
+  void start_recover();
+
+  void handle_message(replica_recover_timeout_t);
+
+  void handle_message(replica_recover_response_t, replica_recover_response_cstruct* cstruct_ptr);
+
   inline flow_actor_id_t get_id(){
     return actor_id_;
   }
@@ -200,6 +207,7 @@ private:
   typedef void(flow_actor::*replication_processing_func)(bess::Packet*);
 
   replication_processing_func replication_funcs_[2];
+
 };
 
 static_assert(std::is_pod<flow_actor>::value, "flow_actor is not pod");

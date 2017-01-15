@@ -44,6 +44,14 @@ public:
                       uint32_t msg_id,
                       change_vswitch_route_request_cstruct* cstruct_ptr);
 
+  void handle_message(replica_recover_t,
+                      int32_t sender_rtid,
+                      uint32_t sender_actor_id,
+                      uint32_t msg_id,
+                      replica_recover_cstruct* cstruct_ptr);
+
+
+
   inline generic_ring_allocator<generic_list_item>* get_list_item_allocator(){
     return &mac_list_item_allocator_;
   }

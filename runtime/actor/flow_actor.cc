@@ -135,7 +135,7 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
                                 vector<network_function_base*>& service_chain,
                                 bess::Packet* first_packet){
   current_state_ = flow_actor_migration_target;
-  replication_state_ = no_replica;
+  replication_state_ = is_replica;
 
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
@@ -242,6 +242,11 @@ void flow_actor::handle_message(check_idle_t){
 
 // replica handling packet and flow state message
 void flow_actor::handle_message(rep_fs_pkt_msg_t, bess::PacketBatch* fs_msg_batch, bess::Packet* pkt){
+  if(unlikely(replication_state_ != is_replica)){
+    coordinator_actor_->gp_collector_.collect(pkt);
+    return;
+  }
+
   pkt_counter_ += 1;
 
   // copy the fs_msg_batch.
@@ -264,8 +269,6 @@ void flow_actor::replication_output(bess::Packet* pkt){
     replication_state_ = no_replica;
     r_->dec_ref_cnt();
     coordinator_actor_->ec_scheduler_batch_.add(pkt);
-    cdlist_del(&list_item_);
-    coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
     return;
   }
 
@@ -587,4 +590,62 @@ void flow_actor::handle_message(migrate_flow_state_response_t, migrate_flow_stat
   coordinator_actor_->successful_passive_migration_ += 1;
 
   send(coordinator_actor_, remove_flow_t::value, this, &flow_key_);
+}
+
+// replica messages
+void flow_actor::start_recover(){
+  replica_recover_cstruct cstruct;
+  cstruct.new_output_rt_id = coordinator_actor_->local_runtime_.runtime_id;
+  rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
+
+  uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+  coordinator_actor_->reliables_.find(input_header_.dest_rtid)->reliable_send(
+                                      msg_id,
+                                      actor_id_,
+                                      coordinator_actor_id,
+                                      replica_recover_t::value,
+                                      &cstruct);
+
+  coordinator_actor_->idle_flow_list_.add_timer(&replication_timer_,
+                                                ctx.current_ns(),
+                                                msg_id,
+                                                static_cast<uint16_t>(flow_actor_messages::replica_recover_timeout));
+}
+
+void flow_actor::handle_message(replica_recover_timeout_t){
+  replication_timer_.invalidate();
+
+  reliable_p2p* r = coordinator_actor_->reliables_.find(input_header_.dest_rtid);
+  if(r->check_connection_status()==false){
+
+    replication_state_ = no_replica;
+
+    cdlist_del(&list_item_);
+
+    // add itself to the tail of the active_flow_actor_list
+    coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+    // replication stat accouting.
+  }
+  else{
+    start_recover();
+  }
+}
+
+void flow_actor::handle_message(replica_recover_response_t, replica_recover_response_cstruct* cstruct_ptr){
+  if(unlikely(cstruct_ptr->request_msg_id != replication_timer_.request_msg_id_)){
+    //LOG(INFO)<<"The timer has been triggered, the response is autoamtically discared";
+    return;
+  }
+
+  replication_timer_.invalidate();
+
+  replication_state_ = no_replica;
+
+  cdlist_del(&list_item_);
+
+  // add itself to the tail of the active_flow_actor_list
+  coordinator_actor_->active_flows_rrlist_.add_to_tail(this);
+
+  // replication stat accouting.
 }

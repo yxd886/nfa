@@ -23,7 +23,10 @@ enum class flow_actor_messages : uint16_t{
 
   migrate_flow_state,
   migrate_flow_state_timeout,
-  migrate_flow_state_response
+  migrate_flow_state_response,
+
+  replica_recover_timeout,
+  replica_recover_response
 };
 
 using flow_actor_init_with_pkt_t = local_message(flow_actor_messages, flow_actor_init_with_pkt);
@@ -59,7 +62,12 @@ struct migrate_flow_state_response_cstruct{
   uint32_t request_msg_id;
 };
 
-
+using replica_recover_timeout_t = local_message(flow_actor_messages, replica_recover_timeout);
+using replica_recover_response_t = local_message(flow_actor_messages, replica_recover_response);
+struct replica_recover_response_cstruct{
+  uint32_t request_msg_id;
+  uint32_t recover_succeed;
+};
 
 
 #endif

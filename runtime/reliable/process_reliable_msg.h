@@ -88,6 +88,16 @@ public:
 
           break;
         }
+        case coordinator_messages::replica_recover : {
+           send(coordinator_actor_,
+                replica_recover_t::value,
+                msg_ptr->send_runtime_id,
+                msg_ptr->rmh.send_actor_id,
+                msg_ptr->rmh.msg_id,
+                msg_ptr->cstruct_pkt->head_data<replica_recover_cstruct*>());
+
+           break;
+         }
         default : {
           assert(1==0);
           break;
