@@ -63,23 +63,27 @@ struct task_result coordinator_mp::RunTask(void *arg){
     send(actor_ptr, start_migration_t::value, coordinator_actor_->migration_target_rt_id_);
   }
 
-  if(coordinator_actor_->storage_rtid_ != -1 && coordinator_actor_->out_going_recovery_<1024){
-    cdlist_head* replica_flow_list = coordinator_actor_->replica_flow_lists_.find(coordinator_actor_->storage_rtid_);
-    for(int i=0; i<32; i++){
-      cdlist_item* replica_flow = cdlist_pop_head(replica_flow_list);
-      if(unlikely(replica_flow == nullptr)){
-        if(coordinator_actor_->out_going_recovery_ == 0){
-          coordinator_actor_->storage_rtid_ = -1;
-          coordinator_actor_->current_recovery_iteration_end_time_ = ctx.current_ns();
-        }
-        break;
-      }
 
-      reinterpret_cast<flow_actor*>(replica_flow)->start_recover();
-
-      coordinator_actor_->out_going_recovery_ += 1;
+  cdlist_head* replica_flow_list = coordinator_actor_->replica_flow_lists_.find(coordinator_actor_->storage_rtid_);
+  for(int i=0; i<32; i++){
+    if(coordinator_actor_->storage_rtid_ == -1 || coordinator_actor_->out_going_recovery_>1024){
+      break;
     }
+
+    cdlist_item* replica_flow = cdlist_pop_head(replica_flow_list);
+    if(unlikely(replica_flow == nullptr)){
+      if(coordinator_actor_->out_going_recovery_ == 0){
+        coordinator_actor_->storage_rtid_ = -1;
+        coordinator_actor_->current_recovery_iteration_end_time_ = ctx.current_ns();
+      }
+      break;
+    }
+
+    reinterpret_cast<flow_actor*>(replica_flow)->start_recover();
+
+    coordinator_actor_->out_going_recovery_ += 1;
   }
+
 
   if(current_iteration<coordinator_actor_->passive_migration_iteration_){
     if(coordinator_actor_->successful_passive_migration_ +
