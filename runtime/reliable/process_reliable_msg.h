@@ -19,6 +19,15 @@ public:
                msg_ptr->cstruct_pkt->head_data<ping_cstruct*>());
           break;
         }
+        case coordinator_messages::pong : {
+          send(coordinator_actor_,
+               pong_t::value,
+               msg_ptr->send_runtime_id,
+               msg_ptr->rmh.send_actor_id,
+               msg_ptr->rmh.msg_id,
+               msg_ptr->cstruct_pkt->head_data<pong_cstruct*>());
+          break;
+        }
         case coordinator_messages::create_migration_target_actor : {
           send(coordinator_actor_,
                create_migration_target_actor_t::value,

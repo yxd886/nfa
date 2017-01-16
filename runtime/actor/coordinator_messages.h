@@ -8,6 +8,7 @@
 enum class coordinator_messages : uint16_t{
   remove_flow,
   ping,
+  pong,
 
   create_migration_target_actor,
 
@@ -22,6 +23,11 @@ using remove_flow_t = local_message(coordinator_messages, remove_flow);
 
 using ping_t = local_message(coordinator_messages, ping);
 struct ping_cstruct{
+  int val;
+};
+
+using pong_t = local_message(coordinator_messages, pong);
+struct pong_cstruct{
   int val;
 };
 

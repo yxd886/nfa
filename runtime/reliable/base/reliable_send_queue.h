@@ -37,7 +37,8 @@ public:
 
     rh_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
     rh_.ethh.s_addr = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
-    rh_.ethh.ether_type = 0x0800;
+    rh_.ethh.ether_type = 0x0008;
+
     rh_.iph.version_ihl = 0x45;
     rh_.iph.fragment_offset = rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
     rh_.iph.time_to_live = 64;

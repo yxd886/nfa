@@ -26,8 +26,11 @@ struct task_result PortInc::RunTask(void *arg) {
       rte_prefetch0(batch.pkts()[i]->head_data());
     }
   } else {
-    for (uint64_t i = 0; i < cnt; i++)
+    for (uint64_t i = 0; i < cnt; i++){
+      LOG(INFO)<<"Receiving packet:!!!!!!!";
+      LOG(INFO)<<batch.pkts()[i]->Dump();
       received_bytes += batch.pkts()[i]->total_len();
+    }
   }
 
   ret = (struct task_result){

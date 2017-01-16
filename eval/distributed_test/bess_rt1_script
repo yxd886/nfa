@@ -18,14 +18,14 @@ rt1_cport_portinc::PortInc(port=rt1_cport)
 rt1_cport_portout::PortOut(port=rt1_cport)
 
 print 'Adding Physical Port'
-rt1_pdport = PMDPort(port_id=0)
-rt1_pcport = PMDPort(port_id=1)
+#rt1_pdport = PMDPort(port_id=0)
+#rt1_pcport = PMDPort(port_id=1)
 
-rt1_pdport_portout::PortOut(port=rt1_pdport)
-rt1_pdport_portinc::PortInc(port=rt1_pdport)
+#rt1_pdport_portout::PortOut(port=rt1_pdport)
+#rt1_pdport_portinc::PortInc(port=rt1_pdport)
 
-rt1_pcport_portout::PortOut(port=rt1_pcport)
-rt1_pcport_portinc::PortInc(port=rt1_pcport)
+#rt1_pcport_portout::PortOut(port=rt1_pcport)
+#rt1_pcport_portinc::PortInc(port=rt1_pcport)
 
 
 print 'Adding dp/cp l2forward'
@@ -36,15 +36,15 @@ print 'Adding dp/cp connections'
 
 #runtime 1 dataplane output connect to dp_l2forward
 rt1_oport_portinc -> dp_l2forward
-rt1_pdport_portinc -> dp_l2forward
+#rt1_pdport_portinc -> dp_l2forward
 
-dp_l2forward:0 -> rt1_pdport_portout
+#dp_l2forward:0 -> rt1_pdport_portout
 dp_l2forward:1 -> rt1_iport_portout
 
 rt1_cport_portinc -> cp_l2forward
-cp_l2forward:0 -> rt1_pcport_portout
+#cp_l2forward:0 -> rt1_pcport_portout
 cp_l2forward:1 -> rt1_cport_portout
-rt1_pcport_portinc -> cp_l2forward
+#rt1_pcport_portinc -> cp_l2forward
 
 
 ret = dp_l2forward.add([{'addr':'52:54:02:00:00:01', 'gate':0},

@@ -37,14 +37,13 @@ print 'Adding dp/cp connections'
 #runtime 3 dataplane output connect to dp_l2forward
 rt3_oport_portinc -> sink
 rt3_pdport_portinc -> dp_l2forward
-
 dp_l2forward:0 -> rt3_pdport_portout
 dp_l2forward:1 -> rt3_iport_portout
 
 rt3_cport_portinc -> cp_l2forward
+rt3_pcport_portinc -> cp_l2forward
 cp_l2forward:0 -> rt3_pcport_portout
 cp_l2forward:1 -> rt3_cport_portout
-rt3_pcport_portinc -> cp_l2forward
 
 #rt3_oport_portinc -> sink
 

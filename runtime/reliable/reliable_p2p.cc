@@ -15,9 +15,9 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
 
   ack_header_.ethh.d_addr = dst_runtime_mac_addr_;
   ack_header_.ethh.s_addr = local_runtime_mac_addr_;
-  ack_header_.ethh.ether_type = 0x0800;
+  ack_header_.ethh.ether_type = 0x0008;
   ack_header_.iph.version_ihl = 0x45;
-  ack_header_.iph.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr)+2);
+  ack_header_.iph.total_length = rte_cpu_to_be_16(sizeof(struct ipv4_hdr)+sizeof(uint8_t)+sizeof(uint32_t));
   ack_header_.iph.fragment_offset = rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
   ack_header_.iph.time_to_live = 64;
   ack_header_.iph.next_proto_id = 0xFF;
@@ -46,15 +46,19 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   reliable_header* rh = pkt->head_data<reliable_header *>();
 
   if(unlikely(rh->magic_num == ack_magic_num)){
+    LOG(INFO)<<"Recv ack, "<<rh->seq_num;
     send_queue_.pop(rh->seq_num, &(coordinator_actor_->gp_collector_));
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
+    LOG(INFO)<<"Receive out of order packet "<<rh->seq_num<<", expecting "<<next_seq_num_to_recv_;
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
+
+  LOG(INFO)<<"Receive a correct packet";
 
   next_seq_num_to_recv_ += 1;
   if(batch_.cnt()==0){
@@ -97,7 +101,7 @@ void reliable_p2p::check(uint64_t current_ns){
       consecutive_counter_ = 0;
     }
 
-    next_check_time_ = current_ns + next_check_times*send_queue_.peek_rtt();
+    next_check_time_ = current_ns + 1000000000;/*next_check_times*send_queue_.peek_rtt();*/
     last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
   }
 }
