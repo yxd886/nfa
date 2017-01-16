@@ -37,6 +37,8 @@ public:
 
   int compute_service_chain_length(uint64_t s);
 
+  uint8_t look_up_id(std::string str);
+
 private:
   std::unordered_map<std::string, uint8_t> name_id_map_;
   std::unordered_map<uint8_t, std::unique_ptr<network_function_base>> id_nf_map_;

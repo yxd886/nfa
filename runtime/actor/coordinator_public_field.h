@@ -16,9 +16,12 @@
 #include "actor_timer_list.h"
 #include "../utils/fixed_array.h"
 #include "flow_actor_allocator.h"
+#include "./base/giant_batch.h"
+#include "../utils/generic_ring_allocator.h"
+#include "../utils/buffered_packet.h"
 
 struct core{
-  flow_actor_allocator* allocator_;
+  flow_actor_allocator allocator_;
 
   HTable<flow_key_t, flow_actor*, flow_keycmp, flow_hash> htable_;
 
@@ -30,7 +33,7 @@ struct core{
 
   std::vector<network_function_base*> service_chain_;
 
-  generic_ring_allocator<generic_list_item>* mac_list_item_allocator_;
+  generic_ring_allocator<generic_list_item> mac_list_item_allocator_;
 };
 
 struct garbage{
@@ -82,14 +85,40 @@ struct reliables_holder{
   HTable<uint64_t, reliable_p2p*, uint64_keycmp, uint64_hash> mac_to_reliables_;
 };
 
+struct replica_flow_holder{
+  fast_hash_map<uint32_t, struct cdlist_head, uint32_keycmp, uint32_hash> replica_flow_lists_;
+};
+
 struct migration_stats{
+
   uint64_t passive_migration_iteration_;
   uint64_t total_passive_migration_;
   uint64_t successful_passive_migration_;
   uint64_t failed_passive_migration_;
   uint64_t null_passive_migration_;
+  uint64_t migration_source_loss_counter_;
   uint64_t current_iteration_start_time_;
   uint64_t current_iteration_end_time_;
+
+  uint64_t migration_target_loss_counter_;
+  uint64_t migration_target_buffer_size_counter_;
+  uint64_t migrated_in_flow_num_;
+};
+
+struct replication_stats{
+  int32_t storage_rtid_;
+  uint64_t out_going_recovery_;
+
+  uint64_t recovery_iteration_;
+  uint64_t successful_recovery_;
+  uint64_t unsuccessful_recovery_;
+  uint64_t current_recovery_iteration_start_time_;
+  uint64_t current_recovery_iteration_end_time_;
+};
+
+struct giant_batch_holder{
+  generic_ring_allocator<buffered_packet> collective_buffer_;
+  giant_batch gb_;
 };
 
 #endif

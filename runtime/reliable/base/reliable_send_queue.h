@@ -131,26 +131,20 @@ public:
       window_size = pending_send_num_;
     }
 
+    uint64_t pos;
     uint64_t current_ns = rdtsc()*ns_per_cycle_;
-    if(unlikely(window_pos_+window_size>=N)){
-      for(uint64_t i=window_pos_; i<N; i++ ){
-        batch.add(bess::Packet::copy(ring_buf_[i]));
-        send_time_[i] = current_ns;
-        // LOG(INFO)<<"send packet with seq "<<window_pos_seq_num_+i-window_pos_<<" at "<<ctx.current_ns();
+
+    for(pos=0; pos<window_size; pos++){
+      bess::Packet* pkt_copy = bess::Packet::copy(ring_buf_[(window_pos_+pos)&mask]);
+      if(unlikely(pkt_copy == nullptr)){
+        break;
       }
-      for(uint64_t i=0; i<(window_size-N+window_pos_); i++){
-        batch.add(bess::Packet::copy(ring_buf_[i]));
-        send_time_[i] = current_ns;
-        // LOG(INFO)<<"send packet with seq "<<window_pos_seq_num_+N-window_pos_+i<<" at "<<ctx.current_ns();
-      }
+
+      batch.add(pkt_copy);
+      send_time_[(window_pos_+pos)&mask] = current_ns;
     }
-    else{
-      for(uint64_t i=window_pos_; i<(window_pos_+window_size); i++){
-        batch.add(bess::Packet::copy(ring_buf_[i]));
-        send_time_[i] = current_ns;
-        // LOG(INFO)<<"send packet with seq "<<window_pos_seq_num_+i-window_pos_<<" at "<<ctx.current_ns();
-      }
-    }
+
+    window_size = pos;
 
     window_pos_ = (window_pos_+window_size)&mask;
     pending_send_num_ -= window_size;
@@ -177,6 +171,10 @@ public:
 
   inline uint64_t peek_cur_size(){
     return cur_size_;
+  }
+
+  inline uint64_t peek_remaining_size(){
+    return N-cur_size_;
   }
 
 private:

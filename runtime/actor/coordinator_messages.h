@@ -11,7 +11,11 @@ enum class coordinator_messages : uint16_t{
 
   create_migration_target_actor,
 
-  change_vswitch_route
+  change_vswitch_route,
+
+  replication_msg,
+
+  replica_recover
 };
 
 using remove_flow_t = local_message(coordinator_messages, remove_flow);
@@ -30,6 +34,14 @@ struct create_migration_target_actor_cstruct{
 
 using change_vswitch_route_t = local_message(coordinator_messages, change_vswitch_route);
 struct change_vswitch_route_request_cstruct{
+  flow_key_t flow_key;
+  uint32_t new_output_rt_id;
+};
+
+using replication_msg_t = local_message(coordinator_messages, replication_msg);
+
+using replica_recover_t = local_message(coordinator_messages, replica_recover);
+struct replica_recover_cstruct{
   flow_key_t flow_key;
   uint32_t new_output_rt_id;
 };

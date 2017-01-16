@@ -146,9 +146,15 @@ REAL_RPC_BASIC_MAIN_OJBS = $(filter-out main.o $(filter-out samples/real_rpc_bas
 MIGRATION_START_EXEC = samples/migration_start
 MIGRATION_START_OBJS = $(filter-out main.o $(filter-out samples/migration_start.o,$(SAMPLES_OBJS)),$(OBJS))
 
+REPLICATION_START_EXEC = samples/replication_start
+REPLICATION_START_OBJS = $(filter-out main.o $(filter-out samples/replication_start.o,$(SAMPLES_OBJS)),$(OBJS))
+
+RECOVER_START_EXEC = samples/recover_start
+RECOVER_START_OBJS = $(filter-out main.o $(filter-out samples/recover_start.o,$(SAMPLES_OBJS)),$(OBJS))
+
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -277,6 +283,18 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(MIGRATION_START_EXEC), \
 	$$(MIGRATION_START_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+		
+$(eval $(call BUILD, \
+	LD, \
+	$$(REPLICATION_START_EXEC), \
+	$$(REPLICATION_START_OBJS), \
+	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
+$(eval $(call BUILD, \
+	LD, \
+	$$(RECOVER_START_EXEC), \
+	$$(RECOVER_START_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;

@@ -38,10 +38,6 @@
 using namespace bess;
 using namespace std;
 
-static constexpr int num_flow_actors = 1024*512;
-
-static constexpr int max_runtime = 64;
-
 int main(int argc, char* argv[]){
 
   // parse command line options
@@ -102,12 +98,7 @@ int main(int argc, char* argv[]){
   // create the llring used for communication
   llring_holder communication_ring;
 
-  // create the allocator for mac_list_item
-  generic_ring_allocator<generic_list_item> mac_list_item_allocator(512*40);
-
-  // create flow_actor_allocator, coordinator_actor and runtime_config_allocator
-  flow_actor_allocator allocator(num_flow_actors);
-  coordinator coordinator_actor(&allocator, &mac_list_item_allocator, communication_ring);
+  coordinator coordinator_actor(communication_ring);
 
   /*LOG(INFO)<<"fast_hash_map test starts";
   fixed_array<int32_t> fa;

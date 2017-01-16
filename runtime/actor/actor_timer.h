@@ -63,6 +63,9 @@ struct actor_timer{
       case flow_actor_messages::migrate_flow_state_timeout :
         send(static_cast<flow_actor*>(actor_ptr_), migrate_flow_state_timeout_t::value);
         break;
+      case flow_actor_messages::replica_recover_timeout :
+        send(static_cast<flow_actor*>(actor_ptr_), replica_recover_timeout_t::value);
+        break;
       default:
         assert(1==0);
         break;

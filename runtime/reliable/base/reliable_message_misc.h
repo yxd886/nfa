@@ -10,6 +10,8 @@
 #include "../../bessport/packet.h"
 #include "../../actor/base/garbage_pkt_collector.h"
 
+static constexpr int reliable_send_queue_size = 4096;
+
 enum class sub_message_type_enum : char{
   cstruct,
   binary_flow_state,
