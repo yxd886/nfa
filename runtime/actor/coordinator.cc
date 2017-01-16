@@ -236,13 +236,13 @@ uint64_t coordinator::parse_service_chain(string str){
           std::string s=str.substr(i,pos-i);
 
           if(s==packet_counter){
-          	service_chain=(service_chain<<16)|0x1;
+          	service_chain=(service_chain<<8)|0x1;
           }else if(s==flow_monitor){
-          	service_chain=(service_chain<<16)|0x2;
+          	service_chain=(service_chain<<8)|0x2;
           }else if(s==firewall){
-          	service_chain=(service_chain<<16)|0x3;
+          	service_chain=(service_chain<<8)|0x3;
           }else if(s==http_parser){
-          	service_chain=(service_chain<<16)|0x4;
+          	service_chain=(service_chain<<8)|0x4;
           }else{
           	LOG(ERROR)<<"unrecognized service_chain flag";
           }
