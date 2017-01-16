@@ -35,7 +35,7 @@ cp_l2forward = L2Forward()
 print 'Adding dp/cp connections'
 
 #runtime 3 dataplane output connect to dp_l2forward
-rt3_oport_portinc -> dp_l2forward
+rt3_oport_portinc -> sink
 rt3_pdport_portinc -> dp_l2forward
 
 dp_l2forward:0 -> rt3_pdport_portout
