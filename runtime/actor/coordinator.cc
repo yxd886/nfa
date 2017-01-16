@@ -230,7 +230,7 @@ uint64_t coordinator::parse_service_chain(string str){
       if(pos<size)
       {
           std::string s=str.substr(i,pos-i);
-          switch(s){
+          switch(s.c_str()){
           case "packet_counter":{
           	service_chain=(service_chain<<16)|0x1;
           	break;
