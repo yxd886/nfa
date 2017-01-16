@@ -1,4 +1,5 @@
 #include "../rpc/livesness_check_client.h"
+#include <stdio.h>
 
 int main(int argc, char** argv) {
   FLAGS_logtostderr = 1;
@@ -13,6 +14,7 @@ int main(int argc, char** argv) {
 
   // LOG(INFO)<<checker_10240.AddOutputRt();
   // LOG(INFO)<<checker_10240.AddOutputMac(10241);
+  getchar();
   LOG(INFO)<<checker_10241.SetMigrationTarget("202.45.128.156",10242,1000);
   LOG(INFO)<<checker_10241.MigrateTo("202.45.128.156",10242,50000);
 
