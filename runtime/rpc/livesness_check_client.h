@@ -46,11 +46,11 @@ class LivenessCheckClient {
     ClientContext context;
 
     auto new_addr_ptr = request.add_addrs();
-    new_addr_ptr->set_rpc_ip("127.0.0.1");
+    new_addr_ptr->set_rpc_ip("202.45.128.155");
     new_addr_ptr->set_rpc_port(10241);
 
     new_addr_ptr = request.add_addrs();
-    new_addr_ptr->set_rpc_ip("127.0.0.1");
+    new_addr_ptr->set_rpc_ip("202.45.128.156");
     new_addr_ptr->set_rpc_port(10242);
 
     Status status = stub_->AddOutputRts(&context, request, &reply);
@@ -63,13 +63,13 @@ class LivenessCheckClient {
     }
   }
 
-  std::string SingleAddOutputRt(int32_t port_num){
+  std::string SingleAddOutputRt(std::string ip,int32_t port_num){
     AddOutputRtsReq request;
     AddOutputRtsRes reply;
     ClientContext context;
 
     auto new_addr_ptr = request.add_addrs();
-    new_addr_ptr->set_rpc_ip("127.0.0.1");
+    new_addr_ptr->set_rpc_ip(ip);
     new_addr_ptr->set_rpc_port(port_num);
 
     Status status = stub_->AddOutputRts(&context, request, &reply);
@@ -82,12 +82,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string DeleteOutputRt(int32_t port_num){
+  std::string DeleteOutputRt(std::string ip,int32_t port_num){
     DeleteOutputRtReq request;
     DeleteOutputRtRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->DeleteOutputRt(&context, request, &reply);
@@ -100,12 +100,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string DeleteInputRt(int32_t port_num){
+  std::string DeleteInputRt(std::string ip,int32_t port_num){
     DeleteInputRtReq request;
     DeleteInputRtRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->DeleteInputRt(&context, request, &reply);
@@ -118,12 +118,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string AddOutputMac(int32_t port_num){
+  std::string AddOutputMac(std::string ip,int32_t port_num){
     AddOutputMacReq request;
     AddOutputMacRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->AddOutputMac(&context, request, &reply);
@@ -136,12 +136,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string AddInputMac(int32_t port_num){
+  std::string AddInputMac(std::string ip,int32_t port_num){
     AddInputMacReq request;
     AddInputMacRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->AddInputMac(&context, request, &reply);
@@ -154,12 +154,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string DeleteOutputMac(int32_t port_num){
+  std::string DeleteOutputMac(std::string ip,int32_t port_num){
     DeleteOutputMacReq request;
     DeleteOutputMacRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->DeleteOutputMac(&context, request, &reply);
@@ -172,12 +172,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string DeleteInputMac(int32_t port_num){
+  std::string DeleteInputMac(std::string ip,int32_t port_num){
     DeleteInputMacReq request;
     DeleteInputMacRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->DeleteInputMac(&context, request, &reply);
@@ -190,12 +190,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string MigrateTo(int32_t port_num, int32_t quota){
+  std::string MigrateTo(std::string ip,int32_t port_num, int32_t quota){
     MigrateToReq request;
     MigrateToRep reply;
     ClientContext context;
 
-    request.mutable_addr()->set_rpc_ip("127.0.0.1");
+    request.mutable_addr()->set_rpc_ip(ip);
     request.mutable_addr()->set_rpc_port(port_num);
     request.set_quota(quota);
 
@@ -209,13 +209,13 @@ class LivenessCheckClient {
     }
   }
 
-  std::string SetMigrationTarget(int32_t port_num, int32_t qouta){
+  std::string SetMigrationTarget(std::string ip,int32_t port_num, int32_t qouta){
     SetMigrationTargetReq request;
     SetMigrationTargetRep reply;
     ClientContext context;
 
     auto new_addr_ptr = request.add_addrs();
-    new_addr_ptr->set_rpc_ip("127.0.0.1");
+    new_addr_ptr->set_rpc_ip(ip);
     new_addr_ptr->set_rpc_port(port_num);
 
     Status status = stub_->SetMigrationTarget(&context, request, &reply);
@@ -228,13 +228,13 @@ class LivenessCheckClient {
     }
   }
 
-  std::string AddReplicas(int32_t port_num){
+  std::string AddReplicas(std::string ip,int32_t port_num){
     AddReplicasReq request;
     AddReplicasRep reply;
     ClientContext context;
 
     auto new_addr_ptr = request.add_addrs();
-    new_addr_ptr->set_rpc_ip("127.0.0.1");
+    new_addr_ptr->set_rpc_ip(ip);
     new_addr_ptr->set_rpc_port(port_num);
 
     Status status = stub_->AddReplicas(&context, request, &reply);
@@ -247,12 +247,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string DeleteReplica(int32_t port_num){
+  std::string DeleteReplica(std::string ip,int32_t port_num){
     DeleteReplicaReq request;
     DeleteReplicaRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->DeleteReplica(&context, request, &reply);
@@ -265,12 +265,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string DeleteStorage(int32_t port_num){
+  std::string DeleteStorage(std::string ip,int32_t port_num){
     DeleteStorageReq request;
     DeleteStorageRep reply;
     ClientContext context;
 
-    request.mutable_addrs()->set_rpc_ip("127.0.0.1");
+    request.mutable_addrs()->set_rpc_ip(ip);
     request.mutable_addrs()->set_rpc_port(port_num);
 
     Status status = stub_->DeleteStorage(&context, request, &reply);
@@ -283,12 +283,12 @@ class LivenessCheckClient {
     }
   }
 
-  std::string Recover(int32_t port_num){
+  std::string Recover(std::string ip,int32_t port_num){
     RecoverReq request;
     RecoverRep reply;
     ClientContext context;
 
-    request.mutable_addr()->set_rpc_ip("127.0.0.1");
+    request.mutable_addr()->set_rpc_ip(ip);
     request.mutable_addr()->set_rpc_port(port_num);
 
     Status status = stub_->Recover(&context, request, &reply);
