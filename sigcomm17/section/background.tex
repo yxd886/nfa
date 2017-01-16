@@ -1,0 +1,40 @@
+\section{Background}
+\label{sec:background}
+
+\subsection{Network Function Virtualization}
+
+A NFV system \cite{nfv-white-paper} typically consists of a controller and
+many NF instances. Each NF instance is a virtualized device running NF software,which constantly fetches
+packets from an input port, processes the packets and then sends
+processed packets to the output port. NF instances are connected into service chains, implementing certain network services, \eg, access service. Packets of a network flow go through the NF instances in a service chain in order before reaching the destination.
+
+
+A NF instance constantly polls a network interface card for packets.
+Using traditional kernel network stack incurs high context switching overhead
+\cite{martins2014clickos}. To speed up packet processing, hypervisors
+usually map the memory holding packet buffers directly into the address space of
+the guest with the help of Intel DPDK\cite{dpdk} or netmap \cite{netmap}. Guest
+can directly fetch packets from the mapped memory area, avoiding expensive
+context switches. Recent NFV systems \cite{palkar2015e2, Han:EECS-2015-155,
+sherry2015rollback, martins2014clickos, hwang2015netvm} are built using
+similar techniques.
+
+\subsection{Actor Model}
+
+The actor programming model has been used as the basis for constructing massive, distributed
+systems\cite{actor-wiki, akka, newell2016optimizing} %\chuan{add more citations}.
+Each actor is an independent execution unit, which can be
+viewed as a logical thread. In the simplest form, an actor contains an internal
+actor state (\eg, statistic counter, status of peer actors), a mailbox for accepting incoming messages and several message
+handler functions. An actor can process incoming messages using its message
+handlers, send messages to other actors through the built-in message passing channel, and create new actors. The behavior of
+an actor is fully non-blocking and there is no need for actors to contend for a lock due to their message-passing nature.  %\chuan{clarify why message-passing nature leads to non-blocking}.
+
+There are several popular actor frameworks, \ie, Scala Akka \cite{akka}, Erlang
+\cite{erlang}, Orleans \cite{Orleans} and C++ Actor Framework \cite{caf}. These
+actor frameworks have been used to build a broad range of distributed programs,
+including on-line games and e-commerce. For example, Blizzard (a famous PC game
+producer) and Groupon/Amazon/eBay (famous e-commerce websites) all use Akka in
+their production environment \cite{akka}. There has been no attempt to build NFV systems using the actor model.
+theirtheirtheirtheir                                                            
+%If we treat a NF instance as an actor, then the incoming packets could be viewed as messages that are sent to this actor's mailbox. Processing packets could be mapped to handling messages using NF software's message handler. Even though there is a simple and clear relationship between NF instances and actor model, there has been no attempt to build NFV system using actor model.
