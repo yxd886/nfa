@@ -67,6 +67,13 @@ private:
 
   int counter = 0;
   uint64_t start_time = 0;
+
+
+  uint64_t parse_service_chain(string service_chain_str);
+
+
+
+
 };
 
 #endif

@@ -18,7 +18,8 @@ coordinator::coordinator(llring_holder& holder){
   nfa_ipv4_field::nfa_init_ipv4_field(fields_);
 
   static_nf_register::get_register().init(allocator_.get_max_actor());
-  service_chain_ = static_nf_register::get_register().get_service_chain(0x0000000000000001);
+
+  service_chain_ = static_nf_register::get_register().get_service_chain(parse_service_chain(FLAGS_service_chain));
 
   mac_list_item_allocator_.init(reliable_send_queue_size*10);
 
@@ -210,3 +211,42 @@ void coordinator::handle_message(replica_recover_t,
                                               replica_recover_response_t::value,
                                               &cstruct);
 }
+
+
+
+
+uint64_t coordinator::parse_service_chain(string str){
+	std::string::size_type pos;
+	std::string pattern(",");
+	str+=pattern;
+	uint64_t service_chain=0;
+	uint8_t nf_id;
+	int size=str.size();
+	if(str=="null"){
+		return service_chain;
+	}
+  for(int i=0; i<size; i++)
+  {
+      pos=str.find(pattern,i);
+      if(pos<size)
+      {
+				std::string s=str.substr(i,pos-i);
+
+				nf_id=static_nf_register::get_register().look_up_id(s);
+
+				if(nf_id==0){
+					LOG(ERROR)<<"unrecognized service chain flag";
+				}else{
+					service_chain=(service_chain<<8)|nf_id;
+				}
+
+
+				i=pos+pattern.size()-1;
+      }
+  }
+  LOG(INFO)<<"service_chain: "<<hex<<service_chain;
+  return service_chain;
+
+
+}
+
