@@ -5,16 +5,16 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
 
   LivenessCheckClient checker_10240(grpc::CreateChannel(
-      "localhost:10240", grpc::InsecureChannelCredentials()));
+      "202.45.128.154:10240", grpc::InsecureChannelCredentials()));
   LivenessCheckClient checker_10241(grpc::CreateChannel(
-        "localhost:10241", grpc::InsecureChannelCredentials()));
+        "202.45.128.155:10241", grpc::InsecureChannelCredentials()));
   LivenessCheckClient checker_10242(grpc::CreateChannel(
-        "localhost:10242", grpc::InsecureChannelCredentials()));
+        "202.45.128.156:10242", grpc::InsecureChannelCredentials()));
 
   // LOG(INFO)<<checker_10240.AddOutputRt();
   // LOG(INFO)<<checker_10240.AddOutputMac(10241);
-  LOG(INFO)<<checker_10241.SetMigrationTarget(10242,1000);
-  LOG(INFO)<<checker_10241.MigrateTo(10242,50000);
+  LOG(INFO)<<checker_10241.SetMigrationTarget("202.45.128.156",10242,1000);
+  LOG(INFO)<<checker_10241.MigrateTo("202.45.128.156",10242,50000);
 
   return 0;
 }
