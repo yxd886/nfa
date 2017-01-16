@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10240.AddOutputMac(10241);
   // LOG(INFO)<<checker_10240.AddOutputRt();
   // LOG(INFO)<<checker_10240.AddOutputMac(10241);
-  LOG(INFO)<<checker_10241.AddReplicas(10242);
+  LOG(INFO)<<checker_10241.AddReplicas("202.45.128.156",10242);
 
   return 0;
 }

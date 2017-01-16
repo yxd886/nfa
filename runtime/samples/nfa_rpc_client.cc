@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   // Test set replication
 
   LOG(INFO)<<checker_10240.AddOutputRt();
-  LOG(INFO)<<checker_10240.AddOutputMac(10241);
+  LOG(INFO)<<checker_10240.AddOutputMac("202.45.128.155",10241);
 
 
   return 0;
