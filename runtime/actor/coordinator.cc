@@ -220,11 +220,8 @@ uint64_t coordinator::parse_service_chain(string str){
 	std::string pattern(",");
 	str+=pattern;
 	uint64_t service_chain=0;
+	uint8_t nf_id;
 	int size=str.size();
-	std::string packet_counter("packet_counter");
-	std::string flow_monitor("flow_monitor");
-	std::string firewall("firewall");
-	std::string http_parser("http_parser");
 	if(str=="null"){
 		return service_chain;
 	}
@@ -233,22 +230,18 @@ uint64_t coordinator::parse_service_chain(string str){
       pos=str.find(pattern,i);
       if(pos<size)
       {
-          std::string s=str.substr(i,pos-i);
+				std::string s=str.substr(i,pos-i);
 
-          if(s==packet_counter){
-          	service_chain=(service_chain<<8)|0x1;
-          }else if(s==flow_monitor){
-          	service_chain=(service_chain<<8)|0x2;
-          }else if(s==firewall){
-          	service_chain=(service_chain<<8)|0x3;
-          }else if(s==http_parser){
-          	service_chain=(service_chain<<8)|0x4;
-          }else{
-          	LOG(ERROR)<<"unrecognized service_chain flag";
-          }
+				nf_id=static_nf_register::get_register().look_up_id(s);
+
+				if(nf_id==0){
+					LOG(ERROR)<<"unrecognized service chain flag";
+				}else{
+					service_chain=(service_chain<<8)|nf_id;
+				}
 
 
-         i=pos+pattern.size()-1;
+				i=pos+pattern.size()-1;
       }
   }
   LOG(INFO)<<"service_chain: "<<hex<<service_chain;
