@@ -46,19 +46,15 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   reliable_header* rh = pkt->head_data<reliable_header *>();
 
   if(unlikely(rh->magic_num == ack_magic_num)){
-    LOG(INFO)<<"Recv ack, "<<rh->seq_num;
     send_queue_.pop(rh->seq_num, &(coordinator_actor_->gp_collector_));
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
-    LOG(INFO)<<"Receive out of order packet "<<rh->seq_num<<", expecting "<<next_seq_num_to_recv_;
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
-
-  LOG(INFO)<<"Receive a correct packet";
 
   next_seq_num_to_recv_ += 1;
   if(batch_.cnt()==0){
@@ -89,19 +85,18 @@ void reliable_p2p::check(uint64_t current_ns){
       prepend_to_reliable_send_list(num_to_send);
 
       consecutive_counter_ += 1;
-      if(consecutive_counter_ == 90){
-        // The sequence number at the head position has not been changed for
-        // 90 consecutvie checks, the connection should be down.
+      if(consecutive_counter_ == 25000){ // around 500ms to connection down.
         is_connection_up_ = false;
         reset();
         next_seq_num_to_recv_ = 0;
+        next_seq_num_to_recv_snapshot_ = 0;
       }
     }
     else{
       consecutive_counter_ = 0;
     }
 
-    next_check_time_ = current_ns + 1000000000;/*next_check_times*send_queue_.peek_rtt();*/
+    next_check_time_ = current_ns + next_check_times*send_queue_.peek_rtt();
     last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
   }
 }

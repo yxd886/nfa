@@ -10,7 +10,7 @@
 #include <glog/logging.h>
 #include "../../rpc/ring_msg.h"
 
-static constexpr uint64_t default_rtt = 5000;
+static constexpr uint64_t default_rtt = 20000;
 
 static constexpr uint64_t default_rtt_count_times = 1;
 

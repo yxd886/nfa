@@ -23,12 +23,9 @@ void recv_reliable_msgack::ProcessBatch(bess::PacketBatch *batch){
 
     reliable_p2p** r_ptr = coordinator_actor_->mac_to_reliables_.Get(&mac_addr);
     if(unlikely(r_ptr == nullptr)){
-      LOG(INFO)<<"The mac addresss is not sent from a reliable";
       coordinator_actor_->gp_collector_.collect(batch->pkts()[i]);
       continue;
     }
-
-    LOG(INFO)<<"Got a packet sent from "<<(*r_ptr)->get_rt_config()->runtime_id;
 
     reliable_single_msg* msg_ptr = (*r_ptr)->recv(batch->pkts()[i]);
     if(unlikely(msg_ptr == nullptr)){

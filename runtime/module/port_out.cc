@@ -15,8 +15,6 @@ void PortOut::ProcessBatch(bess::PacketBatch *batch) {
   const packet_dir_t dir = PACKET_DIR_OUT;
 
   for (int i = 0; i < sent_pkts; i++){
-    LOG(INFO)<<"Sending packet:!!!!!!!";
-    LOG(INFO)<<batch->pkts()[i]->Dump();
     sent_bytes += batch->pkts()[i]->total_len();
   }
 
