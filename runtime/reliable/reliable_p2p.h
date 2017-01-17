@@ -8,9 +8,9 @@
 
 static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
-static constexpr int initial_check_times = 50;
+static constexpr int initial_check_times = 5;
 
-static constexpr int next_check_times = 50;
+static constexpr int next_check_times = 5;
 
 class coordinator;
 

@@ -95,11 +95,32 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
 void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
                                  ping_cstruct* cstruct_ptr){
 
+  /*pong_cstruct cstruct;
+  cstruct.val = 1024;
+  bool flag = reliables_.find(sender_rtid)->reliable_send(77364, 1, 1, pong_t::value, &cstruct);
+  if(flag==false){
+    LOG(INFO)<<"Fail to send the message";
+  }
+  else{
+    LOG(INFO)<<"Succeed to send the message";
+  }*/
+
+  if(counter==0){
+    start_time = ctx.current_ns();
+  }
+
   counter += 1;
 
-  if(counter == 32*2500000){
+  if(counter == 32*1000000){
     LOG(INFO)<<"Receive "<<counter<<" messages.";
+    uint64_t total_time = ctx.current_ns()-start_time;
+    LOG(INFO)<<"The total transmission time is "<<(total_time/1000000)<<"ms";
   }
+}
+
+void coordinator::handle_message(pong_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
+                                 pong_cstruct* cstruct_ptr){
+  LOG(INFO)<<"Receiving pong from actor "<<sender_actor_id<<" in runtime "<<sender_rtid;
 }
 
 void coordinator::handle_message(create_migration_target_actor_t,

@@ -4,6 +4,7 @@ PWD=`pwd`
 
 value=`cat ./flowgen_arg`
 
+
 ../../runtime/samples/dynamic_scale
 
 sudo ../../deps/bess/bessctl/bessctl $value

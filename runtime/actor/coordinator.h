@@ -32,6 +32,9 @@ public:
   void handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
                       ping_cstruct* cstruct_ptr);
 
+  void handle_message(pong_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
+                      pong_cstruct* cstruct_ptr);
+
   void handle_message(create_migration_target_actor_t,
                       int32_t sender_rtid,
                       uint32_t sender_actor_id,

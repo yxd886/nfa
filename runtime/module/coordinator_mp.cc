@@ -19,9 +19,28 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
-  /*if(coordinator_actor_->migration_target_rt_id_ != -1 && send_end_flag == false){
+  /*if(coordinator_actor_->migration_target_rt_id_!=-1 && send_end_flag == false){
     ping_cstruct cstruct;
     cstruct.val = 1024;
+    bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
+                                  ->reliable_send(77363, 1, 1, ping_t::value, &cstruct);
+    if(flag==false){
+      LOG(INFO)<<"Fail to send the message";
+    }
+    else{
+      LOG(INFO)<<"Succeed to send the message";
+    }
+
+    send_end_flag = true;
+  }*/
+
+  if(coordinator_actor_->migration_target_rt_id_ != -1 && send_end_flag == false){
+    ping_cstruct cstruct;
+    cstruct.val = 1024;
+
+    if(successful_send == 0){
+      start_time = ctx.current_ns();
+    }
 
     for(int i=0; i<32; i++){
       bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
@@ -34,17 +53,19 @@ struct task_result coordinator_mp::RunTask(void *arg){
       }
     }
 
-    if(successful_send == 32*2500000){
+    if(successful_send > 32*1000000){
       LOG(INFO)<<"Unsuccessful send "<<unsuccessful_send;
       LOG(INFO)<<"Successful send "<<successful_send;
       LOG(INFO)<<"The rtt is "
                <<coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->peek_rtt()
                <<"ns";
+      uint64_t total_time = ctx.current_ns()-start_time;
+      LOG(INFO)<<"The total transmission time is "<<(total_time/1000000)<<"ms";
       send_end_flag = true;
     }
-  }*/
+  }
 
-  for(int i=0; i<32; i++){
+  /*for(int i=0; i<32; i++){
     if((coordinator_actor_->migration_qouta_==0) || (coordinator_actor_->outgoing_migrations_>1024)){
       break;
     }
@@ -123,7 +144,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
     LOG(INFO)<<"Recovery takes "<<time<<"ms.";
 
     local_replication_iteration += 1;
-  }
+  }*/
 
   return ret;
 }
