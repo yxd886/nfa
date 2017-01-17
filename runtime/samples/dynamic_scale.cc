@@ -15,9 +15,9 @@ static constexpr long max_throughput = 2000000;
 static constexpr long min_throughput = 20000;
 
 
-class allocator{
+class rtm_allocator{
 public:
-	allocator(){
+	rtm_allocator(){
 
 		mac_prefixs.emplace("202.45.128.154",1);
 		mac_prefixs.emplace("202.45.128.155",2);
@@ -125,8 +125,8 @@ public:
 class static_allocator{
 public:
 	static_allocator(){}
-	static allocator& get_allocator(){
-		static allocator t;
+	static rtm_allocator& get_allocator(){
+		static rtm_allocator t;
 		return t;
 
 	}
