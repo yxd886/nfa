@@ -51,6 +51,8 @@ public:
 
     add_to_reliable_send_list(1);
 
+    print_timer_ = 0;
+
     return true;
   }
 
@@ -291,6 +293,9 @@ private:
   runtime_config remote_rt_config_;
 
   bool is_connection_up_;
+
+  uint64_t print_timer_;
+  uint64_t error_counter_;
 };
 
 #endif

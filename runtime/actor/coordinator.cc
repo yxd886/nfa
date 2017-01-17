@@ -41,7 +41,7 @@ coordinator::coordinator(llring_holder& holder){
   default_output_mac_ = convert_string_mac(FLAGS_default_output_mac);
 
   migration_qouta_ = 0;
-  migration_target_rt_id_ = -1;
+  migration_target_rt_id_ = 0;
   outgoing_migrations_ = 0;
   migration_targets_.init(relloc_size);
 
@@ -60,7 +60,7 @@ coordinator::coordinator(llring_holder& holder){
   migration_target_buffer_size_counter_ = 0;
   migrated_in_flow_num_ = 0;
 
-  storage_rtid_ = -1;
+  storage_rtid_ = 0;
   out_going_recovery_ = 0;
 
   recovery_iteration_ = 0;
@@ -105,7 +105,7 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
     LOG(INFO)<<"Succeed to send the message";
   }*/
 
-  if(counter==0){
+  /*if(counter==0){
     start_time = ctx.current_ns();
   }
 
@@ -115,7 +115,7 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
     LOG(INFO)<<"Receive "<<counter<<" messages.";
     uint64_t total_time = ctx.current_ns()-start_time;
     LOG(INFO)<<"The total transmission time is "<<(total_time/1000000)<<"ms";
-  }
+  }*/
 }
 
 void coordinator::handle_message(pong_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,

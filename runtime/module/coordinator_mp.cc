@@ -19,7 +19,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
       .packets = 0, .bits = 0,
   };
 
-  /*if(coordinator_actor_->migration_target_rt_id_!=-1 && send_end_flag == false){
+  /*if(coordinator_actor_->migration_target_rt_id_!=0 && send_end_flag == false){
     ping_cstruct cstruct;
     cstruct.val = 1024;
     bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)
@@ -34,7 +34,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
     send_end_flag = true;
   }*/
 
-  if(coordinator_actor_->migration_target_rt_id_ != -1 && send_end_flag == false){
+  /*if(coordinator_actor_->migration_target_rt_id_ != 0 && send_end_flag == false){
     ping_cstruct cstruct;
     cstruct.val = 1024;
 
@@ -63,9 +63,9 @@ struct task_result coordinator_mp::RunTask(void *arg){
       LOG(INFO)<<"The total transmission time is "<<(total_time/1000000)<<"ms";
       send_end_flag = true;
     }
-  }
+  }*/
 
-  /*for(int i=0; i<32; i++){
+  for(int i=0; i<32; i++){
     if((coordinator_actor_->migration_qouta_==0) || (coordinator_actor_->outgoing_migrations_>1024)){
       break;
     }
@@ -87,14 +87,14 @@ struct task_result coordinator_mp::RunTask(void *arg){
 
   cdlist_head* replica_flow_list = coordinator_actor_->replica_flow_lists_.find(coordinator_actor_->storage_rtid_);
   for(int i=0; i<32; i++){
-    if(coordinator_actor_->storage_rtid_ == -1 || coordinator_actor_->out_going_recovery_>1024){
+    if(coordinator_actor_->storage_rtid_ == 0 || coordinator_actor_->out_going_recovery_>1024){
       break;
     }
 
     cdlist_item* replica_flow = cdlist_pop_head(replica_flow_list);
     if(unlikely(replica_flow == nullptr)){
       if(coordinator_actor_->out_going_recovery_ == 0){
-        coordinator_actor_->storage_rtid_ = -1;
+        coordinator_actor_->storage_rtid_ = 0;
         coordinator_actor_->current_recovery_iteration_end_time_ = ctx.current_ns();
       }
       break;
@@ -134,7 +134,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
   }
 
   if( (local_replication_iteration < coordinator_actor_->recovery_iteration_) &&
-      (coordinator_actor_->storage_rtid_ == -1) ){
+      (coordinator_actor_->storage_rtid_ == 0) ){
     LOG(INFO)<<"Successful recovery : "<<coordinator_actor_->successful_recovery_;
     LOG(INFO)<<"Failed recovery : "<<coordinator_actor_->unsuccessful_recovery_;
 
@@ -144,7 +144,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
     LOG(INFO)<<"Recovery takes "<<time<<"ms.";
 
     local_replication_iteration += 1;
-  }*/
+  }
 
   return ret;
 }

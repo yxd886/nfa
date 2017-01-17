@@ -7,6 +7,8 @@
 #include <rte_ether.h>
 #include <rte_ip.h>
 
+#include <iostream>
+
 #include "../../bessport/packet.h"
 #include "../../actor/base/garbage_pkt_collector.h"
 
@@ -92,8 +94,16 @@ struct reliable_single_msg{
           i+=num;
           break;
         }
-        default:
+        default:{
+          LOG(INFO)<<"Fatal error, we should enter here";
+          std::cout<<"!!!!!The message tag is "<<std::hex<<*sub_msg_tag<<std::endl;
+          LOG(INFO)<<"The current i is "<<i;
+          for(int j=0; j<batch->cnt(); j++){
+            LOG(INFO)<<batch->pkts()[j]->Dump();
+          }
+          assert(1==0);
           break;
+        }
       }
     }
   }
