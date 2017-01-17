@@ -29,6 +29,7 @@ service Runtime_RPC {
   rpc Recover(RecoverReq) returns (RecoverRep){}
   
   rpc GetRuntimeState(GetRuntimeStateReq) returns (GetRuntimeStateRep){}
+  rpc ShutdownRuntime(ShutdownRuntimeReq) returns (ShutdownRuntimeRep){}
 }
 
 message LivenessRequest {
@@ -233,4 +234,14 @@ message GetRuntimeStateRep{
   repeated RuntimeConfig storages=8;
   RuntimeConfig migration_target=9;
   RuntimeConfig local_runtime=10;
+}
+
+
+message ShutdownRuntimeReq{
+
+
+}
+
+message ShutdownRuntimeRep{
+
 }
