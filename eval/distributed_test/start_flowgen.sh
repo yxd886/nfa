@@ -6,7 +6,7 @@ value=`cat ./flowgen_arg`
 
 ../../runtime/samples/nfa_rpc_client
 
-../../runtime/samples/replication_start
+#../../runtime/samples/replication_start
 
 sudo ../../deps/bess/bessctl/bessctl $value
 
