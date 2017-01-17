@@ -23,7 +23,7 @@ std::string concat_with_colon(const std::string& s1, const std::string&s2){
 }
 
 
-struct PortState{
+struct portstate{
   uint64_t input_port_incoming_pkts;
   uint64_t input_port_outgoing_pkts;
   uint64_t input_port_dropped_pkts;
@@ -35,12 +35,12 @@ struct PortState{
   uint64_t control_port_dropped_pkts;
 };
 
-struct FlowState{
+struct flowstate{
 	uint64_t active_flows;
 	uint64_t inactive_flows;
 };
 
-struct MigrationState{
+struct migrationstate{
 	uint64_t migration_index;
 	uint64_t migration_target_runtime_id;
   uint64_t migration_qouta;
@@ -49,18 +49,18 @@ struct MigrationState{
   uint64_t successful_migration;
 };
 
-struct StorageState{
+struct storagestate{
 	uint64_t replication_source_runtime_id;
 	uint64_t num_of_flow_replicas;
 	uint64_t total_replay_time;
 };
 
 
-struct Runtime_State{
-	PortState port_state;
-	FlowState flow_state;
-	MigrationState migration_state;
-	StorageState storage_states;
+struct runtime_state{
+	portstate port_state;
+	flowstate flow_state;
+	migrationstate migration_state;
+	storagestate storage_states;
 	std::map<std::string,runtime_config>input_runtimes;
 	std::map<std::string,runtime_config> output_runtimes;
 	std::map<std::string,runtime_config> replicas;
@@ -356,7 +356,7 @@ class LivenessCheckClient {
     }
   }
 
-  std::string GetRuntimeState(Runtime_State& runtime_stat){
+  std::string GetRuntimeState(runtime_state& runtime_stat){
     GetRuntimeStateReq request;
     GetRuntimeStateRep reply;
     ClientContext context;
@@ -397,7 +397,7 @@ class LivenessCheckClient {
 
  private:
   std::unique_ptr<Runtime_RPC::Stub> stub_;
-  void copy_runtime_stat_to_local(Runtime_State& runtime_stat,GetRuntimeStateRep reply){
+  void copy_runtime_stat_to_local(runtime_state& runtime_stat,GetRuntimeStateRep reply){
   	runtime_stat.port_state.control_port_dropped_pkts=reply.port_state().control_port_dropped_pkts();
   	runtime_stat.port_state.control_port_incoming_pkts=reply.port_state().control_port_incoming_pkts();
   	runtime_stat.port_state.control_port_outgoing_pkts=reply.port_state().control_port_outgoing_pkts();

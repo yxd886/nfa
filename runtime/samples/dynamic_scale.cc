@@ -135,7 +135,7 @@ public:
 
 
 
-bool remote_open(std::string rtm_name, Runtime_State runtime_state, std::string service_chain){
+bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string service_chain){
 	std::string t;
 	pid_t status;
 	bool success=false;
@@ -187,10 +187,10 @@ bool remote_open(std::string rtm_name, Runtime_State runtime_state, std::string 
 
 
 
-bool init(std::vector<Runtime_State>& active_runtimes){
+bool init(std::vector<runtime_state>& active_runtimes){
 
 	bool success;
-	Runtime_State r1;
+	runtime_state r1;
 	int32_t local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.154");
 	std::string rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	r1.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
@@ -202,7 +202,7 @@ bool init(std::vector<Runtime_State>& active_runtimes){
 
 	success=remote_open(rtm_name,r1,"null");
 
-	Runtime_State r2;
+	runtime_state r2;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.155");
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	r2.local_runtime.rpc_ip=convert_string_ip("202.45.128.155");
@@ -213,7 +213,7 @@ bool init(std::vector<Runtime_State>& active_runtimes){
 	r2.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.155",local_rtm_id);
 	success=success&&remote_open(rtm_name,r2,"pkt_counter,firewall");
 
-	Runtime_State r3;
+	runtime_state r3;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.156");
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	r3.local_runtime.rpc_ip=convert_string_ip("202.45.128.156");
@@ -249,7 +249,7 @@ bool init(std::vector<Runtime_State>& active_runtimes){
 
 
 
-  Runtime_State active_runtime;
+  runtime_state active_runtime;
 
   LOG(INFO)<<checker_r1.GetRuntimeState(active_runtime);
   active_runtimes.push_back(active_runtime);
@@ -261,14 +261,14 @@ bool init(std::vector<Runtime_State>& active_runtimes){
 }
 
 
-bool need_scale_in(const Runtime_State runtime){
+bool need_scale_in(const runtime_state runtime){
 	string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 	long begin=0;
 	long end=0;
   LivenessCheckClient checker(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
 
-  Runtime_State tmp;
+  runtime_state tmp;
   checker.GetRuntimeState(tmp);
   begin=tmp.port_state.input_port_incoming_pkts;
   sleep(1);
@@ -279,7 +279,7 @@ bool need_scale_in(const Runtime_State runtime){
 
 }
 
-bool need_scale_out(const Runtime_State runtime){
+bool need_scale_out(const runtime_state runtime){
 
 	string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 	long begin=0;
@@ -287,7 +287,7 @@ bool need_scale_out(const Runtime_State runtime){
   LivenessCheckClient checker(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
 
-  Runtime_State tmp;
+  runtime_state tmp;
   checker.GetRuntimeState(tmp);
   begin=tmp.port_state.input_port_incoming_pkts;
   sleep(1);
@@ -299,7 +299,7 @@ bool need_scale_out(const Runtime_State runtime){
 }
 
 
-void scale_in(Runtime_State runtime,std::vector<Runtime_State>& active_runtimes){
+void scale_in(runtime_state runtime,std::vector<runtime_state>& active_runtimes){
 
 
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
@@ -324,7 +324,7 @@ void scale_in(Runtime_State runtime,std::vector<Runtime_State>& active_runtimes)
 }
 
 
-void scale_out(Runtime_State runtime,std::vector<Runtime_State>& active_runtimes){
+void scale_out(runtime_state runtime,std::vector<runtime_state>& active_runtimes){
 
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
@@ -346,7 +346,7 @@ void scale_out(Runtime_State runtime,std::vector<Runtime_State>& active_runtimes
 
   LivenessCheckClient checker_dest(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
-  Runtime_State tmp;
+  runtime_state tmp;
   checker_dest.GetRuntimeState(tmp);
   active_runtimes.push_back(tmp);
 
@@ -356,7 +356,7 @@ void scale_out(Runtime_State runtime,std::vector<Runtime_State>& active_runtimes
 
 int main(int argc, char** argv) {
 
-	std::vector<Runtime_State>active_runtimes;
+	std::vector<runtime_state>active_runtimes;
 
 	init(active_runtimes);
 
