@@ -401,23 +401,23 @@ class LivenessCheckClient {
   	runtime_stat.port_state.control_port_dropped_pkts=reply.port_state().control_port_dropped_pkts();
   	runtime_stat.port_state.control_port_incoming_pkts=reply.port_state().control_port_incoming_pkts();
   	runtime_stat.port_state.control_port_outgoing_pkts=reply.port_state().control_port_outgoing_pkts();
-  	runtime_stat.port_state.input_port_dropped_pkts=
-		runtime_stat.port_state.input_port_incoming_pkts
-		runtime_stat.port_state.input_port_outgoing_pkts
-		runtime_stat.port_state.output_port_dropped_pkts
-		runtime_stat.port_state.output_port_incoming_pkts
-		runtime_stat.port_state.output_port_outgoing_pkts
-		runtime_stat.flow_state.active_flows
-		runtime_stat.flow_state.inactive_flows
-		runtime_stat.migration_state.average_flow_migration_completion_time=
-		runtime_stat.migration_state.migration_index=
-		runtime_stat.migration_state.migration_qouta
-		runtime_stat.migration_state.migration_target_runtime_id
-		runtime_stat.migration_state.successful_migration
-		runtime_stat.migration_state.toal_flow_migration_completion_time
-		runtime_stat.storage_states.num_of_flow_replicas
-		runtime_stat.storage_states.replication_source_runtime_id
-		runtime_stat.storage_states.total_replay_time
+  	runtime_stat.port_state.input_port_dropped_pkts=reply.port_state().input_port_dropped_pkts();
+		runtime_stat.port_state.input_port_incoming_pkts=reply.port_state().input_port_incoming_pkts();
+		runtime_stat.port_state.input_port_outgoing_pkts=reply.port_state().input_port_outgoing_pkts();
+		runtime_stat.port_state.output_port_dropped_pkts=reply.port_state().output_port_dropped_pkts();
+		runtime_stat.port_state.output_port_incoming_pkts=reply.port_state().output_port_incoming_pkts();
+		runtime_stat.port_state.output_port_outgoing_pkts=reply.port_state().output_port_outgoing_pkts();
+		runtime_stat.flow_state.active_flows=reply.flow_state().active_flows();
+		runtime_stat.flow_state.inactive_flows=reply.flow_state().inactive_flows();
+		runtime_stat.migration_state.average_flow_migration_completion_time=reply.migration_state().average_flow_migration_completion_time();
+		runtime_stat.migration_state.migration_index=reply.migration_state().migration_index();
+		runtime_stat.migration_state.migration_qouta=reply.migration_state().migration_qouta();
+		runtime_stat.migration_state.migration_target_runtime_id=reply.migration_state().migration_target_runtime_id();
+		runtime_stat.migration_state.successful_migration=reply.migration_state().successful_migration();
+		runtime_stat.migration_state.toal_flow_migration_completion_time=reply.migration_state().toal_flow_migration_completion_time();
+		runtime_stat.storage_states.num_of_flow_replicas=reply.storage_states().num_of_flow_replicas();
+		runtime_stat.storage_states.replication_source_runtime_id=reply.storage_states().replication_source_runtime_id();
+		runtime_stat.storage_states.total_replay_time=reply.storage_states().total_replay_time();
 		runtime_stat.migration_target=protobuf2local(reply.migration_target());
 		runtime_stat.local_runtime=protobuf2local(reply.local_runtime());
 		for(int i =0; i<reply.input_runtimes_size();i++){

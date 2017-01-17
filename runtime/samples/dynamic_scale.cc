@@ -79,7 +79,6 @@ public:
 			LOG(INFO)<<"allocate mac addr error";
 			return 0;
 		}
-		int32_t mac_prefix=it->second;
 		t="52:54:"+std::to_string(it->second)+":"+std::to_string(rtm_id)+":00:01";
 		return convert_string_mac(t);
 
@@ -93,7 +92,6 @@ public:
 			LOG(INFO)<<"allocate mac addr error";
 			return 0;
 		}
-		int32_t mac_prefix=it->second;
 		t="52:54:"+std::to_string(it->second)+":"+std::to_string(rtm_id)+":00:02";
 		return convert_string_mac(t);
 
@@ -107,7 +105,6 @@ public:
 			LOG(INFO)<<"allocate mac addr error";
 			return 0;
 		}
-		int32_t mac_prefix=it->second;
 		t="52:54:"+std::to_string(it->second)+":"+std::to_string(rtm_id)+":00:03";
 		return convert_string_mac(t);
 
@@ -172,7 +169,7 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
   for(auto it=runtime_state.output_runtimes.begin();it!=runtime_state.output_runtimes.end();it++){
 
 
-  	LOG(INFO)<<checker_new.SingleAddOutputRt(convert_uint32t_ip(it->second.rpc_ip),std::to_string(it->second.rpc_port));
+  	LOG(INFO)<<checker_new.SingleAddOutputRt(convert_uint32t_ip(it->second.rpc_ip),it->second.rpc_port);
 
   }
 
