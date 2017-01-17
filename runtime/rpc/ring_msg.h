@@ -212,7 +212,8 @@ enum class rpc_operation{
   remove_replica,
   remove_storage,
   recover,
-  get_stats
+  get_stats,
+	shut_down
 };
 
 struct llring_item{

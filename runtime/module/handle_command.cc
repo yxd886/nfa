@@ -310,6 +310,12 @@ struct task_result handle_command::RunTask(void *arg){
       case rpc_operation::get_stats :{
         break;
       }
+      case rpc_operation::shut_down :{
+
+        llring_sp_enqueue(coordinator_actor_->worker2rpc_ring_, static_cast<void*>(item));
+        exit(-1);
+
+      }
       default :
         break;
     }

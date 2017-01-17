@@ -867,7 +867,7 @@ void derived_call_data<DeleteStorageReq, DeleteStorageRep>::Proceed(){
   }
 }
 
-//RPC implementation for MigrateTo
+//RPC implementation for Recover
 template<>
 void derived_call_data<RecoverReq, RecoverRep>::Proceed(){
   if (status_ == CREATE) {
@@ -974,6 +974,35 @@ void derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>::Proceed(){
     GPR_ASSERT(status_ == FINISH);
     delete this;
   }
+
 }
+
+
+// RPC implementation for ShutdownRuntime
+
+template<>
+void derived_call_data<ShutdownRuntimeReq, ShutdownRuntimeRep>::Proceed(){
+  if (status_ == CREATE) {
+    status_ = PROCESS;
+    service_->RequestShutdownRuntime(&ctx_, &request_, &responder_, cq_, cq_, this);
+  } else if (status_ == PROCESS) {
+    create_itself();
+
+		llring_item tmp_item(rpc_operation::shut_down, local_runtime_, 0, 0);
+
+		llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&tmp_item));
+
+		poll_worker2rpc_ring();
+
+
+    status_ = FINISH;
+    responder_.Finish(reply_, Status::OK, this);
+  } else {
+    GPR_ASSERT(status_ == FINISH);
+    delete this;
+  }
+}
+
+
 
 #endif

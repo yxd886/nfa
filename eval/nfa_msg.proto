@@ -16,6 +16,7 @@ service Runtime_RPC {
   rpc DeleteReplica(DeleteReplicaReq) returns (DeleteReplicaRep){}
   rpc DeleteStorage(DeleteStorageReq) returns (DeleteStorageRep){}
   rpc GetRuntimeState(GetRuntimeStateReq) returns (GetRuntimeStateRep){}
+  rpc ShutdownRuntime(ShutdownRuntimeReq) returns (ShutdownRuntimeRep){}
 }
 
 message LivenessRequest {
@@ -167,3 +168,21 @@ message GetRuntimeStateRep{
   RuntimeConfig migration_target=9;
   RuntimeConfig local_runtime=10;
 }
+message ShutdownRuntimeReq{
+
+
+}
+
+message ShutdownRuntimeRep{
+
+}
+
+
+
+
+
+
+
+
+
+

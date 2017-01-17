@@ -102,4 +102,14 @@ void ServerImpl::create_call_data(T&&... arg){
   new derived_call_data<RecoverReq, RecoverRep>(std::forward<T>(arg)...);
 
   new derived_call_data<GetRuntimeStateReq, GetRuntimeStateRep>(std::forward<T>(arg)...);
+  new derived_call_data<ShutdownRuntimeReq, ShutdownRuntimeRep>(std::forward<T>(arg)...);
+
+
+
+
+
+
+
+
+
 }

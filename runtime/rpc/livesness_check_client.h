@@ -1,11 +1,13 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <map>
 
 #include <grpc++/grpc++.h>
 #include <glog/logging.h>
 
 #include "../bessport/nfa_msg.grpc.pb.h"
+#include "ring_msg.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -15,6 +17,59 @@ using nfa_msg::LivenessReply;
 using nfa_msg::Runtime_RPC;
 
 using namespace nfa_msg;
+
+std::string concat_with_colon(const std::string& s1, const std::string&s2){
+  return s1+std::string(":")+s2;
+}
+
+
+struct PortState{
+  uint64_t input_port_incoming_pkts;
+  uint64_t input_port_outgoing_pkts;
+  uint64_t input_port_dropped_pkts;
+  uint64_t output_port_incoming_pkts;
+  uint64_t output_port_outgoing_pkts;
+  uint64_t output_port_dropped_pkts;
+  uint64_t control_port_incoming_pkts;
+  uint64_t control_port_outgoing_pkts;
+  uint64_t control_port_dropped_pkts;
+};
+
+struct FlowState{
+	uint64_t active_flows;
+	uint64_t inactive_flows;
+};
+
+struct MigrationState{
+	uint64_t migration_index;
+	uint64_t migration_target_runtime_id;
+  uint64_t migration_qouta;
+  uint64_t average_flow_migration_completion_time;
+  uint64_t toal_flow_migration_completion_time;
+  uint64_t successful_migration;
+};
+
+struct StorageState{
+	uint64_t replication_source_runtime_id;
+	uint64_t num_of_flow_replicas;
+	uint64_t total_replay_time;
+};
+
+
+struct Runtime_State{
+	PortState port_state;
+	FlowState flow_state;
+	MigrationState migration_state;
+	StorageState storage_states;
+	std::map<std::string,runtime_config>input_runtimes;
+	std::map<std::string,runtime_config> output_runtimes;
+	std::map<std::string,runtime_config> replicas;
+	std::map<std::string,runtime_config> storages;
+	runtime_config migration_target;
+	runtime_config local_runtime;
+};
+
+
 
 class LivenessCheckClient {
  public:
@@ -301,7 +356,7 @@ class LivenessCheckClient {
     }
   }
 
-  std::string GetRuntimeState(){
+  std::string GetRuntimeState(Runtime_State& runtime_stat){
     GetRuntimeStateReq request;
     GetRuntimeStateRep reply;
     ClientContext context;
@@ -311,6 +366,8 @@ class LivenessCheckClient {
     LOG(INFO)<<"The rpc ip of the runtime is "<<reply.local_runtime().rpc_ip();
     LOG(INFO)<<"The rpc port of the runtime is "<<reply.local_runtime().rpc_port();
 
+    copy_runtime_stat_to_local(runtime_stat,reply);
+
     if(status.ok()){
       return "GetRuntimeStateReq finishes.";
     }
@@ -319,6 +376,87 @@ class LivenessCheckClient {
     }
   }
 
+
+  std::string ShutdownRuntime(){
+  	ShutdownRuntimeReq request;
+  	ShutdownRuntimeRep reply;
+    ClientContext context;
+
+    Status status = stub_->ShutdownRuntime(&context, request, &reply);
+
+    LOG(INFO)<<"The rpc ip of the runtime is "<<reply.local_runtime().rpc_ip();
+    LOG(INFO)<<"The rpc port of the runtime is "<<reply.local_runtime().rpc_port();
+
+    if(status.ok()){
+      return "ShutdownRuntime finishes.";
+    }
+    else{
+      return "ShutdownRuntime fails.";
+    }
+  }
+
  private:
   std::unique_ptr<Runtime_RPC::Stub> stub_;
+  void copy_runtime_stat_to_local(Runtime_State& runtime_stat,GetRuntimeStateRep reply){
+  	runtime_stat.port_state.control_port_dropped_pkts=reply.port_state().control_port_dropped_pkts();
+  	runtime_stat.port_state.control_port_incoming_pkts=reply.port_state().control_port_incoming_pkts();
+  	runtime_stat.port_state.control_port_outgoing_pkts=reply.port_state().control_port_outgoing_pkts();
+  	runtime_stat.port_state.input_port_dropped_pkts=
+		runtime_stat.port_state.input_port_incoming_pkts
+		runtime_stat.port_state.input_port_outgoing_pkts
+		runtime_stat.port_state.output_port_dropped_pkts
+		runtime_stat.port_state.output_port_incoming_pkts
+		runtime_stat.port_state.output_port_outgoing_pkts
+		runtime_stat.flow_state.active_flows
+		runtime_stat.flow_state.inactive_flows
+		runtime_stat.migration_state.average_flow_migration_completion_time=
+		runtime_stat.migration_state.migration_index=
+		runtime_stat.migration_state.migration_qouta
+		runtime_stat.migration_state.migration_target_runtime_id
+		runtime_stat.migration_state.successful_migration
+		runtime_stat.migration_state.toal_flow_migration_completion_time
+		runtime_stat.storage_states.num_of_flow_replicas
+		runtime_stat.storage_states.replication_source_runtime_id
+		runtime_stat.storage_states.total_replay_time
+		runtime_stat.migration_target=protobuf2local(reply.migration_target());
+		runtime_stat.local_runtime=protobuf2local(reply.local_runtime());
+		for(int i =0; i<reply.input_runtimes_size();i++){
+
+      std::string dest_addr = concat_with_colon(reply.input_runtimes(i).rpc_ip(),
+                                           std::to_string(reply.input_runtimes(i).rpc_port()));
+      runtime_config input_runtime = protobuf2local(reply.input_runtimes(i));
+      runtime_stat.input_runtimes.emplace(dest_addr,input_runtime);
+
+		}
+
+		for(int i =0; i<reply.output_runtimes_size();i++){
+
+      std::string dest_addr = concat_with_colon(reply.output_runtimes(i).rpc_ip(),
+                                           std::to_string(reply.output_runtimes(i).rpc_port()));
+      runtime_config output_runtime = protobuf2local(reply.output_runtimes(i));
+      runtime_stat.output_runtimes.emplace(dest_addr,output_runtime);
+
+		}
+
+		for(int i =0; i<reply.replicas_size();i++){
+
+      std::string dest_addr = concat_with_colon(reply.replicas(i).rpc_ip(),
+                                           std::to_string(reply.replicas(i).rpc_port()));
+      runtime_config replica = protobuf2local(reply.replicas(i));
+      runtime_stat.replicas.emplace(dest_addr,replica);
+
+		}
+
+
+		for(int i =0; i<reply.storages_size();i++){
+
+      std::string dest_addr = concat_with_colon(reply.storages(i).rpc_ip(),
+                                           std::to_string(reply.storages(i).rpc_port()));
+      runtime_config storage = protobuf2local(reply.storages(i));
+      runtime_stat.storages.emplace(dest_addr,storage);
+
+		}
+
+  }
+
 };
