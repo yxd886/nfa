@@ -158,7 +158,7 @@ DYNAMIC_SCALE_OBJS = $(filter-out main.o $(filter-out samples/dynamic_scale.o,$(
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(DYNAMIC_SCALE_OBJS)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(DYNAMIC_SCALE_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
