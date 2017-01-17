@@ -384,9 +384,6 @@ class LivenessCheckClient {
 
     Status status = stub_->ShutdownRuntime(&context, request, &reply);
 
-    LOG(INFO)<<"The rpc ip of the runtime is "<<reply.local_runtime().rpc_ip();
-    LOG(INFO)<<"The rpc port of the runtime is "<<reply.local_runtime().rpc_port();
-
     if(status.ok()){
       return "ShutdownRuntime finishes.";
     }
