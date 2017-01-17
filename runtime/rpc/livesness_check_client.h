@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <vector>
 
 #include <grpc++/grpc++.h>
 #include <glog/logging.h>
@@ -60,7 +61,7 @@ struct runtime_state{
 	portstate port_state;
 	flowstate flow_state;
 	migrationstate migration_state;
-	storagestate storage_states;
+	std::vector<storagestate>storage_states;
 	std::map<std::string,runtime_config>input_runtimes;
 	std::map<std::string,runtime_config> output_runtimes;
 	std::map<std::string,runtime_config> replicas;
@@ -412,11 +413,20 @@ class LivenessCheckClient {
 		runtime_stat.migration_state.migration_target_runtime_id=reply.migration_state().migration_target_runtime_id();
 		runtime_stat.migration_state.successful_migration=reply.migration_state().successful_migration();
 		runtime_stat.migration_state.toal_flow_migration_completion_time=reply.migration_state().toal_flow_migration_completion_time();
-		runtime_stat.storage_states.num_of_flow_replicas=reply.storage_states().num_of_flow_replicas();
-		runtime_stat.storage_states.replication_source_runtime_id=reply.storage_states().replication_source_runtime_id();
-		runtime_stat.storage_states.total_replay_time=reply.storage_states().total_replay_time();
 		runtime_stat.migration_target=protobuf2local(reply.migration_target());
 		runtime_stat.local_runtime=protobuf2local(reply.local_runtime());
+
+
+		for(int i =0; i<reply.storage_states_size();i++){
+
+      storagestate storage;
+      storage.num_of_flow_replicas=reply.storage_states(i).num_of_flow_replicas();
+      storage.replication_source_runtime_id=reply.storage_states(i).replication_source_runtime_id();
+      storage.total_replay_time=reply.storage_states(i).total_replay_time();
+      runtime_stat.storage_states.push_back(storage);
+
+		}
+
 		for(int i =0; i<reply.input_runtimes_size();i++){
 
       std::string dest_addr = concat_with_colon(reply.input_runtimes(i).rpc_ip(),
