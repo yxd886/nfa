@@ -98,12 +98,13 @@ struct reliable_single_msg{
           break;
         }
         default:{
-          LOG(INFO)<<"Fatal error, we should enter here";
+          /*LOG(INFO)<<"Fatal error, we should enter here";
           std::cout<<"!!!!!The message tag is "<<std::hex<<*sub_msg_tag<<std::endl;
           LOG(INFO)<<"The current i is "<<i;
           for(int j=0; j<batch->cnt(); j++){
             LOG(INFO)<<batch->pkts()[j]->Dump();
-          }
+          }*/
+
           return_flag = false;
           i = batch->cnt();
           break;

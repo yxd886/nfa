@@ -233,9 +233,6 @@ void coordinator::handle_message(replica_recover_t,
                                               &cstruct);
 }
 
-
-
-
 uint64_t coordinator::parse_service_chain(string str){
 	std::string::size_type pos;
 	std::string pattern(",");
@@ -267,7 +264,5 @@ uint64_t coordinator::parse_service_chain(string str){
   }
   LOG(INFO)<<"service_chain: "<<hex<<service_chain;
   return service_chain;
-
-
 }
 

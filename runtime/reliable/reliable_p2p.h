@@ -56,8 +56,7 @@ public:
 
     add_to_reliable_send_list(1);
 
-    print_timer_ = 0;
-
+    // print_timer_ = 0;
     return true;
   }
 
@@ -297,8 +296,8 @@ private:
 
   bool is_connection_up_;
 
-  uint64_t print_timer_;
-  uint64_t error_counter_;
+  // uint64_t print_timer_;
+  // uint64_t error_counter_;
 };
 
 #endif

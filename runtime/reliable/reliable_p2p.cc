@@ -41,9 +41,8 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
 
   is_connection_up_ = true;
 
-  print_timer_ = 0;
-
-  error_counter_ = 0;
+  // print_timer_ = 0;
+  // error_counter_ = 0;
 }
 
 reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
@@ -56,18 +55,16 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
-    error_counter_+=1;
+    /*error_counter_+=1;
     if(error_counter_>4096){
       LOG(INFO)<<"Expecting: "<<next_seq_num_to_recv_;
       LOG(INFO)<<"Receiving: "<<rh->seq_num;
-    }
-
+    }*/
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
 
-  error_counter_ = 0;
-
+  // error_counter_ = 0;
   next_seq_num_to_recv_ += 1;
   if(batch_.cnt()==0){
     reliable_message_header* rmh = reinterpret_cast<reliable_message_header*>(rh+1);
@@ -103,14 +100,13 @@ void reliable_p2p::check(uint64_t current_ns){
       uint64_t num_to_send = send_queue_.reset_window_pos();
       prepend_to_reliable_send_list(num_to_send);
 
-      /*consecutive_counter_ += 1;
-      if(consecutive_counter_ == 25000){ // around 500ms to connection down.
+      consecutive_counter_ += 1;
+      if(consecutive_counter_ == 500000){ // around 10s to connection down.
         is_connection_up_ = false;
         reset();
         next_seq_num_to_recv_ = 0;
         next_seq_num_to_recv_snapshot_ = 0;
-        LOG(INFO)<<"connection faill!!!!!!";
-      }*/
+      }
     }
     else{
       consecutive_counter_ = 0;
@@ -119,8 +115,7 @@ void reliable_p2p::check(uint64_t current_ns){
     next_check_time_ = current_ns + next_check_times*send_queue_.peek_rtt();
     last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
   }
-
-  if(ctx.current_ns()>print_timer_ && remote_rt_config_.runtime_id!=2){
+  /*if(ctx.current_ns()>print_timer_ && remote_rt_config_.runtime_id!=2){
     LOG(INFO)<<"Runtime id: "<<remote_rt_config_.runtime_id<<"\n"
              <<"Conection status: "<<is_connection_up_<<"\n"
              <<"consecutive_counter_: "<<consecutive_counter_<<"\n"
@@ -130,7 +125,7 @@ void reliable_p2p::check(uint64_t current_ns){
     send_queue_.print();
 
     print_timer_ = ctx.current_ns()+3000000000;
-  }
+  }*/
 }
 
 void reliable_p2p::reset(){

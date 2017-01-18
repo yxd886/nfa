@@ -178,7 +178,7 @@ public:
     return N-cur_size_;
   }
 
-  inline void print(){
+  /*inline void print(){
     LOG(INFO)<<"head_pos_: "<<head_pos_<<"\n"
         <<"head_seq_num_: "<<head_seq_num_<<"\n"
         <<"tail_pos_: "<<tail_pos_<<"\n"
@@ -187,7 +187,7 @@ public:
         <<"window_pos_: "<<window_pos_<<"\n"
         <<"window_pos_seq_num_: "<<window_pos_seq_num_<<"\n"
         <<"pending_send_num_: "<<pending_send_num_;
-  }
+  }*/
 
 private:
   inline int smaller(uint64_t first, uint64_t second){
