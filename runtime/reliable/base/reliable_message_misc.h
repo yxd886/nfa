@@ -61,8 +61,9 @@ struct reliable_single_msg{
     garbage.clear();
   }
 
-  inline void format(bess::PacketBatch* batch){
+  inline bool format(bess::PacketBatch* batch){
     int i = 0;
+    bool return_flag = true;
     while(i<batch->cnt()){
       char* sub_msg_tag = batch->pkts()[i]->head_data<char*>();
       switch(*sub_msg_tag){
@@ -76,8 +77,10 @@ struct reliable_single_msg{
         case static_cast<char>(sub_message_type_enum::binary_flow_state) : {
           uint8_t num = (*reinterpret_cast<uint8_t*>(sub_msg_tag+1));
           batch->pkts()[i]->adj(2);
-          fs_msg_batch.CopyAddr(batch->pkts()+i, num);
-          garbage.CopyAddr(batch->pkts()+i, num);
+          for(uint32_t j=0; j<num; j++){
+            fs_msg_batch.add(batch->pkts()[i+j]);
+            garbage.add(batch->pkts()[i+j]);
+          }
           i+=num;
           break;
         }
@@ -101,11 +104,14 @@ struct reliable_single_msg{
           for(int j=0; j<batch->cnt(); j++){
             LOG(INFO)<<batch->pkts()[j]->Dump();
           }
-          assert(1==0);
+          return_flag = false;
+          i = batch->cnt();
           break;
         }
       }
     }
+
+    return return_flag;
   }
 
   inline void clean(garbage_pkt_collector* gp_collector){

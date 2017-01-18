@@ -58,7 +58,8 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
     error_counter_+=1;
     if(error_counter_>4096){
-      LOG(INFO)<<pkt->Dump();
+      LOG(INFO)<<"Expecting: "<<next_seq_num_to_recv_;
+      LOG(INFO)<<"Receiving: "<<rh->seq_num;
     }
 
     coordinator_actor_->gp_collector_.collect(pkt);
@@ -80,7 +81,14 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 
   if(batch_.cnt() == cur_msg_.rmh.msg_pkt_num){
-    cur_msg_.format(&batch_);
+    bool flag = cur_msg_.format(&batch_);
+    if(unlikely(flag == false)){
+      coordinator_actor_->gp_collector_.collect(&batch_);
+      batch_.clear();
+      cur_msg_.clean(&(coordinator_actor_->gp_collector_));
+      return nullptr;
+    }
+
     batch_.clear();
     return &cur_msg_;
   }
