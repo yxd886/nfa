@@ -120,7 +120,7 @@ void reliable_p2p::check(uint64_t current_ns){
     last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
   }
 
-  if(ctx.current_ns()>print_timer_ && remote_rt_config_.runtime_id!=1){
+  if(ctx.current_ns()>print_timer_ && remote_rt_config_.runtime_id!=2){
     LOG(INFO)<<"Runtime id: "<<remote_rt_config_.runtime_id<<"\n"
              <<"Conection status: "<<is_connection_up_<<"\n"
              <<"consecutive_counter_: "<<consecutive_counter_<<"\n"
