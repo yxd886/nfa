@@ -221,7 +221,7 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	r3.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.156",local_rtm_id);
 	success=success&&remote_open(rtm_name,r3,"pkt_counter,firewall");
 
-	return success;
+
 
 
 
@@ -254,6 +254,8 @@ bool init(std::vector<runtime_state>& active_runtimes){
   active_runtimes.push_back(active_runtime);
   LOG(INFO)<<checker_r3.GetRuntimeState(active_runtime);
   active_runtimes.push_back(active_runtime);
+
+	return success;
 
 }
 
