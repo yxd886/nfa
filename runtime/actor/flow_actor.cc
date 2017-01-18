@@ -263,7 +263,7 @@ void flow_actor::replication_output(bess::Packet* pkt){
 
   bess::Packet* fs_state_pkt = bess::Packet::Alloc();
   assert(fs_state_pkt!=nullptr);
-  fs_state_pkt->set_data_off(SNBUF_HEADROOM);
+  fs_state_pkt->set_data_off(SNBUF_HEADROOM+pkt_msg_offset);
   fs_state_pkt->set_total_len(2*(sizeof(uint32_t)+sizeof(struct ether_addr)));
   fs_state_pkt->set_data_len(2*(sizeof(uint32_t)+sizeof(struct ether_addr)));
   rte_memcpy(fs_state_pkt->head_data(),
@@ -490,7 +490,7 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
   current_state_ = flow_actor_migration_source_after_route_change;
 
   bess::Packet* pkt = bess::Packet::Alloc();
-  pkt->set_data_off(SNBUF_HEADROOM);
+  pkt->set_data_off(SNBUF_HEADROOM+pkt_msg_offset);
   pkt->set_total_len(fs_size_.nf_flow_state_size[0]);
   pkt->set_data_len(fs_size_.nf_flow_state_size[0]);
   bess::PacketBatch batch;
