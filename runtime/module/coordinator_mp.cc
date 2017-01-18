@@ -146,6 +146,11 @@ struct task_result coordinator_mp::RunTask(void *arg){
     local_replication_iteration += 1;
   }
 
+  /*if(ctx.current_ns()>start_time){
+    LOG(INFO)<<"The number of the flow in the htable is "<<coordinator_actor_->htable_.Count();
+    start_time = ctx.current_ns()+3000000000;
+  }*/
+
   return ret;
 }
 
