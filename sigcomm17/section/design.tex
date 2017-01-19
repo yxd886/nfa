@@ -74,7 +74,7 @@ As shown in figure \ref{fig:runtime-cluster}, we can construct a NFActor cluster
 
 %图二展示了一个runtime的内部架构。一个runtime包含core thread 和rpc thread连个线程。rpc thread专门用来接收controller 发来的RPC 指令，并将这些指令利用一个共享的高速环形队列转发到core thread中。core thread里运行了两个重要的模块，分别是flow actor调度器和reliable message transmission module。这两个模块由一个模块调度器进行轮询调度。
 
-Figure \ref{fig:runtime-arch} demonstrates the internal architecture of a runtime, which consists of an RPC thread and a core thread. The RPC thread receives RPC requests from the controller and forward these requests to the core thread using a shared ring buffer. The core thread has a flow actor scheduler module and a reliable message transmission module. Both of these two modules are scheduled to run by a round-rubin module scheduler.
+Figure \ref{fig:runtime-arch} demonstrates the internal architecture of a runtime, which consists of an RPC thread and a core thread. The RPC thread receives RPC requests from the controller and forward these requests to the core thread using a shared ring buffer. The core thread has a flow actor scheduler module and a reliable message transmission module. Both of these two modules are scheduled to run by a round-rubin module scheduler. The core thread employs a run-to-completion scheduling model. The core thread keeps processing the input packet keeps processing until it is either dropped, or sent out from the output port.
 
 %从输入端口获取的dataplane 的数据包会被直接发送给flow actor scheduler. flow actor scheduler 利用flow classifier对包进行分流。在我们当前的实现中，flow classifier使用传统的flow-5-tuple作为key来对包进行分流。flow classifier会为每一个新的流建立一个与之唯一对应的flow actor并将这个流的所有数据包交由flow actor进行处理。flow actor会将收到包依次通过一个在初始化时确定的service chain。当这个包完成处理时，flow actor会将这个数据包从输出端口送出。流调度器还会定时调度一个coordinator actor。这个coordinator actor负责从共享队列里提取rpc命令并执行rpc命令。
 
@@ -114,7 +114,48 @@ The runtime exposes a serise of RPCs for controller to use. A controller could u
 
 \subsection{NF Module}
 
-\subsection{Load Balancing}
+%NFActor使用了模块化的NF设计。每一种NF都以一个模块的形式来进行实现，runtime系统可以加载并使用任何一种NF. 为了实现如图2中所示的service chain处理， 我们在runtime初始化时给它传递一个service chain的参数。在流处理过程中，runtime保证每一个flow actor都会将包依次经过service chain 所指定的NF。这个模块化的设计与Netbricks的模块系统比较相似。在 Netbricks，我们也可以在一个netbricks 运行时环境中加载多个NF并创建一个service chain。但是NFActor的NF module系统则为实现流管理功能作出了一定的设计上的改变。
+
+Each NF used by NFActor is implemented as a loadable module. The runtime system could select which NF module to load and use. In order to achieve the service chain processing as indicated in figure \ref{fig:runtime-arch}, we pass in an argument indicating the composition of the service chain before initializing a runtime. The runtime guarantees that each flow actor processes the packet through each NF as indicated in the service chain. The modular NF design is similar to that in NetBricks \cite{199352}, however, NFActor modifies the interface exposed by the NF module to achieve efficient flow management.
+
+%为了实现流管理，flow actor必须在任意时刻提取并封装当前的NF状态，并将这个流状态传递出去。为了快速的实现这一功能，我们将提议将NF的处理逻辑以及NF所保存的流状态进行完全的分离，并将NF所保存的流状态储存在flow actor内。每当flow actor处理包的时候， flow actor将当前的流状态和包一起传入NF处理逻辑中。 NF处理逻辑则直接对包和当前的流状态进行处理。我们在下表中总结了NFActor中构建NF module的API。可以看到，使用这组API，我们将NF module 转换成了一个基于流的有限状态机。这对于实现快速高效的流管理时十分有帮助的，当flow actor需要进行流迁移或容错的时候，它可以直接将自己当前的流状态传递出去，而不影响正常的NF处理。
+
+When executing flow management tasks, flow actor must be able to extract and transmit the flow states of all the NFs on the service chain, without disturbing the normal service chain processing. To speed up this process, we propose to separate the flow state with the processing logic of the NF module, and store the flow state inside the flow actor.
+
+We summarize the core APIs used by NFActor to construct new NF modules in figure \ref{fig:api}. Using these APIs, the flow actor could acquire a new flow state when it is created. When the flow actor processes a packet, the flow actor passes the current flow state and the input packet together into the processing logic of a NF module. The processing logic could directly update the flow state according to the input packet. Since the flow state is stored by the flow actor, the flow actor could directly manipulate its flow state when executing flow management tasks, without disturbing the NF processing logic.
+
+\begin{figure}[!h]
+\lstset{language=Python, showspaces=false,
+        showstringspaces=false, tabsize=2, breaklines=true, basicstyle=\scriptsize,
+}
+
+\begin{verbatim}
+  new_state = nf.acquire_new_flow_state()
+
+  (output_pkt, updated_state) =
+  nf.processing_logic(input_pkt, current_state)
+\end{verbatim}
+
+\caption{The core APIs used by NFActor to construct new NF modules.}
+\label{fig:api}
+\end{figure}
+
+%当然，这样的设计也有一定的缺点，那就是比较难以实现共享状态的提取，转移和同步。但是，对于针对单一流而进行的流管理而言，保证共享状态的一致性是一件非常困难的事情。这个过程中可能需要多层的同步，从而影响单个流管理任务的处理速度。在设计NFActor的时候，我们主要的目标是为单个流的管理提供一个高效的运行环境，因此我们并没有考虑对共享状态进行同步。Instead，当流管理对某个NF共享状态的一致性产生影响时，我们可以给NF提供一个函数，以显示的通知NF流管理通知所造成的影响。
+
+Even though this design facilitates flow management tasks, it has its own limitation. Using this design, it is hard to extract and tranismit shared states. However, it is a complicated tasks to guaratee the consistency of shared states when managing a single flow. It may require multiple synchronizations, thereby affecting the processing speed of a single flow management task. Sice our primary goal when designing NFActor is to provide a high performance exeuction context, we do not aim to synchronize shared state. Instead, when flow management affects the consistency of the shared state, we could explicitly notify the NF about the result of flow management tasks and let NF module to handle the inconsistecy.
+
+
+
+\subsection{Route Selection}
+
+%在nfactor cluster中，由于有多层runtime的存在，因此我们需要为每一个flow进行路由选择。这个功能被直接赋予每一个 flow actor。当一个新的flow actor被创建时，flow actor会在使用轮询的方法在所有的output runtimes里选择一个来当作自己的目的地runtime。当flow actor处理完一个输入包后，它会将包的目的地改为目的地runtime的input port 的mac地址，并将包的源mac地址改为自己input port的mac地址，并将包送出去。flow actor也会分析引发flow actor创建的包的源mac地址，以确定这个流是从哪个runtime发送过来的。
+
+In a NFActor cluster, the existence of multiple layers of runtimes require us to do route selection for each flow. This functionality is directly assigned to each flow actor on the runtime. When a new flow actor is created, the flow actor select an output runtime as its destination using round-rubin algorithm. Before flow actor sends an input packet out, it replaces the destination MAC address of the packet with the MAC address of the input port of the destination runtime, and modifies the source MAC address as the MAC address of the output port of the current runtime. The flow actor also analyzes the source MAC address of the input packet to determine which input runtime the flow comes from.
+
+We can see from later section that, when executing flow management tasks, the route of the flow needs to be dynamically changed. Since each flow actor has route selection functionality, the flow actor could directly send messages to the flow actors on its previous hop and next hop to modify the route.   
+
+%在后面的章节中我们可以看到，当执行流管理任务时，我们需要动态的改变改变流的路由。由于每一个flow actor都具有路由选择功能，因此flow actor可以直接向自己的上一跳flow actor和下一跳的flow actor发送改变路由的消息来改变路由。
+
 
 \subsection{Flow Management}
 \subsubsection{Flow Migration}
