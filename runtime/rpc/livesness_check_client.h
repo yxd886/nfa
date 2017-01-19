@@ -364,6 +364,8 @@ class LivenessCheckClient {
 
     Status status = stub_->GetRuntimeState(&context, request, &reply);
 
+    LOG(INFO)<<"The id the runtime is "<<reply.local_runtime().runtime_id();
+    LOG(INFO)<<"The rpc port of the runtime is "<<reply.local_runtime().rpc_port();
     LOG(INFO)<<"The rpc ip of the runtime is "<<reply.local_runtime().rpc_ip();
     LOG(INFO)<<"The rpc port of the runtime is "<<reply.local_runtime().rpc_port();
 
