@@ -90,6 +90,28 @@ The reason that a runtime has only one core thread is to improve resource utiliz
 
 \subsection{Control RPCs}
 
+%运行时系统暴露了一系列RPC以供controller进行调用。这些rpc可以分为以下几类：控制流管理任务的rpc仅仅
+The runtime exposes a serise of RPCs for controller to use. A controller could use these RPCs to control the connection between different runtimes. In terms of flow management tasks, the controller only needs to participate in the initiation phase using the exposed RPCs. There's no need for the controller to get involved in the execution of flow management tasks, because flow actors could complete them by themselves. The controller using these RPCs could be designed as a light-weight one, this is a key difference that distinguish NFActor framework from previous work, where controller must be involved in each flow management task, thereby limiting the scalability of the system. These RPCs could be divided into the following categories.
+
+\begin{itemize}
+
+% 添加删除input/output runtime. 为一个runtime 添加或删除input/output runtime。当添加input/output runtime时，controller必须保证当前runtime的input port/output port与input/output runtime 直接相连。
+
+\item \textbf{Adding Input(Output) Runtime.} This RPC call adds input(ouput) runtime to the RPC target(the runtime being called). Before calling this RPC, the controller must guarantee that the input(output) port of the RPC target is connected with the output(input) port of the input(output) runtime.
+
+% 设置migration target。 为一个runtime设置migration target。migration target和当前runtime必须处于同一个layer。当设置好migration target后，controller可以发起另一个rpc，让当前runtime迁移多少流到migration target区。
+
+\item \textbf{Migrating Flows to Migration Target Runtime.} This RPC call sets up a migration target runtime for the RPC target and indicates the number of flows to migrate. When this call finishes, the RPC target should start migrating flows to the migration target. The migration target must stay in the same layer as the RPC target.
+
+% 设置replication target。 为一个runtime设置replication target。replication target和当前runtime也必须处于同一个layer。当设置好replication target后，新到来的流就会被replicate到replication target上。
+
+\item \textbf{Setting up Repliation Target Runtime.} This RPC call sets up a replication target runtime. When this call finishes, the RPC target should start replicating new flows to the replication target runtime. The replication target must stay in the same layer as the RPC target.
+
+% 恢复 failed runtime. 如果当前runtime 时failed runtime的replication target，那么保存在当前runtime上的flow replica就会被直接在当前runtime上恢复过来。
+\item \textbf{Recovering Failed Runtime.} If the RPC target is the replication target runtime of the failed runtime, then flows replicated on the RPC target are directly recovered on the RPC target.
+
+\end{itemize}
+
 \subsection{NF Module}
 
 \subsection{Load Balancing}
