@@ -60,7 +60,9 @@ From the perspective of runtime 2 and 3, they share the same input runtimes and 
 
 %如图2所示，我们可以构建一个由multipile layers of runtime 所组成的nfactor cluster。这个cluster由一个轻量级的controller进行控制。controller可以检测每一个runtime的workload以实现动态扩展。同时，controller可以通过rpc来发起流管理任务的执行。
 
-As shown in figure \ref{fig:runtime-cluster}, we can construct a NFActor cluster by creating multiple layers of runtimes. This runtime cluster could be controlled by a controller, which monitors the workload on each runtime for dynamic scaling. This controller could also initiate flow management tasks by sending RPC requests to selected runtimes. 
+As shown in figure \ref{fig:runtime-cluster}, we can construct a NFActor cluster by creating multiple layers of runtimes. This runtime cluster could be controlled by a controller, which monitors the workload on each runtime for dynamic scaling. This controller could also initiate flow management tasks by sending RPC requests to selected runtimes.
+
+\subsection{Runtime Architecture}
 
 \begin{figure}
 		\centering
@@ -69,3 +71,31 @@ As shown in figure \ref{fig:runtime-cluster}, we can construct a NFActor cluster
 		\caption{The internal architecture of a NFActor runtime system. }
 \label{fig:runtime-arch}
 \end{figure}
+
+%图二展示了一个runtime的内部架构。一个runtime包含core thread 和rpc thread连个线程。rpc thread专门用来接收controller 发来的RPC 指令，并将这些指令利用一个共享的高速环形队列转发到core thread中。core thread里运行了两个重要的模块，分别是flow actor调度器和reliable message transmission module。这两个模块由一个模块调度器进行轮询调度。
+
+Figure \ref{fig:runtime-arch} demonstrates the internal architecture of a runtime, which consists of an RPC thread and a core thread. The RPC thread receives RPC requests from the controller and forward these requests to the core thread using a shared ring buffer. The core thread has a flow actor scheduler module and a reliable message transmission module. Both of these two modules are scheduled to run by a round-rubin module scheduler.
+
+%从输入端口获取的dataplane 的数据包会被直接发送给flow actor scheduler. flow actor scheduler 利用flow classifier对包进行分流。在我们当前的实现中，flow classifier使用传统的flow-5-tuple作为key来对包进行分流。flow classifier会为每一个新的流建立一个与之唯一对应的flow actor并将这个流的所有数据包交由flow actor进行处理。flow actor会将收到包依次通过一个在初始化时确定的service chain。当这个包完成处理时，flow actor会将这个数据包从输出端口送出。流调度器还会定时调度一个coordinator actor。这个coordinator actor负责从共享队列里提取rpc命令并执行rpc命令。
+
+The core thread polls dataplane pacekts from the input port and forwards them to flow actor scheduler. The flow actor scheduler uses a flow classifier to classify packets into different flows. In our current implementation, the flow classifier uses tranditional flow-5-tuple (i.e. IP destination address, IP source address, transmission layer protocol, source port and destination port) to classify flows. Flow classifier creates an unique flow actor for each new flow, and forwards all the packets of a flow to its flow actor. The flow actor processes the packet by passing the packet through a pre-determined service chain at runtime initialization time. When the packet finishes processing, it is delivered to the output port. The flow actor scheduler also peoriodically schedules a coordinator actor, which is responsible for fetching RPC requests from the shared ring buffer and executes these requests.
+
+% 同一个runtime上的flow actor和coordinator actor之间可以发送本地消息进行通信。不同runtime 上的actor可以利用reliable message transmission module来发送远程消息。在NFActor framework里，我们为每一个runtime分配一个唯一的runtime id，并为每一个actor分配一个唯一的actor id。 当进行远程actor message 传输时，发送actor只需要向reliable message transmission module指名接收actor 的id 以及接收actor所在的runtime id。消息就可以被可靠的传输出去。
+Flow actor and coordinator actor on the same runtime could directly pass messages with each other. Actors on different runtime use reliable message transmission module to send remote messages. In NFActor framework, we assign a unique ID for each runtime and each actor. When an actor sends a remote message, it only needs to specify the actor ID of the receiver and the runtime ID of the receiver. The message is then delivered reliably to remote side by the reliable message passing module.
+
+
+%一个runtime上只创建一个core thread的设计主要是为了减小使用actor programming model的overhead. 在我们最初的设计中，我们使用libcaf actor来构建flow actor。libcaf 库会建立自己的多个工作线程。flow actor会直接被这些工作线程进行调度。为了将从高速包IO端口获得包并发送给flwo actor，我们不得不再创建一个单独的轮询线程。在这种设计下，我们发现整个系统的最大吞吐量不会随着libcaf工作线程的增加而增大，因为前方的轮询线程会成为一个瓶颈。因此我们直接抛弃了多个工作线程的设计，采用一个core thread 来poll数据包，并调度flow actor。这种架构可以让我们对actor programming model采取很激进的优化，我们可以将消息传递通过函数调用进行直接实现，而不需要考虑同步问题。然后系统的scalability可以用过增加runtime的数目来实现。我们可以在evaluation章节中看到，这样的设计可以取得令人满意的效果。
+
+The reason that a runtime has only one core thread is to improve resource utilization rate and minimize the overhead of using actor programming model. In our initial prototype implementation, we used LIBCAF \cite{caf} library to construct flow actors. LIBCAF library creates multiple worker threads and schedules flow actors to run onthese worker threads. In order to poll from the input port and send packet to flow actor, we have to create another polling thread. Under this design, we found out that the maximum throughput of a single runtime does not increase when the number of LIBCAF worker thread increases, because the polling thread has always been a bottleneck. Therefore, we abondan the multi-worker-thread design and use a single core thread to poll packets and schedule flow actors. This architecture allows us to perform aggressive optimization of actor programming model \ref{}. In the mean time, we can still maintain the scalability of the system by launching more runtimes. We show in evaluation section that this architecture could achieve satisfactory performance.
+
+\subsection{Control RPCs}
+
+\subsection{NF Module}
+
+\subsection{Load Balancing}
+
+\subsection{Flow Management}
+\subsubsection{Flow Migration}
+\subsubsection{Flow Replication}
+
+\subsection{Dynamic Scaling}
