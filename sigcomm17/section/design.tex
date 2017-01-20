@@ -187,8 +187,21 @@ As is shown in figure \ref{}, when the current flow actor being migrated receive
 
 \textbf{Error Handling.} The three request-responses may not always be successfully executed. In case of request failure, the current flow actor is responsible for restoring the modified route (if it happens) and resumes normal packet processing. The migration target actor is deleted after a timeout.
 
-
-
 \subsubsection{Flow Replication}
+%由于flow state被直接储存在flow actor内部，因此我们可以对每一个flow单独进行细粒度的replication。这是nfactor framework和已有工作最大的不同。这样做的好处就是我们可以提高flow replication的scalability。在NFActor framwork中，我们并不需要为进行flow replication而单独准备replica，instead，flow可以直接被replicate到处于同一层的其他runtime上。当runtime出错时，我们可以直接在replica runtime上将flow恢复。
+
+The biggest difference of the replication method used by NFActor and existing works such as \cite{sherry2015rollback} is that NFActor framework repliates individual flow, not NF. The reason that NFActor is able to replicate at such a fine granularity is because NFActor provides a fast execution context built using actor programming model and NFActor directly stores flow states inside each flow actor.
+
+This replication strategy improves the scalability and resource utilization rate of the system. In NFActor, the flows could be directly replicated to another runtime within the same layer, without the need for a dedicated backup server. In the mean time, this fine grained replication strategy provides a strong replication consistency as indicated in \cite{sherry2015rollback} with a desirable performance.
+
+%flow replication的具体过程如图所示。当flow actor被创建时，它以轮询的方式获取一个可用的replica runtime.之后，每当flow actor处理完一个包，它会将当前的流状态和包通过远程消息传递发送给replica runtime。replica runtime在收到这个消息后，会将这个消息交给一个replica actor。replica actor会将flow state 保存起来，并将包从replica runtime的输出端口发送出去。和roll back recovery一样，nfactor的flow replication保证了一个流的流状态被check point后才会从输出端口输出，因此这个replication 过程保证了强一致性，因为输出端口只能看到流状态被checkpoint之后的包。
+
+The detailed flow replication process is shown in figure \ref{}. When a flow actor is created, it acquires its replica runtime by querying a round-rubin list. If the flow actor has a valid replica runtime, whenever it finishes processing the packet, it sends a remote message, containing the flow state and the packet, to the coordinator actor on the replication target runtime. The coorinator actor on the replication target runtime creates a replica flow actor using the same flow-5-tuple as the original flow actor to handle all the replication messages. The replica flow actor saves the flow state and sends the packet out from the output port of the replica runtime.
+
+Similar with \cite{sherry2015rollback}, the receiver on the side of the output port of the replia runtime can only observe an output packet when the flow state has been replicated, which guarantes strong replication consistency.
+
+%当一个runtime fail了以后，我们会向这个runtime所有的replication runtime发送一个 RPC消息。replication runtime里的replica flow actor则会向previous hop actor发送一个消息，将它的输出路径改为replication runtime. previous hop actor则会在完成路径修改后向replica flow actor发出一个回复。当这组request-response 完成后，原来的flow就在replication runtime上被恢复了。
+
+When a runtime fails, the controller sends recovery RPC requests to all the replica runtime of the failed runtime. This RPC enables replica flow actor to send a route modification request to the previous hop flow actor. The previous hop flow actor then changes the output route to the replica runtime and gives a response back to the replica flow actor. When this request-response finishes, the original flow is recovered on the replica runtime.
 
 \subsection{Dynamic Scaling}
