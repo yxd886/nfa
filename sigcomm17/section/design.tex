@@ -114,6 +114,20 @@ The runtime exposes a serise of RPCs for controller to use. A controller could u
 
 \subsection{NF Module}
 
+\begin{figure}[!h]
+\begin{subfigure}[t]{0.49\linewidth}
+   \centering
+   \includegraphics[width=\columnwidth]{figure/nf-module-api-init.pdf}
+   \caption{The API that is used to initialize flow state when the flow actor is created.}\label{fig:init-api}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.49\linewidth}
+ \centering
+   \includegraphics[width=\columnwidth]{figure/nf-module-api-process_pkt.pdf}
+   \caption{The API that is used to process input packet.}\label{fig:pkt-process-api} \end{subfigure}\hfill
+ \caption{The API exposed by NFActor for implementing new NF modules. (NF: Network function. FS: Flow state. pkt: packet.)}
+\label{fig:api}
+\end{figure}
+
 %NFActor使用了模块化的NF设计。每一种NF都以一个模块的形式来进行实现，runtime系统可以加载并使用任何一种NF. 为了实现如图2中所示的service chain处理， 我们在runtime初始化时给它传递一个service chain的参数。在流处理过程中，runtime保证每一个flow actor都会将包依次经过service chain 所指定的NF。这个模块化的设计与Netbricks的模块系统比较相似。在 Netbricks，我们也可以在一个netbricks 运行时环境中加载多个NF并创建一个service chain。但是NFActor的NF module系统则为实现流管理功能作出了一定的设计上的改变。
 
 Each NF used by NFActor is implemented as a loadable module. The runtime system could select which NF module to load and use. In order to achieve the service chain processing as indicated in figure \ref{fig:runtime-arch}, we pass in an argument indicating the composition of the service chain before initializing a runtime. The runtime guarantees that each flow actor processes the packet through each NF as indicated in the service chain. The modular NF design is similar to that in NetBricks \cite{199352}, however, NFActor modifies the interface exposed by the NF module to achieve efficient flow management.
@@ -123,22 +137,6 @@ Each NF used by NFActor is implemented as a loadable module. The runtime system 
 When executing flow management tasks, flow actor must be able to extract and transmit the flow states of all the NFs on the service chain, without disturbing the normal service chain processing. To speed up this process, we propose to separate the flow state with the processing logic of the NF module, and store the flow state inside the flow actor.
 
 We summarize the core APIs used by NFActor to construct new NF modules in figure \ref{fig:api}. Using these APIs, the flow actor could acquire a new flow state when it is created. When the flow actor processes a packet, the flow actor passes the current flow state and the input packet together into the processing logic of a NF module. The processing logic could directly update the flow state according to the input packet. Since the flow state is stored by the flow actor, the flow actor could directly manipulate its flow state when executing flow management tasks, without disturbing the NF processing logic.
-
-\begin{figure}[!h]
-\lstset{language=Python, showspaces=false,
-        showstringspaces=false, tabsize=2, breaklines=true, basicstyle=\scriptsize,
-}
-
-\begin{verbatim}
-  new_state = nf.acquire_new_flow_state()
-
-  (output_pkt, updated_state) =
-  nf.processing_logic(input_pkt, current_state)
-\end{verbatim}
-
-\caption{The core APIs used by NFActor to construct new NF modules.}
-\label{fig:api}
-\end{figure}
 
 %当然，这样的设计也有一定的缺点，那就是比较难以实现共享状态的提取，转移和同步。但是，对于针对单一流而进行的流管理而言，保证共享状态的一致性是一件非常困难的事情。这个过程中可能需要多层的同步，从而影响单个流管理任务的处理速度。在设计NFActor的时候，我们主要的目标是为单个流的管理提供一个高效的运行环境，因此我们并没有考虑对共享状态进行同步。Instead，当流管理对某个NF共享状态的一致性产生影响时，我们可以给NF提供一个函数，以显示的通知NF流管理通知所造成的影响。
 
@@ -164,8 +162,28 @@ We can see from later section that, when executing flow management tasks, the ro
 In NFActor, the flow management task is automatically executed by each flow actor, without the coordinator from a central controller. This feature provides good scalability when there are multiple runtimes in the cluster. Inside a NFActor cluster, each flow could do route selection by itself, therefore there is no need to rely on SDN switches and controllers. This improve the usablility and performance of NFActor framework, because SDN may not be available at all time and SDN incurs a high processing overhead when dynamically changing flow rules. Finally, the new NF modules APIs completely separate the flow state with NF processing logic. The flow actor could manipulate the flow states at any time, and the entire flow management tasks are completely transparent to the NFs. Any NF modules implemented on top of the APIs provided by NFActor could be seamlessly integrated with flow management tasks. From the perspective of NF module programmers, this feature helps them focus on the internal logic design when implementing NFs, instead of considering how to integrate their code with complicated flow management tasks. This greatly impiroves the applicability of NFActor framework. The following 2 sections give details about how flow migration and replication tasks are implemented in NFActor system.
 
 \subsubsection{Flow Migration}
+
+\begin{figure}[!h]
+\begin{subfigure}[t]{0.33\linewidth}
+   \centering
+   \includegraphics[width=\columnwidth]{figure/nfactor-mig1.pdf}
+   \caption{1st req-rep.}\label{fig:mig1}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.33\linewidth}
+     \centering
+     \includegraphics[width=\columnwidth]{figure/nfactor-mig2.pdf}
+     \caption{2nd req-rep.}\label{fig:mig2}
+    \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.33\linewidth}
+ \centering
+   \includegraphics[width=\columnwidth]{figure/nfactor-mig3.pdf}
+   \caption{3rd req-rep.}\label{fig:mig3} \end{subfigure}\hfill
+ \caption{The three request-responses used during flow migration. (MT: Migration target actor. MS: Migration source actor. CO: Coordinator actor. PH: Flow actor on previous hop. Dotted line: Dataplane flow packets. Dashed line: Actor messages.)}
+\label{fig:mig}
+\end{figure}
+
 %如图中所示，当flow actor收到migrate to migration target runtime的命令后，它开始进行migration。migration包含了以下三组request-response。
-As is shown in figure \ref{}, when the current flow actor being migrated receives a migration command, it starts flow migration by executing the following three groups of request-responses.
+As is shown in figure \ref{fig:mig}, when the current flow actor being migrated receives a migration command, it starts flow migration by executing the following three groups of request-responses.
 
 \begin{itemize}
 
