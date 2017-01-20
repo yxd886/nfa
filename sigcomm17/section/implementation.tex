@@ -1,13 +1,2 @@
 \section{Implementation}
 \label{sec:implementation}
-
-%Discuss the implementation details here. 
-
-%\chuan{give thresholds used to detect overload and idling of runtimes; give the fixed number for ``For every fixed number of packets that the actor has processed"}
-
-The implementation of the core functionalities of NFActor framework consists of 9921 lines of C/C++ code, excluding the implementation of 3 customized NF modules and miscellaneous helper codes. In NFActor, each runtime is containerized using Docker. The data plane of NFActor is inter-connected using BESS \cite{Han:EECS-2015-155}, which is a virtual switch for implementing high performance NFV system. The control plane of NFActor is inter-connected using OpenVSwitch \cite{pfaff2015design}. The actor runtime is implemented using libcaf \cite{caf}, which is a C++ actor programming framework. 
-
-The internal implementation of NFActor runtime is separated into 2 parts, which are a packet polling thread and several actor worker threads. The packet polling thread polls the input queue created by the BESS for packets and fetches the packets directly from the huge page memory area \cite{dpdk}. Then the packet polling loop sends the packet to a actor as an actor message. All the actors are scheduled to run on the worker threads. When the actor gets it's schedule to run, it processes as many received messages as possible. When the actor finishes processing a packet, it sends the packet back to the packet polling loop through a lockless multi-producer queue. The packet polling loop in turn sends the packet to the outside world. 
-
-
-
