@@ -138,11 +138,12 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
 	pid_t status;
 	bool success=false;
 
-
+	std::string s=rtm_name.substr(2,rtm_name.size());
+	int32_t core_id=atoi(s.c_str());
 	int32_t rtm_id=runtime_state.local_runtime.runtime_id;
 	std::string ip=convert_uint32t_ip(runtime_state.local_runtime.rpc_ip);
 	int32_t port=runtime_state.local_runtime.rpc_port;
-	t= "ssh net@"+ip+" sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(rtm_id)+" --service_chain=\""+service_chain+"\" &";
+	t= "ssh net@"+ip+" sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" &";
 	LOG(INFO)<<"remote command: "<<t;
 	const char*a = t.c_str();
 	status=std::system(a);
@@ -186,11 +187,12 @@ bool local_open(std::string rtm_name, runtime_state runtime_state, std::string s
 	pid_t status;
 	bool success=false;
 
-
+	std::string s=rtm_name.substr(2,rtm_name.size());
+	int32_t core_id=atoi(s.c_str());
 	int32_t rtm_id=runtime_state.local_runtime.runtime_id;
 	std::string ip=convert_uint32t_ip(runtime_state.local_runtime.rpc_ip);
 	int32_t port=runtime_state.local_runtime.rpc_port;
-	t="sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(rtm_id)+" --service_chain=\""+service_chain+"\" &";
+	t="sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" &";
 	LOG(INFO)<<"local command: "<<t;
 	const char*a = t.c_str();
 	status=std::system(a);
