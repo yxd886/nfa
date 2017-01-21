@@ -363,6 +363,8 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
 
 	LOG(INFO)<<"scale in";
+	if(runtime.migration_state.migration_target_runtime_id==0)
+		return;
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
   LivenessCheckClient checker_source(grpc::CreateChannel(

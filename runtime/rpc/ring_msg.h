@@ -294,6 +294,7 @@ inline string opcode2string(rpc_operation code){
       break;
     case rpc_operation::shut_down:
       return_val = "shut_down";
+      break;
     default:
       return_val = "wtf??";
       break;
