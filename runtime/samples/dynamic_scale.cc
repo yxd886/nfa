@@ -434,13 +434,13 @@ int main(int argc, char** argv) {
 
   		if(need_scale_out(*it)){
   			scale_out(*it,&active_runtimes);
-  			break;
+  			continue;
   		}
 
 
   		if(need_scale_in(*it)){
   			scale_in(*it,&active_runtimes);
-  			break;
+  			continue;
   		}
 
 
