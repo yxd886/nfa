@@ -245,6 +245,11 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	r1.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
 
 	success=local_open(rtm_name,r1,"null");
+	if(success){
+		 LOG(INFO)<<"init r1 success";
+	}else{
+		LOG(INFO)<<"init r1 fail";
+	}
 
 	runtime_state r2;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.155");
@@ -257,6 +262,11 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	r2.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.155",local_rtm_id);
 	success=success&&remote_open(rtm_name,r2,"pkt_counter,firewall");
 
+	if(success){
+		 LOG(INFO)<<"init r2 success";
+	}else{
+		LOG(INFO)<<"init r2 fail";
+	}
 	runtime_state r3;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.156");
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
@@ -267,9 +277,13 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	r3.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.156",local_rtm_id);
 	r3.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.156",local_rtm_id);
 	success=success&&remote_open(rtm_name,r3,"pkt_counter,firewall");
+	if(success){
+		 LOG(INFO)<<"init r3 success";
+	}else{
+		LOG(INFO)<<"init r3 fail";
+	}
 
-
-
+  sleep(3);
 
 
   LivenessCheckClient checker_r1(grpc::CreateChannel(
