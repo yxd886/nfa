@@ -13,6 +13,7 @@ using namespace std;
 
 static constexpr long max_throughput = 2000000;
 static constexpr long min_throughput = 20000;
+static constexpr int server_num = 3;
 
 
 class rtm_allocator{
@@ -363,7 +364,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
 
 	LOG(INFO)<<"scale in";
-	if(runtime.migration_state.migration_target_runtime_id==0)
+	if(active_runtimes->size()<=server_num)
 		return;
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
@@ -371,6 +372,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
 
   checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),runtime.migration_target.rpc_port,runtime.flow_state.active_flows);
+
 
   checker_source.ShutdownRuntime();
 
