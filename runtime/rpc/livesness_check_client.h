@@ -340,42 +340,6 @@ class LivenessCheckClient {
   }
 
 
-  std::string DeleteMigrationTarget(std::string ip,int32_t port_num){
-  	DeleteMigrationTargetReq request;
-  	DeleteMigrationTargetRep reply;
-    ClientContext context;
-
-    request.addr().set_rpc_ip(ip);
-    request.addr().set_rpc_port(port_num);
-
-    Status status = stub_->DeleteMigrationTarget(&context, request, &reply);
-
-    if(status.ok()){
-      return "DeleteMigrationTarget finishes.";
-    }
-    else{
-      return "DeleteMigrationTarget fails.";
-    }
-  }
-
-
-  std::string DeleteMigrationSource(std::string ip,int32_t port_num){
-  	DeleteMigrationSourceReq request;
-  	DeleteMigrationSourceRep reply;
-    ClientContext context;
-
-    request.addr().set_rpc_ip(ip);
-    request.addr().set_rpc_port(port_num);
-
-    Status status = stub_->DeleteMigrationSource(&context, request, &reply);
-
-    if(status.ok()){
-      return "DeleteMigrationSource finishes.";
-    }
-    else{
-      return "DeleteMigrationSource fails.";
-    }
-  }
 
   std::string Recover(std::string ip,int32_t port_num){
     RecoverReq request;
