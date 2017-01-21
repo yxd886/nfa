@@ -13,6 +13,7 @@ using namespace std;
 
 static constexpr long max_throughput = 2000000;
 static constexpr long min_throughput = 20000;
+static constexpr int server_num = 3;
 
 
 class rtm_allocator{
@@ -137,11 +138,62 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
 	pid_t status;
 	bool success=false;
 
-
+	std::string s=rtm_name.substr(2,rtm_name.size());
+	int32_t core_id=atoi(s.c_str());
 	int32_t rtm_id=runtime_state.local_runtime.runtime_id;
 	std::string ip=convert_uint32t_ip(runtime_state.local_runtime.rpc_ip);
 	int32_t port=runtime_state.local_runtime.rpc_port;
-	t= "ssh net@"+ip+" sudo nohup /home/net/nfa/runtime/sample/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(rtm_id)+" --service_chain=\""+service_chain+"\" &";
+	t= "ssh net@"+ip+" sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" &";
+	LOG(INFO)<<"remote command: "<<t;
+	const char*a = t.c_str();
+	status=std::system(a);
+	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
+		//successful
+		//printf("run shell script successfully!\n");
+		//return true;
+		success=true;
+	}
+	else{
+		//failure
+		//aout(self)<<"open failure,try again"<<endl;
+		//self->delayed_send(self,HEARTBEAT_TIME,start_atom::value,ip,number);
+    LOG(ERROR)<<"SSH Failure";
+    return false;
+	}
+
+  LivenessCheckClient checker_new(grpc::CreateChannel(
+  		concat_with_colon(ip,std::to_string(port)), grpc::InsecureChannelCredentials()));
+  for(auto it=runtime_state.input_runtimes.begin();it!=runtime_state.input_runtimes.end();it++){
+  	LivenessCheckClient checker_input(grpc::CreateChannel(
+  	  		concat_with_colon(convert_uint32t_ip(it->second.rpc_ip),std::to_string(it->second.rpc_port)), grpc::InsecureChannelCredentials()));
+  	LOG(INFO)<<checker_input.SingleAddOutputRt(ip,port);
+
+  }
+  for(auto it=runtime_state.output_runtimes.begin();it!=runtime_state.output_runtimes.end();it++){
+
+
+  	LOG(INFO)<<checker_new.SingleAddOutputRt(convert_uint32t_ip(it->second.rpc_ip),it->second.rpc_port);
+
+  }
+
+  return success;
+
+
+}
+
+
+bool local_open(std::string rtm_name, runtime_state runtime_state, std::string service_chain){
+	std::string t;
+	pid_t status;
+	bool success=false;
+
+	std::string s=rtm_name.substr(2,rtm_name.size());
+	int32_t core_id=atoi(s.c_str());
+	int32_t rtm_id=runtime_state.local_runtime.runtime_id;
+	std::string ip=convert_uint32t_ip(runtime_state.local_runtime.rpc_ip);
+	int32_t port=runtime_state.local_runtime.rpc_port;
+	t="sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" &";
+	LOG(INFO)<<"local command: "<<t;
 	const char*a = t.c_str();
 	status=std::system(a);
 	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
@@ -182,8 +234,6 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
 
 
 
-
-
 bool init(std::vector<runtime_state>& active_runtimes){
 
 	bool success;
@@ -197,7 +247,12 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	r1.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
 	r1.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
 
-	success=remote_open(rtm_name,r1,"null");
+	success=local_open(rtm_name,r1,"null");
+	if(success){
+		 LOG(INFO)<<"init r1 success";
+	}else{
+		LOG(INFO)<<"init r1 fail";
+	}
 
 	runtime_state r2;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.155");
@@ -210,6 +265,11 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	r2.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.155",local_rtm_id);
 	success=success&&remote_open(rtm_name,r2,"pkt_counter,firewall");
 
+	if(success){
+		 LOG(INFO)<<"init r2 success";
+	}else{
+		LOG(INFO)<<"init r2 fail";
+	}
 	runtime_state r3;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.156");
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
@@ -220,8 +280,13 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	r3.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.156",local_rtm_id);
 	r3.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.156",local_rtm_id);
 	success=success&&remote_open(rtm_name,r3,"pkt_counter,firewall");
+	if(success){
+		 LOG(INFO)<<"init r3 success";
+	}else{
+		LOG(INFO)<<"init r3 fail";
+	}
 
-
+  sleep(3);
 
 
   LivenessCheckClient checker_r1(grpc::CreateChannel(
@@ -241,8 +306,6 @@ bool init(std::vector<runtime_state>& active_runtimes){
 
 
   LOG(INFO)<<checker_r2.AddReplicas("202.45.128.156",r3.local_runtime.rpc_port);
-
-
 
 
   runtime_state active_runtime;
@@ -297,9 +360,13 @@ bool need_scale_out(const runtime_state runtime){
 }
 
 
-void scale_in(runtime_state runtime,std::vector<runtime_state>& active_runtimes){
+void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
 
+
+	if(active_runtimes->size()<=server_num)
+		return;
+	LOG(INFO)<<"scale in";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
   LivenessCheckClient checker_source(grpc::CreateChannel(
@@ -307,12 +374,13 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>& active_runtimes)
 
   checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),runtime.migration_target.rpc_port,runtime.flow_state.active_flows);
 
+
   checker_source.ShutdownRuntime();
 
-  for(auto it=active_runtimes.begin();it!=active_runtimes.end();it++){
+  for(auto it=active_runtimes->begin();it!=active_runtimes->end();it++){
   	if(it->local_runtime==runtime.local_runtime){
 
-  		it=active_runtimes.erase(it);
+  		it=active_runtimes->erase(it);
   		break;
   	}
   }
@@ -322,8 +390,9 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>& active_runtimes)
 }
 
 
-void scale_out(runtime_state runtime,std::vector<runtime_state>& active_runtimes){
+void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
+	LOG(INFO)<<"scale out";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
   LivenessCheckClient checker_source(grpc::CreateChannel(
@@ -338,6 +407,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>& active_runtimes
 	runtime.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr(ip,local_rtm_id);
 
 	remote_open(rtm_name,runtime,"pkt_counter,firewall");
+	sleep(3);
 
 	checker_source.SetMigrationTarget(ip,runtime.local_runtime.rpc_port,runtime.flow_state.active_flows/2);
 	checker_source.MigrateTo(ip,runtime.local_runtime.rpc_port,runtime.flow_state.active_flows/2);
@@ -346,28 +416,30 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>& active_runtimes
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
   runtime_state tmp;
   checker_dest.GetRuntimeState(tmp);
-  active_runtimes.push_back(tmp);
+  active_runtimes->push_back(tmp);
+
 
   //start replica in another server
 
-	std::string replica_ip=convert_uint32t_ip(runtime.replicas.begin()->second.rpc_ip);
-	local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id(replica_ip);
-	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
-  runtime.local_runtime.rpc_ip=convert_string_ip(replica_ip);
-	runtime.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id(replica_ip);
-	runtime.local_runtime.runtime_id=static_allocator::get_allocator().next_availiable_rtm_id();
-	runtime.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr(replica_ip,local_rtm_id);
-	runtime.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr(replica_ip,local_rtm_id);
-	runtime.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr(replica_ip,local_rtm_id);
-	remote_open(rtm_name,runtime,"pkt_counter,firewall");
+ 	std::string replica_ip=convert_uint32t_ip(runtime.replicas.begin()->second.rpc_ip);
+ 	local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id(replica_ip);
+ 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
+   runtime.local_runtime.rpc_ip=convert_string_ip(replica_ip);
+ 	runtime.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id(replica_ip);
+ 	runtime.local_runtime.runtime_id=static_allocator::get_allocator().next_availiable_rtm_id();
+ 	runtime.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr(replica_ip,local_rtm_id);
+ 	runtime.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr(replica_ip,local_rtm_id);
+ 	runtime.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr(replica_ip,local_rtm_id);
+ 	remote_open(rtm_name,runtime,"pkt_counter,firewall");
 
+	sleep(3);
+ 	checker_dest.AddReplicas(replica_ip,	runtime.local_runtime.rpc_port);
 
-	checker_dest.AddReplicas(replica_ip,	runtime.local_runtime.rpc_port);
+ 	LivenessCheckClient checker_replica(grpc::CreateChannel(
+   		concat_with_colon(replica_ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+ 	checker_replica.GetRuntimeState(tmp);
+   active_runtimes->push_back(tmp);
 
-	LivenessCheckClient checker_replica(grpc::CreateChannel(
-  		concat_with_colon(replica_ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
-	checker_replica.GetRuntimeState(tmp);
-  active_runtimes.push_back(tmp);
 
 }
 
@@ -380,16 +452,18 @@ int main(int argc, char** argv) {
 
   while(1){
 
+
+  	sleep(1);
   	for(auto it=active_runtimes.begin();it!=active_runtimes.end();it++){
 
   		if(need_scale_out(*it)){
-  			scale_out(*it,active_runtimes);
+  			scale_out(*it,&active_runtimes);
   			continue;
   		}
 
 
   		if(need_scale_in(*it)){
-  			scale_in(*it,active_runtimes);
+  			scale_in(*it,&active_runtimes);
   			continue;
   		}
 

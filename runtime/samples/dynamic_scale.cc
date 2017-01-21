@@ -365,9 +365,10 @@ bool need_scale_out(const runtime_state runtime){
 void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
 
-	LOG(INFO)<<"scale in";
+
 	if(active_runtimes->size()<=server_num)
 		return;
+	LOG(INFO)<<"scale in";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
   LivenessCheckClient checker_source(grpc::CreateChannel(
