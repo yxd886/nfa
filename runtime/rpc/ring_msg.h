@@ -292,6 +292,8 @@ inline string opcode2string(rpc_operation code){
     case rpc_operation::get_stats:
       return_val = "get_stats";
       break;
+    case rpc_operation::shut_down:
+      return_val = "shut_down";
     default:
       return_val = "wtf??";
       break;

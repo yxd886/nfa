@@ -359,9 +359,10 @@ bool need_scale_out(const runtime_state runtime){
 }
 
 
-void scale_in(runtime_state runtime,std::vector<runtime_state>& active_runtimes){
+void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
 
+	LOG(INFO)<<"scale in";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
   LivenessCheckClient checker_source(grpc::CreateChannel(
@@ -371,10 +372,10 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>& active_runtimes)
 
   checker_source.ShutdownRuntime();
 
-  for(auto it=active_runtimes.begin();it!=active_runtimes.end();it++){
+  for(auto it=active_runtimes->begin();it!=active_runtimes->end();it++){
   	if(it->local_runtime==runtime.local_runtime){
 
-  		it=active_runtimes.erase(it);
+  		it=active_runtimes->erase(it);
   		break;
   	}
   }
@@ -384,8 +385,9 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>& active_runtimes)
 }
 
 
-void scale_out(runtime_state runtime,std::vector<runtime_state>& active_runtimes){
+void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
+	LOG(INFO)<<"scale out";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
   LivenessCheckClient checker_source(grpc::CreateChannel(
@@ -408,7 +410,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>& active_runtimes
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
   runtime_state tmp;
   checker_dest.GetRuntimeState(tmp);
-  active_runtimes.push_back(tmp);
+  active_runtimes->push_back(tmp);
 
 
 }
@@ -422,17 +424,19 @@ int main(int argc, char** argv) {
 
   while(1){
 
+
+  	sleep(1);
   	for(auto it=active_runtimes.begin();it!=active_runtimes.end();it++){
 
   		if(need_scale_out(*it)){
-  			scale_out(*it,active_runtimes);
-  			continue;
+  			scale_out(*it,&active_runtimes);
+  			break;
   		}
 
 
   		if(need_scale_in(*it)){
-  			scale_in(*it,active_runtimes);
-  			continue;
+  			scale_in(*it,&active_runtimes);
+  			break;
   		}
 
 
