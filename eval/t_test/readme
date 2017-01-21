@@ -1,0 +1,7 @@
+
+first update r2 r3 
+then
+
+argument passed by ssh  see start_r2.sh
+./tp_eval.py --r2=1 --r3=1 
+
