@@ -22,11 +22,11 @@ def parse_arguments():
 
   parser.add_option('', '--sc', action="store", type="string", dest="service_chain", help="chain rule", default="pkt_counter")
 
-  parser.add_option('', '--r1', action="store", type="int", dest="r1_number", help="How many rts in r1", default="3")
+  parser.add_option('', '--r1', action="store", type="int", dest="r1_number", help="How many rts in r1", default="1")
 
-  parser.add_option('', '--r2', action="store", type="int", dest="r2_number", help="How many rts in r2", default="0")
+  parser.add_option('', '--r2', action="store", type="int", dest="r2_number", help="How many rts in r2", default="1")
 
-  parser.add_option('', '--r3', action="store", type="int", dest="r3_number", help="How many rts in r3", default="0")
+  parser.add_option('', '--r3', action="store", type="int", dest="r3_number", help="How many rts in r3", default="1")
 
   options, args = parser.parse_args()
 
@@ -93,16 +93,15 @@ def start_r1(options):
     output, error = process.communicate()
 
 
-    time.sleep(3)
+    time.sleep(1)
     cmd="sudo ./start_r1.sh 6"
     process = subprocess.Popen(cmd, stdout=FNULL, shell=True)
     output, error = process.communicate()
 
-    time.sleep(3)
+    time.sleep(2)
     loop = not local_start_up_ok(6)
 
   print "R1 (Virutal Switch) Configuration Finished"
-  time.sleep(1)
 
 def start_r2(ssh, options):
   loop = True
@@ -110,7 +109,7 @@ def start_r2(ssh, options):
   while(loop):
     cmd="sudo ~/nfa/eval/t_test/clean_rt.sh"
     stdin,stdout,stderr =  ssh.exec_command(cmd);
-    time.sleep(2)
+    time.sleep(1)
 
     cmd="cd ~/nfa/eval/t_test && sudo ./start_r2.sh " + str(options.r2_number) +" "+ str(options.service_chain)
     stdin,stdout,stderr =  ssh.exec_command(cmd);
@@ -136,7 +135,6 @@ def start_r2(ssh, options):
       print "Successfully start all the runtimes on r2."
     loop = not success_flag
 
-  time.sleep(2)
   print "R2 (rt1, rt2, rt3) Configuration Finished"
 
 def start_r3(ssh, options):
@@ -145,7 +143,7 @@ def start_r3(ssh, options):
   while(loop):
     cmd="sudo ~/nfa/eval/t_test/clean_rt.sh"
     stdin,stdout,stderr =  ssh.exec_command(cmd);
-    time.sleep(2)
+    time.sleep(1)
 
     cmd="cd ~/nfa/eval/t_test && sudo ./start_r3.sh " + str(options.r3_number) +" "+ str(options.service_chain)
     stdin,stdout,stderr =  ssh.exec_command(cmd);
@@ -171,7 +169,6 @@ def start_r3(ssh, options):
       print "Successfully start all the runtimes on r3."
     loop = not success_flag
 
-  time.sleep(2)
   print "R3 (rt1, rt2, rt3) Configuration Finished"
 
 def start_traffic_gen(options):
@@ -179,7 +176,6 @@ def start_traffic_gen(options):
   #process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
   process = subprocess.Popen(cmd, stdout=FNULL, shell=True)
   output, error = process.communicate()
-
 
 def read_pkts(ssh,rt_num):
   cmd="sudo ~/nfa/deps/bess/bessctl/bessctl show port rt"+str(rt_num)+"_iport"

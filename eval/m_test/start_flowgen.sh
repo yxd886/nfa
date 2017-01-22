@@ -5,6 +5,9 @@ PWD=`pwd`
 
 ../../runtime/samples/nfa_rpc_client
 
+echo "Finish buildling up the topology. Sleep 1s"
+sleep 1
+
 #../../runtime/samples/replication_start
 
 echo "Adding connections to portout"
