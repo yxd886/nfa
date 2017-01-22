@@ -103,6 +103,7 @@ public:
     }
 
     uint64_t pop_num = ack_seq_num - head_seq_num_;
+    // this assert may be triggered!
     assert(pop_num<=cur_size_);
 
     for(uint64_t i=0; i<pop_num; i++){
