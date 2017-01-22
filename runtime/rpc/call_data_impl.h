@@ -7,6 +7,8 @@
 #include <chrono>
 #include <string>
 
+#include <glog/logging.h>
+
 #include "call_data_base.h"
 #include "../bessport/kmod/llring.h"
 #include "../nfaflags.h"
@@ -169,6 +171,8 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
   } else if (status_ == PROCESS) {
     create_itself();
 
+    LOG(INFO)<<"Receive AddOutputRts RPC";
+
     RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
     string local_addr = concat_with_colon(protobuf_local_runtime.rpc_ip(),
                                           std::to_string(protobuf_local_runtime.rpc_port()));
@@ -201,14 +205,18 @@ void derived_call_data<AddOutputRtsReq, AddOutputRtsRes>::Proceed(){
       Status status = stub->AddInputRt(&context, req, &rep);
 
       if(status.ok() && rep.has_local_runtime()){
+        LOG(INFO)<<"AddInputRt recursive call finishes.";
+
         runtime_config output_runtime = protobuf2local(rep.local_runtime());
 
         output_runtimes_.emplace(dest_addr, output_runtime);
 
         llring_item item(rpc_operation::add_output_runtime, output_runtime, 0, 0);
 
+        LOG(INFO)<<"In AddOutputRts, enqueue the item to the ring";
         llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
+        LOG(INFO)<<"In AddOutputRts, dequeue the item from the ring";
         poll_worker2rpc_ring();
       }
     }
@@ -230,6 +238,7 @@ void derived_call_data<AddInputRtReq, AddInputRtRep>::Proceed(){
     service_->RequestAddInputRt(&ctx_, &request_, &responder_, cq_, cq_, this);
   } else if (status_ == PROCESS) {
     create_itself();
+    LOG(INFO)<<"Receive AddInputRt RPC";
 
     runtime_config input_runtime = protobuf2local(request_.input_runtime());
     string input_runtime_addr = concat_with_colon(request_.input_runtime().rpc_ip(),
@@ -241,8 +250,10 @@ void derived_call_data<AddInputRtReq, AddInputRtRep>::Proceed(){
 
       llring_item item(rpc_operation::add_input_runtime, input_runtime, 0, 0);
 
+      LOG(INFO)<<"In AddInputRt, enqueue the item to the ring";
       llring_sp_enqueue(rpc2worker_ring_, static_cast<void*>(&item));
 
+      LOG(INFO)<<"In AddInputRt, dequeue the item from the ring";
       poll_worker2rpc_ring();
 
       RuntimeConfig protobuf_local_runtime =  local2protobuf(local_runtime_);
