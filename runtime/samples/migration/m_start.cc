@@ -53,8 +53,8 @@ int main(int argc, char** argv) {
   LOG(INFO)<<checker_r2_10242.SetMigrationTarget("202.45.128.156",10242,1000);
   LOG(INFO)<<checker_r2_10242.MigrateTo("202.45.128.156",10242,50000);
 
-  LOG(INFO)<<checker_r3_10243.SetMigrationTarget("202.45.128.156",10243,1000);
-  LOG(INFO)<<checker_r3_10243.MigrateTo("202.45.128.156",10243,50000);
+  LOG(INFO)<<checker_r2_10243.SetMigrationTarget("202.45.128.156",10243,1000);
+  LOG(INFO)<<checker_r2_10243.MigrateTo("202.45.128.156",10243,50000);
 
   LOG(INFO)<<checker_r3_10241.SetMigrationTarget("202.45.128.155",10241,1000);
   LOG(INFO)<<checker_r3_10241.MigrateTo("202.45.128.155",10241,50000);
