@@ -1,5 +1,5 @@
 
-#include "../rpc/livesness_check_client.h"
+#include "../../rpc/livesness_check_client.h"
 
 
 int main(int argc, char** argv) {

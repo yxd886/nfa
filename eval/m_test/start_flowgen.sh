@@ -3,7 +3,7 @@
 PWD=`pwd`
 
 
-../../runtime/samples/nfa_rpc_client
+../../runtime/samples/migration/m_init
 
 echo "Finish buildling up the topology. Sleep 1s"
 sleep 1
