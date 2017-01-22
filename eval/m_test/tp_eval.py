@@ -222,9 +222,9 @@ def test():
 
   start_traffic_gen(options)
 
-  print "Wait for 15 seconds to get traffic ramp up..."
+  print "Wait for 3 seconds to get traffic ramp up..."
 
-  time.sleep(15)
+  time.sleep(3)
 
   recovery_time = "";
   migration_time = "";
@@ -265,7 +265,7 @@ def test():
 
   before_time = time.time() * 1000
 
-  time.sleep(10)
+  time.sleep(3)
 
   tmp1,tmp2 = read_pkts(ssh_r2,1)
   after_received +=tmp1;
