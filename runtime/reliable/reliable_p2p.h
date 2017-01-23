@@ -141,6 +141,7 @@ public:
     }
 
     bess::Packet* ack_pkt = bess::Packet::Alloc();
+    assert(ack_pkt!=nullptr);
     if(ack_pkt == nullptr){
       return nullptr;
     }
@@ -297,7 +298,7 @@ private:
   bool is_connection_up_;
 
   // uint64_t print_timer_;
-  // uint64_t error_counter_;
+  uint64_t error_counter_ = 0;
 };
 
 #endif

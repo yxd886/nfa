@@ -115,14 +115,19 @@ ret = cp_l2forward.add([
 assert ret is None, 'Incorrect response'
 print 'adding cp_l2forward rule ok'
 
-#bess.add_worker(8, 8)
-#bess.attach_task("rt1_oport_portinc", 0, wid=8)
-#bess.attach_task("rt2_oport_portinc", 0, wid=8)
-#bess.attach_task("rt3_oport_portinc", 0, wid=8)
-#bess.attach_task("rt_pdport_portinc", 0, wid=8)
+bess.add_worker(7, 7)
+bess.attach_task("rt1_oport_portinc", 0, wid=7)
+bess.attach_task("rt2_oport_portinc", 0, wid=7)
+bess.attach_task("rt3_oport_portinc", 0, wid=7)
 
-#bess.add_worker(9, 9)
-#bess.attach_task("rt1_cport_portinc", 0, wid=9)
-#bess.attach_task("rt2_cport_portinc", 0, wid=9)
-#bess.attach_task("rt3_cport_portinc", 0, wid=9)
-#bess.attach_task("rt_pcport_portinc", 0, wid=9)
+bess.add_worker(8, 8)
+bess.attach_task("rt1_iport_portinc", 0, wid=8)
+bess.attach_task("rt2_iport_portinc", 0, wid=8)
+bess.attach_task("rt3_iport_portinc", 0, wid=8)
+bess.attach_task("rt_pdport_portinc", 0, wid=8)
+
+bess.add_worker(9, 9)
+bess.attach_task("rt1_cport_portinc", 0, wid=9)
+bess.attach_task("rt2_cport_portinc", 0, wid=9)
+bess.attach_task("rt3_cport_portinc", 0, wid=9)
+bess.attach_task("rt_pcport_portinc", 0, wid=9)
