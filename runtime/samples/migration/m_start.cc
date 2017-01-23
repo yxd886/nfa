@@ -1,5 +1,6 @@
 
 #include "../../rpc/livesness_check_client.h"
+#include <unistd.h>
 
 
 int main(int argc, char** argv) {
@@ -55,6 +56,9 @@ int main(int argc, char** argv) {
 
   LOG(INFO)<<checker_r2_10243.SetMigrationTarget("202.45.128.156",10243,1000);
   LOG(INFO)<<checker_r2_10243.MigrateTo("202.45.128.156",10243,50000);
+
+
+  sleep(2);
 
 
   LOG(INFO)<<checker_r3_10241.SetMigrationTarget("202.45.128.155",10241,1000);
