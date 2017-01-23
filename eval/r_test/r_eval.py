@@ -36,7 +36,7 @@ def start_migration():
 
 def detect_result(options, ssh, runtime):
   #for x in range(1, options.r3_number+1):
-  cmd="cat /home/net/nfa/eval/m_test/rt"+str(runtime)+"_log.log"
+  cmd="cat /home/net/nfa/eval/r_test/rt"+str(runtime)+"_log.log"
   stdin,stdout,stderr =  ssh.exec_command(cmd)
   success_flag = False
   time_result = ""
@@ -57,12 +57,12 @@ def test_migration():
   ssh_r2 = paramiko.SSHClient()
   ssh_r2.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r2.connect('202.45.128.155',username='net',password='netexplo')
-  ssh_r2.exec_command('cd ~/nfa/eval/m_test')
+  ssh_r2.exec_command('cd ~/nfa/eval/r_test')
 
   ssh_r3 = paramiko.SSHClient()
   ssh_r3.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r3.connect('202.45.128.156',username='net',password='netexplo')
-  ssh_r3.exec_command('cd ~/nfa/eval/m_test')
+  ssh_r3.exec_command('cd ~/nfa/eval/r_test')
 
   start_migration()
   

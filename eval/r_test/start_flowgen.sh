@@ -3,7 +3,7 @@
 PWD=`pwd`
 
 
-../../runtime/samples/migration/m_init
+../../runtime/samples/replication/r_init
 
 echo "Finish buildling up the topology. Sleep 1s"
 sleep 1
