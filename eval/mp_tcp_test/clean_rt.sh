@@ -2,7 +2,7 @@
 
 sudo kill -9 $(ps -ef | grep server_main | grep -v grep | awk '{print $2}')
 
-sudo rm ~/nfa/eval/m_test/*.log
+sudo rm ~/nfa/eval/mp_tcp_test/*.log
 
 sudo ../../deps/bess/bessctl/bessctl delete connection fg1 ogate
 
