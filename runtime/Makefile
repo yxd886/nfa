@@ -140,7 +140,7 @@ RECOVER_START_OBJS = $(filter-out main.o $(filter-out samples/recover_start.o,$(
 
 #for migration test
 DEDUPLICATION_INIT_EXEC = samples/deduplication/deduplication_init
-DEDUPLICATION_INIT_OBJS = $(filter-out main.o $(filter-out samples/mp_tcp/deduplication_init.o,$(SAMPLES_OBJS)),$(OBJS))
+DEDUPLICATION_INIT_OBJS = $(filter-out main.o $(filter-out samples/deduplication/deduplication_init.o,$(SAMPLES_OBJS)),$(OBJS))
 
 
 .PHONY: all clean tests protobuf
