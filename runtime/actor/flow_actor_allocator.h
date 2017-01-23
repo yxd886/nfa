@@ -11,8 +11,19 @@
 class flow_actor_allocator{
 
 public:
-  flow_actor_allocator(size_t max_actors) :
-    max_actors_(max_actors), next_flow_actor_id_(flow_actor_id_start), ring_buf_(max_actors) {
+  flow_actor_allocator(){
+    max_actors_ = 0;
+    next_flow_actor_id_ = 0;
+    flow_actor_array_ = nullptr;
+  }
+
+  void init(size_t max_actors){
+    assert(flow_actor_array_ == nullptr);
+
+    max_actors_ = max_actors;
+    next_flow_actor_id_ = flow_actor_id_start;
+    ring_buf_.init(max_actors);
+
     flow_actor_array_ = static_cast<flow_actor*>(mem_alloc(sizeof(flow_actor)*max_actors));
     for(size_t i=0; i<max_actors; i++){
       flow_actor_array_[i].set_id(invalid_flow_actor_id);
@@ -22,6 +33,10 @@ public:
                                                   &flow_actor_array_[i]);
       flow_actor_array_[i].get_replication_timer()->init(static_cast<uint16_t>(actor_type::flow_actor),
                                                   &flow_actor_array_[i]);
+      flow_actor_array_[i].set_up_pkt_processing_funcs();
+      flow_actor_array_[i].set_up_replication_processing_funcs();
+      flow_actor_array_[i].init_cdlist_item();
+      flow_actor_array_[i].init_buffer_head();
       ring_buf_.push(&flow_actor_array_[i]);
     }
   }

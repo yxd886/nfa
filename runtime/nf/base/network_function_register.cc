@@ -43,6 +43,18 @@ int network_function_register::compute_service_chain_length(uint64_t s){
   return length;
 }
 
+
+
+uint8_t network_function_register::look_up_id(std::string str){
+
+	auto it=name_id_map_.find(str);
+	if(it==name_id_map_.end()){
+		return 0;
+	}else{
+		return it->second;
+	}
+}
+
 network_function_register& static_nf_register::get_register(){
   static network_function_register reg;
 

@@ -37,5 +37,10 @@ DEFINE_string(default_input_mac,  "01:02:03:04:05:06", "Default mac address when
 
 DEFINE_string(default_output_mac, "02:03:04:05:06:07", "Default mac address when sending packets out from output port.");
 
+
 DEFINE_bool(mptcp_flag, false, "whether to launch the mptcp application.");
+
+DEFINE_string(service_chain, "null", "the type of service chain eg: firewall,http_parser,flow_monitor.");
+
+
 

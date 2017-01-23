@@ -211,6 +211,7 @@ enum class rpc_operation{
   add_storage,
   remove_replica,
   remove_storage,
+  recover,
   get_stats
 };
 
@@ -283,6 +284,9 @@ inline string opcode2string(rpc_operation code){
       break;
     case rpc_operation::remove_storage:
       return_val = "remove_storage";
+      break;
+    case rpc_operation::recover:
+      return_val = "recover";
       break;
     case rpc_operation::get_stats:
       return_val = "get_stats";

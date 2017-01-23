@@ -6,11 +6,16 @@
 #include "./base/reliable_message_misc.h"
 #include "../bessport/worker.h"
 
-static constexpr size_t pkt_sub_msg_cutting_thresh = 1522-55-2;
 
-static constexpr int initial_check_times = 50;
+static constexpr size_t pkt_msg_offset =
+    sizeof(reliable_header)+sizeof(reliable_message_header)+sizeof(uint64_t)+sizeof(uint8_t);
 
-static constexpr int next_check_times = 50;
+static constexpr size_t pkt_sub_msg_cutting_thresh = 1522 - pkt_msg_offset;
+
+
+static constexpr int initial_check_times = 5;
+
+static constexpr int next_check_times = 5;
 
 class coordinator;
 
@@ -29,9 +34,12 @@ public:
                      uint32_t recv_actor_id,
                      local_message_derived<N>,
                      T* cstruct_ptr){
+    if(is_connection_up_ == false || send_queue_.peek_remaining_size()==0){
+      return false;
+    }
+
     bess::Packet* cstruct_msg_pkt = create_cstruct_sub_msg(cstruct_ptr);
     if(unlikely(cstruct_msg_pkt == nullptr)){
-      assert(1==0);
       return false;
     }
 
@@ -44,15 +52,11 @@ public:
     msg_header->msg_type = N;
     msg_header->msg_pkt_num = 1;
 
-    bool flag = send_queue_.push(cstruct_msg_pkt);
-    if(unlikely(flag == false)){
-      bess::Packet::Free(cstruct_msg_pkt);
-      assert(1==0);
-      return false;
-    }
+    send_queue_.push(cstruct_msg_pkt);
 
     add_to_reliable_send_list(1);
 
+    // print_timer_ = 0;
     return true;
   }
 
@@ -62,6 +66,9 @@ public:
                      uint32_t recv_actor_id,
                      local_message_derived<N>,
                      bess::PacketBatch* batch){
+    if(is_connection_up_ == false || send_queue_.peek_remaining_size()<batch->cnt()){
+      return false;
+    }
 
     encode_binary_fs_sub_msg(batch);
 
@@ -75,16 +82,54 @@ public:
     msg_header->msg_pkt_num = batch->cnt();
 
 
-    bool flag = send_queue_.push(batch);
-    if(unlikely(flag == false)){
-      assert(1==0);
-      return false;
-    }
+    send_queue_.push(batch);
 
     add_to_reliable_send_list(batch->cnt());
 
     return true;
   }
+
+  template<uint16_t N>
+  bool reliable_send(uint32_t msg_id,
+                     uint32_t send_actor_id,
+                     uint32_t recv_actor_id,
+                     local_message_derived<N>,
+                     bess::PacketBatch* fs_state_batch,
+                     bess::Packet* dp_pkt){
+
+    int total_pkt_num = fs_state_batch->cnt()+1;
+    if(dp_pkt->data_len()>pkt_sub_msg_cutting_thresh){
+      total_pkt_num+=1;
+    }
+
+    if(total_pkt_num>send_queue_.peek_remaining_size()){
+      return false;
+    }
+
+    bess::PacketBatch dp_pkt_batch = create_packet_sub_msg(dp_pkt);
+    if(dp_pkt_batch.cnt() == 0){
+      return false;
+    }
+
+    encode_binary_fs_sub_msg(fs_state_batch);
+
+    reliable_message_header* fs_state_msg_header = reinterpret_cast<reliable_message_header*>(
+                                           fs_state_batch->pkts()[0]->prepend(sizeof(reliable_message_header)));
+
+    fs_state_msg_header->send_actor_id = send_actor_id;
+    fs_state_msg_header->recv_actor_id = recv_actor_id;
+    fs_state_msg_header->msg_id = msg_id;
+    fs_state_msg_header->msg_type = N;
+    fs_state_msg_header->msg_pkt_num = fs_state_batch->cnt()+dp_pkt_batch.cnt();
+
+    send_queue_.push(fs_state_batch);
+    send_queue_.push(&dp_pkt_batch);
+
+    add_to_reliable_send_list(fs_state_msg_header->msg_pkt_num);
+
+    return true;
+  }
+
 
   inline bess::PacketBatch get_send_batch(int batch_size){
     return send_queue_.get_window_batch(batch_size);
@@ -145,6 +190,10 @@ public:
     return &remote_rt_config_;
   }
 
+  inline bool check_connection_status(){
+    return is_connection_up_;
+  }
+
 private:
   void add_to_reliable_send_list(int pkt_num);
   void prepend_to_reliable_send_list(int pkt_num);
@@ -160,15 +209,14 @@ private:
       return nullptr;
     }
 
-    msg_pkt->set_data_off(SNBUF_HEADROOM);
-    msg_pkt->set_total_len(sizeof(T)+sizeof(uint8_t));
-    msg_pkt->set_data_len(sizeof(T)+sizeof(uint8_t));
+    msg_pkt->set_data_off(SNBUF_HEADROOM+pkt_msg_offset);
+    msg_pkt->set_total_len(sizeof(T)+sizeof(uint64_t));
+    msg_pkt->set_data_len(sizeof(T)+sizeof(uint64_t));
 
-    char* sub_msg_tag =  reinterpret_cast<char *>(msg_pkt->buffer()) +
-                         static_cast<size_t>(SNBUF_HEADROOM);
-    *sub_msg_tag = static_cast<char>(sub_message_type_enum::cstruct);
+    uint64_t* sub_msg_tag =  msg_pkt->head_data<uint64_t*>();
+    *sub_msg_tag = static_cast<uint64_t>(sub_message_type_enum::cstruct);
 
-    char* cstruct_msg_start = sub_msg_tag+1;
+    char* cstruct_msg_start = msg_pkt->head_data<char*>(sizeof(uint64_t));
     rte_memcpy(cstruct_msg_start, cstruct_msg, sizeof(T));
 
     return msg_pkt;
@@ -181,15 +229,16 @@ private:
     uint8_t* sub_msg_num = reinterpret_cast<uint8_t*>(batch->pkts()[0]->prepend(1));
     *sub_msg_num = batch->cnt();
 
-    char* sub_msg_tag = reinterpret_cast<char*>(batch->pkts()[0]->prepend(1));
-    *sub_msg_tag =  static_cast<char>(sub_message_type_enum::packet);
+    uint64_t* sub_msg_tag = reinterpret_cast<uint64_t*>(batch->pkts()[0]->prepend(sizeof(uint64_t)));
+    *sub_msg_tag =  static_cast<uint64_t>(sub_message_type_enum::binary_flow_state);
   }
 
   inline bess::PacketBatch create_packet_sub_msg(bess::Packet* pkt){
     bess::PacketBatch batch;
+    batch.clear();
 
     batch.add(pkt);
-    char* pkt_data_start = reinterpret_cast<char *>(pkt->buffer()) + pkt->data_off();
+    char* pkt_data_start = pkt->head_data<char*>();
 
     if(unlikely(pkt->data_len()>pkt_sub_msg_cutting_thresh)){
       bess::Packet* suplement_pkt = bess::Packet::Alloc();
@@ -200,12 +249,11 @@ private:
       }
 
       size_t suplement_pkt_size = pkt->data_len() - pkt_sub_msg_cutting_thresh;
-      suplement_pkt->set_data_off(SNBUF_HEADROOM);
+      suplement_pkt->set_data_off(SNBUF_HEADROOM+pkt_msg_offset);
       suplement_pkt->set_total_len(suplement_pkt_size);
       suplement_pkt->set_data_len(suplement_pkt_size);
 
-      char* suplement_pkt_data_start = reinterpret_cast<char *>(suplement_pkt->buffer()) +
-                                       static_cast<size_t>(SNBUF_HEADROOM);
+      char* suplement_pkt_data_start = suplement_pkt->head_data<char*>();
       rte_memcpy(suplement_pkt_data_start, pkt_data_start+pkt_sub_msg_cutting_thresh, suplement_pkt_size);
 
       batch.add(suplement_pkt);
@@ -214,13 +262,13 @@ private:
     uint8_t* sub_msg_num = reinterpret_cast<uint8_t*>(pkt->prepend(1));
     *sub_msg_num = batch.cnt();
 
-    char* sub_msg_tag = reinterpret_cast<char*>(pkt->prepend(1));
-    *sub_msg_tag =  static_cast<char>(sub_message_type_enum::packet);
+    uint64_t* sub_msg_tag = reinterpret_cast<uint64_t*>(pkt->prepend(sizeof(uint64_t)));
+    *sub_msg_tag =  static_cast<uint64_t>(sub_message_type_enum::packet);
 
     return batch;
   }
 
-  reliable_send_queue<4096> send_queue_;
+  reliable_send_queue<reliable_send_queue_size> send_queue_;
   uint32_t next_seq_num_to_recv_;
   int ref_cnt_;
 
@@ -241,10 +289,15 @@ private:
   uint32_t next_seq_num_to_recv_snapshot_;
 
   uint64_t next_check_time_;
-  uint64_t previous_check_time_;
   uint64_t last_check_head_seq_num_;
+  uint64_t consecutive_counter_;
 
   runtime_config remote_rt_config_;
+
+  bool is_connection_up_;
+
+  // uint64_t print_timer_;
+  // uint64_t error_counter_;
 };
 
 #endif

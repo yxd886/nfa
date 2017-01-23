@@ -7,9 +7,17 @@
 template<class T>
 class generic_ring_allocator{
 public:
-  generic_ring_allocator(size_t size){
+
+  generic_ring_allocator(){
+    max_size_ = 0;
+    obj_array_ = nullptr;
+  }
+
+  void init(size_t size){
+    assert(obj_array_ == nullptr);
     max_size_ = size;
     obj_array_ = static_cast<T*>(mem_alloc(size*sizeof(T)));
+    assert(obj_array_!=nullptr);
     ring_buf_.init(size);
     for(size_t i=0; i<size; i++){
       ring_buf_.push(&obj_array_[i]);
