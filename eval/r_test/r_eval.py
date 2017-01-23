@@ -9,9 +9,10 @@ import paramiko
 import re
 
 
-#I0122 18:07:42.905982 82940 coordinator_mp.cc:114] Successful migration : 500
-#I0122 18:07:42.905987 82940 coordinator_mp.cc:115] Failed migration : 0
-#I0122 18:07:42.905990 82940 coordinator_mp.cc:116] Null migration : 49500
+#I0123 21:05:52.516784 124278 coordinator_mp.cc:138] Successful recovery : 100002
+#I0123 21:05:52.516810 124278 coordinator_mp.cc:139] Failed recovery : 0
+#I0123 21:05:52.516814 124278 coordinator_mp.cc:144] Recovery takes 237ms.
+     
 
 def parse_arguments():
   parser = optparse.OptionParser()
@@ -26,11 +27,11 @@ def parse_arguments():
 
   return options,args
 
-def start_migration():
-  cmd="sudo ~/nfa/runtime/samples/migration/m_start"
+def start_recovery():
+  cmd="sudo ~/nfa/runtime/samples/replication/r_recover"
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
   output, error = process.communicate()
-  print "Migration started and wait 5 seconds"
+  print "Recover started and wait 5 seconds"
   time.sleep(5)
 
 
@@ -43,40 +44,35 @@ def detect_result(options, ssh, runtime):
   flow_result = ""
   number = ""
   for line in stdout:
-    if line.find("Successful migration")!=-1:
-      number = line[line.find("Successful migration"):]
+    if line.find("Successful recovery")!=-1:
+      number = line[line.find("Successful recovery"):]
       success_flag = True
-    if line.find("Migration takes") > 0:
-      time_result = line[line.find("Migration takes")+16:-2]
+    if line.find("Recovery takes") > 0:
+      time_result = line[line.find("Recovery takes")+15:-2]
   time.sleep(1)
   return str(success_flag)+" "+str(number)+" "+str(time_result)
 
-def test_migration():
+def test_recovery():
   options,args = parse_arguments()
 
   ssh_r2 = paramiko.SSHClient()
   ssh_r2.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r2.connect('202.45.128.155',username='net',password='netexplo')
-  ssh_r2.exec_command('cd ~/nfa/eval/r_test')
 
   ssh_r3 = paramiko.SSHClient()
   ssh_r3.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r3.connect('202.45.128.156',username='net',password='netexplo')
-  ssh_r3.exec_command('cd ~/nfa/eval/r_test')
 
-  start_migration()
+  start_recovery()
   
-  print "r2 rt1 migration - "+str(detect_result(options, ssh_r2, 1))
-  print "r2 rt2 migration - "+str(detect_result(options, ssh_r2, 2))
-  print "r2 rt3 migration - "+str(detect_result(options, ssh_r2, 3))
-  print "r3 rt1 migration - "+str(detect_result(options, ssh_r2, 1))
-  print "r3 rt2 migration - "+str(detect_result(options, ssh_r2, 2))
-  print "r3 rt3 migration - "+str(detect_result(options, ssh_r2, 3))
+  print "r3 rt1 recovery - "+str(detect_result(options, ssh_r3, 1))
+  print "r3 rt2 recovery - "+str(detect_result(options, ssh_r3, 2))
+  print "r3 rt3 recovery - "+str(detect_result(options, ssh_r3, 3))
 
 
 def main():
 
-  test_migration()
+  test_recovery()
 
 if __name__ == "__main__" :
   main()
