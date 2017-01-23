@@ -29,6 +29,7 @@ $(shell mkdir -p $(DEPDIR)/reliable > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable/base > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/real_rpc_basic > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/migration > /dev/null)
+$(shell mkdir -p $(DEPDIR)/samples/mp_tcp > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/deduplication > /dev/null)
 $(shell mkdir -p $(DEPDIR)/utils > /dev/null)
 
