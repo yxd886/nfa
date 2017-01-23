@@ -172,10 +172,7 @@ ip = scapy.IP(src='10.0.0.1', dst='10.0.0.2')   # dst IP is overwritten
 payload = ('hello' + '0123456789' * 200)[:pkt_size-len(eth/ip/tcp)]
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
-fg1::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
-
-fg1::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
-
+fg1::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
 ip = scapy.IP(src='10.0.0.3', dst='10.0.0.4')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
