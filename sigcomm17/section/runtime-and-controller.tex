@@ -1,31 +1,4 @@
-\section{Design}
-
-The design of NFActor framework follows the following principles.
-
-\begin{itemize}
-
-\item \textbf{Low Overhead.} Modern NFV system needs to process millions of network packet every second. Therefore, the execution context that the NFActor creates for each flow must be a light-weight one. It should only incur a small overhead when processing network packet. In NFActor framework, we implement our own actor programming model, which allows us to do some aggressive optimizations to minimize the overhead. On the other hand, we completely abandons kernel network stack and and create a reliable message passing module with DPDK \cite{dpdk} to transmit messages during the execution of flow management tasks. This approach reduces the overhead of expensive context switching and further speed up flow management tasks.
-
-\item \textbf{Scalability.} Modern NFV system must have good scalability, so that it can accommodate to varying network traffic. To achieve good scalability, NFActor framework provides a uniform runtime system and create a NFActor cluster using the runtime system. Within this cluster, the runtime system could automatically balance workload and perform flow management tasks without the coordination from a centralized controller.
-
-\end{itemize}
-
-\subsection{Overview of NFActor Framework}
-
-\begin{figure}[!t]
-  \centering
-  \includegraphics[width=\columnwidth]{figure/new-nfactor-cluster.pdf}
-  \caption{An overview of NFActor framework.}
-  \label{fig:runtime}
-\end{figure}
-
-%以下两图展示了nfactor系统的基本架构。nfactor框架将统一的运行时系统组成cluster。在这个nfactor cluster内，细粒度的流管理可以被快速的执行。这个cluster由一个轻量级的控制器进行控制以实现动态扩展，和开启流迁移以及容错。
-
-Figure \ref{fig:runtime} demonstrates the basic architecture of NFActor framework, consisting of a light-weight controller, input and output virtual switches and several runtime systems (referred to as \textit{runtime} in short). NFActor framework runs virtual switches and runtimes inside containers, so that they can be quickly rebooted in case of failure and elastically scaled in case of overload.
-
-In NFActor framework, incoming dataplane flows are first sent to the input virtual switch, which dispatches them to runtimes in a round-rubin fashion. The runtime hosts a NF service chain that is determined during runtime initialization and processes incoming flows. When a runtime receives a new flow, it creates a new actor and delegates the packet processing of the flow to that actor. The actor loads all the required NF modules of the service chain when it is created and passes the received flow packet to these NF modules in sequence. Once the service chain processing is finished, the actor sends the packet to an output virtual switch, where the packet is sent to its final destination.
-
-The controller monitors the workload of each runtime and controls dynamic scaling. It also uses control RPCs exposed by the runtime to initiate flow management tasks, including flow migration and replication.
+\section{Runtime and Controller}
 
 \subsection{Runtime}
 
@@ -77,30 +50,6 @@ The following three RPCs enables the controller to initiate flow management task
 \item \textbf{Recovering Failed Runtime.} If the RPC target is the replication target runtime of the failed runtime, then flows replicated on the RPC target are directly recovered on the RPC target.
 
 \end{itemize}
-
-\subsection{NF Module}
-
-\begin{figure}[!h]
-\begin{subfigure}[t]{0.49\linewidth}
-   \centering
-   \includegraphics[width=\columnwidth]{figure/nf-module-api-init.pdf}
-   \caption{The API that is used to initialize flow state when the flow actor is created.}\label{fig:init-api}
-  \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.49\linewidth}
- \centering
-   \includegraphics[width=\columnwidth]{figure/nf-module-api-process_pkt.pdf}
-   \caption{The API that is used to process input packet.}\label{fig:pkt-process-api} \end{subfigure}\hfill
- \caption{The API exposed by NFActor for implementing new NF modules. (NF: Network function. FS: Flow state. pkt: packet.)}
-\label{fig:api}
-\end{figure}
-
-Each NF used by NFActor is implemented as a loadable module. The runtime system could select which NF module to load and use. In order to achieve the service chain processing as indicated in figure \ref{fig:runtime-arch}, we pass in an argument indicating the composition of the service chain before initializing a runtime. The runtime guarantees that each flow actor processes the packet through each NF as indicated in the service chain. The modular NF design is similar to that in NetBricks \cite{199352}, however, NFActor modifies the interface exposed by the NF module to achieve efficient flow management.
-
-When executing flow management tasks, flow actor must be able to extract and transmit the flow states of all the NFs on the service chain, without disturbing the normal service chain processing. To speed up this process, we propose to separate the flow state with the processing logic of the NF module, and store the flow state inside the flow actor.
-
-We summarize the core APIs used by NFActor to construct new NF modules in figure \ref{fig:api}. Using these APIs, the flow actor could acquire a new flow state when it is created. When the flow actor processes a packet, the flow actor passes the current flow state and the input packet together into the processing logic of a NF module. The processing logic could directly update the flow state according to the input packet. Since the flow state is stored by the flow actor, the flow actor could directly manipulate its flow state when executing flow management tasks, without disturbing the NF processing logic.
-
-Even though this design facilitates flow management tasks, it has its own limitation. Using this design, it is hard to extract and tranismit shared states. However, it is a complicated tasks to guaratee the consistency of shared states when managing a single flow. It may require multiple synchronizations, thereby affecting the processing speed of a single flow management task. Sice our primary goal when designing NFActor is to provide a high performance exeuction context, we do not aim to synchronize shared state. Instead, when flow management affects the consistency of the shared state, we could explicitly notify the NF about the result of flow management tasks and let NF module to handle the inconsistecy.
 
 \subsection{Flow Management}
 

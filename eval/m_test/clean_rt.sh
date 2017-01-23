@@ -20,5 +20,3 @@ sudo ../../deps/bess/bessctl/bessctl delete connection fg5 ogate
 
 
 sudo ../../deps/bess/bessctl/bessctl delete connection fg6 ogate
-
-

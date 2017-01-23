@@ -498,17 +498,22 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
   batch.add(pkt);
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reliable_send(
+  bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reliable_send(
                                                   msg_id,
                                                   actor_id_,
                                                   migration_target_actor_id_,
                                                   migrate_flow_state_t::value,
                                                   &batch);
-
-  coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
-                                                ctx.current_ns(),
-                                                msg_id,
-                                                static_cast<uint16_t>(flow_actor_messages::migrate_flow_state_timeout));
+  if(flag == false){
+    coordinator_actor_->gp_collector_.collect(&batch);
+    failure_handling();
+  }
+  else{
+    coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
+                                                  ctx.current_ns(),
+                                                  msg_id,
+                                                  static_cast<uint16_t>(flow_actor_messages::migrate_flow_state_timeout));
+  }
 }
 
 // the final migration transaction
