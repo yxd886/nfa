@@ -47,8 +47,11 @@ int main(int argc, char** argv) {
   LOG(INFO)<<"r3 rt2"<<checker_r3_10242.Check();
   LOG(INFO)<<"r3 rt3"<<checker_r3_10243.Check();
 
-
   checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
+  checker_r1_10241.SingleAddOutputRt("202.45.128.156",10241);
+
+
+  /*checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
   checker_r1_10241.AddOutputMac("202.45.128.155",10241);
 
   checker_r1_10241.SingleAddOutputRt("202.45.128.155",10242);
@@ -156,5 +159,5 @@ int main(int argc, char** argv) {
   checker_r1_10246.SingleAddOutputRt("202.45.128.156",10243);
   checker_r1_10246.AddOutputMac("202.45.128.156",10243);
 
-  return 0;
+  return 0;*/
 }
