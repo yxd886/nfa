@@ -4,3 +4,4 @@ sudo ../../runtime/samples/real_rpc_basic/server_main --runtime_id=2 --input_por
 --output_port_mac="52:54:02:00:00:02" --control_port_mac="52:54:02:00:00:03" --rpc_ip="127.0.0.1" --rpc_port=10241 \
 --input_port="rt2_iport" --output_port="rt2_oport" --control_port="rt2_cport" --worker_core=2 --deduplicate_flag=true \
 --deduplicate_rtm_id=3
+

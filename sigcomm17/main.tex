@@ -1,0 +1,66 @@
+\documentclass{sig-alternate-10pt}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\usepackage{url}
+\usepackage{graphicx, color}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[subrefformat=parens]{subcaption}
+\usepackage{amsmath}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{multirow}
+\usepackage[noend]{algpseudocode}
+\usepackage{enumerate}
+\usepackage{arydshln}
+\usepackage{diagbox}
+\usepackage{comment}
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage{cleveref}
+\usepackage{listings}
+
+%\pagestyle{plain}
+
+\def\eg{\textit{e.g.}}
+\def\ie{\textit{i.e.}}
+\def\nfactor{\textit{NFActor}}
+
+\begin{document}
+
+\title{\Large \bf NFActor: A Distributed Actor Framework for Building Resillient NFV Systems}
+
+\author{
+Paper \#44, xx pages
+}
+
+\maketitle
+
+\begin{abstract}
+
+The quick development of Network Function Virtualization (NFV) urges researchers to develop new functionalities for NFV system besides maximizing packet processing capacity. Among these new functionalities, resilience functionalities, such as flow migration and fault tolerance, are hard to tackle and yet very useful in production environment. However, implementing flow migration and fault tolerance requires manually modifying the source code of NF software and providing a control channel for message passing, which may be very tedious to implement and difficult to get right.
+
+In this paper, we present NFActor framework, a framework for building transparently resilient NFV system using actor programming model. NFActor framework provides a set of APIs for constructing NF modules and NF modules written for NFActor framework are transparently resilient. This enables implementers to focus on the core logic design of NF modules without worrying about providing interfaces to implement resilience. Due to the use of actor framework, NFActor provides a very fast migration protocol and a lightweight flow replication protocol.
+
+The evaluation result shows that: First, using NFActor does not incur a significant overhead when processing packet normally and NFActor framework scales well. Second, NFActor out-performs existing works on flow migration by more than 50\% in flow migration completion time. Third, NFActor achieves a consistent recovery time even under increased workload.
+
+
+\end{abstract}
+
+\input{section/introduction.tex}
+\input{section/background.tex}
+\input{section/overview.tex}
+\input{section/module-api.tex}
+\input{section/runtime-and-controller.tex}
+\input{section/implementation.tex}
+\input{section/evaluation.tex}
+%\input{section/discussion.tex}
+\input{section/related-work.tex}
+\input{section/conclusion.tex}
+
+\bibliographystyle{abbrv}
+\bibliography{bibliography}
+
+\end{document}

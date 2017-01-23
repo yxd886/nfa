@@ -46,20 +46,23 @@ void reverse_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
     flow_actor* actor = 0;
 
     if(unlikely(actor_ptr==nullptr)){
-      actor = coordinator_actor_->allocator_->allocate();
+      actor = coordinator_actor_->allocator_.allocate();
 
       if(unlikely(actor==nullptr)){
         LOG(WARNING)<<"No available flow actors to allocate";
         actor = coordinator_actor_->deadend_flow_actor_;
       }
       else{
+        generic_list_item* replica_item = coordinator_actor_->replicas_rrlist_.rotate();
+
         coordinator_actor_->active_flows_rrlist_.add_to_tail(actor);
 
         send(actor, flow_actor_init_with_pkt_t::value,
              coordinator_actor_,
              reinterpret_cast<flow_key_t*>(keys[i]),
              coordinator_actor_->service_chain_,
-             dp_pkt_batch.pkts()[i]);
+             dp_pkt_batch.pkts()[i],
+             replica_item);
       }
 
       coordinator_actor_->htable_.Set(reinterpret_cast<flow_key_t*>(keys[i]), &actor);

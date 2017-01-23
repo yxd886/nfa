@@ -9,7 +9,7 @@ void recv_reliable_msgack::customized_init(coordinator* coordinator_actor){
 }
 
 void recv_reliable_msgack::ProcessBatch(bess::PacketBatch *batch){
-  coordinator_actor_->ec_scheduler_batch_.clear();
+  coordinator_actor_->gb_.clear();
   for(int i=0; i<batch->cnt(); i++){
     char* data_start = batch->pkts()[i]->head_data<char*>();
 
@@ -36,9 +36,15 @@ void recv_reliable_msgack::ProcessBatch(bess::PacketBatch *batch){
     msg_ptr->clean(&(coordinator_actor_->gp_collector_));
   }
 
-  if(coordinator_actor_->ec_scheduler_batch_.cnt()>0){
-    RunSplit(coordinator_actor_->ec_scheduler_gates_,
-             &(coordinator_actor_->ec_scheduler_batch_));
+  int last_batch_pos = coordinator_actor_->gb_.get_batch_pos();
+
+  for(int i=0; i<last_batch_pos; i++){
+    RunSplit(coordinator_actor_->gb_.get_gate(i), coordinator_actor_->gb_.get_batch(i));
+  }
+
+  bess::PacketBatch* last_batch = coordinator_actor_->gb_.get_batch(last_batch_pos);
+  if(last_batch->cnt()>0){
+    RunSplit(coordinator_actor_->gb_.get_gate(last_batch_pos), last_batch);
   }
 }
 

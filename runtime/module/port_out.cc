@@ -1,6 +1,8 @@
 #include "port_out.h"
 #include "../bessport/message.h"
 
+#include <glog/logging.h>
+
 void PortOut::ProcessBatch(bess::PacketBatch *batch) {
   /* TODO: choose appropriate out queue */
   const uint8_t qid = 0;
@@ -12,12 +14,13 @@ void PortOut::ProcessBatch(bess::PacketBatch *batch) {
 
   const packet_dir_t dir = PACKET_DIR_OUT;
 
-  for (int i = 0; i < sent_pkts; i++)
+  for (int i = 0; i < sent_pkts; i++){
     sent_bytes += batch->pkts()[i]->total_len();
+  }
 
-  port_->queue_stats[dir][qid].packets += sent_pkts;
-  port_->queue_stats[dir][qid].dropped += (batch->cnt() - sent_pkts);
-  port_->queue_stats[dir][qid].bytes += sent_bytes;
+    port_->queue_stats[dir][qid].packets += sent_pkts;
+    port_->queue_stats[dir][qid].dropped += (batch->cnt() - sent_pkts);
+    port_->queue_stats[dir][qid].bytes += sent_bytes;
 
 
   if (sent_pkts < batch->cnt()) {

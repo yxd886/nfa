@@ -10,7 +10,7 @@
 #include <glog/logging.h>
 #include "../../rpc/ring_msg.h"
 
-static constexpr uint64_t default_rtt = 5000;
+static constexpr uint64_t default_rtt = 20000;
 
 static constexpr uint64_t default_rtt_count_times = 1;
 
@@ -37,7 +37,8 @@ public:
 
     rh_.ethh.d_addr = *(reinterpret_cast<struct ether_addr*>(&dest_rt_mac));
     rh_.ethh.s_addr = *(reinterpret_cast<struct ether_addr*>(&local_rt_mac));
-    rh_.ethh.ether_type = 0x0800;
+    rh_.ethh.ether_type = 0x0008;
+
     rh_.iph.version_ihl = 0x45;
     rh_.iph.fragment_offset = rte_cpu_to_be_16(IPV4_HDR_DF_FLAG);
     rh_.iph.time_to_live = 64;
@@ -97,15 +98,16 @@ public:
 
   inline void pop(uint32_t ack_seq_num, garbage_pkt_collector* gp_collector){
 
-    if(unlikely(cur_size_ == 0)){
+    if(unlikely(cur_size_ == 0 || ack_seq_num<=head_seq_num_ || ack_seq_num>next_seq_num_)){
       return;
     }
 
     uint64_t pop_num = ack_seq_num - head_seq_num_;
+    // this assert may be triggered!
     assert(pop_num<=cur_size_);
 
     for(uint64_t i=0; i<pop_num; i++){
-      gp_collector->collect(ring_buf_[head_pos_+i]);
+      gp_collector->collect(ring_buf_[(head_pos_+i)&mask]);
     }
 
     uint64_t current_ns = rdtsc()*ns_per_cycle_;
@@ -131,26 +133,20 @@ public:
       window_size = pending_send_num_;
     }
 
+    uint64_t pos;
     uint64_t current_ns = rdtsc()*ns_per_cycle_;
-    if(unlikely(window_pos_+window_size>=N)){
-      for(uint64_t i=window_pos_; i<N; i++ ){
-        batch.add(bess::Packet::copy(ring_buf_[i]));
-        send_time_[i] = current_ns;
-        // LOG(INFO)<<"send packet with seq "<<window_pos_seq_num_+i-window_pos_<<" at "<<ctx.current_ns();
+
+    for(pos=0; pos<window_size; pos++){
+      bess::Packet* pkt_copy = bess::Packet::copy(ring_buf_[(window_pos_+pos)&mask]);
+      if(unlikely(pkt_copy == nullptr)){
+        break;
       }
-      for(uint64_t i=0; i<(window_size-N+window_pos_); i++){
-        batch.add(bess::Packet::copy(ring_buf_[i]));
-        send_time_[i] = current_ns;
-        // LOG(INFO)<<"send packet with seq "<<window_pos_seq_num_+N-window_pos_+i<<" at "<<ctx.current_ns();
-      }
+
+      batch.add(pkt_copy);
+      send_time_[(window_pos_+pos)&mask] = current_ns;
     }
-    else{
-      for(uint64_t i=window_pos_; i<(window_pos_+window_size); i++){
-        batch.add(bess::Packet::copy(ring_buf_[i]));
-        send_time_[i] = current_ns;
-        // LOG(INFO)<<"send packet with seq "<<window_pos_seq_num_+i-window_pos_<<" at "<<ctx.current_ns();
-      }
-    }
+
+    window_size = pos;
 
     window_pos_ = (window_pos_+window_size)&mask;
     pending_send_num_ -= window_size;
@@ -178,6 +174,21 @@ public:
   inline uint64_t peek_cur_size(){
     return cur_size_;
   }
+
+  inline uint64_t peek_remaining_size(){
+    return N-cur_size_;
+  }
+
+  /*inline void print(){
+    LOG(INFO)<<"head_pos_: "<<head_pos_<<"\n"
+        <<"head_seq_num_: "<<head_seq_num_<<"\n"
+        <<"tail_pos_: "<<tail_pos_<<"\n"
+        <<"next_seq_num_: "<<next_seq_num_<<"\n"
+        <<"cur_size_: "<<cur_size_<<"\n"
+        <<"window_pos_: "<<window_pos_<<"\n"
+        <<"window_pos_seq_num_: "<<window_pos_seq_num_<<"\n"
+        <<"pending_send_num_: "<<pending_send_num_;
+  }*/
 
 private:
   inline int smaller(uint64_t first, uint64_t second){

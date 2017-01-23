@@ -26,6 +26,7 @@ service Runtime_RPC {
   rpc ReplicaNegotiate(ReplicaNegotiateReq) returns (ReplicaNegotiateRep){}
   rpc DeleteReplica(DeleteReplicaReq) returns (DeleteReplicaRep){}
   rpc DeleteStorage(DeleteStorageReq) returns (DeleteStorageRep){}
+  rpc Recover(RecoverReq) returns (RecoverRep){}
   
   rpc GetRuntimeState(GetRuntimeStateReq) returns (GetRuntimeStateRep){}
 }
@@ -177,6 +178,13 @@ message DeleteStorageReq{
 }
 
 message DeleteStorageRep{
+}
+
+message RecoverReq{
+  Address addr = 1;
+}
+
+message RecoverRep{
 }
 
 message PortState{

@@ -25,10 +25,18 @@ DECLARE_int32(worker_core);
 DECLARE_string(default_input_mac);
 DECLARE_string(default_output_mac);
 
+
 DECLARE_bool(deduplicate_flag);
 
 DECLARE_bool(deduplicate_target_flag);
 
 DECLARE_int32(deduplicate_rtm_id);
+
+
+DECLARE_bool(mptcp_flag);
+
+DECLARE_string(service_chain);
+
+
 
 #endif

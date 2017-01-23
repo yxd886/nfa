@@ -43,3 +43,10 @@ DEFINE_bool(deduplicate_target_flag, false ,"choose whether to become the migrat
 
 DEFINE_int32(deduplicate_rtm_id, -1, "select a runtime for deduplication");
 
+DEFINE_bool(mptcp_flag, false, "whether to launch the mptcp application.");
+
+DEFINE_string(service_chain, "null", "the type of service chain eg: firewall,http_parser,flow_monitor.");
+
+
+
+
