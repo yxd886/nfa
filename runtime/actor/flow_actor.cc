@@ -170,41 +170,6 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
 
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
-
-<<<<<<< HEAD
-
-  if(FLAGS_deduplicate_target_flag&&is_duplicate_packet(pkt)){
-
-  	coordinator_actor_->gp_collector_.collect(pkt);
-
-  }else{
-
-  	for(size_t i=0; i<service_chain_length_; i++){
-  		rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-  		nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
-  	}
-
-  	rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
-
-  	coordinator_actor_->ec_scheduler_batch_.add(pkt);
-
-  }
-
-=======
-<<<<<<< HEAD
-
-
-	for(size_t i=0; i<service_chain_length_; i++){
-		rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-		nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
-	}
-
-	rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
-
-	coordinator_actor_->ec_scheduler_batch_.add(pkt);
-
-
-=======
   pkt_counter_ = 0;
   sample_counter_ = 0;
 
@@ -244,8 +209,6 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
 
   cdlist_head_init(&buffer_head_);
->>>>>>> master
->>>>>>> deduplication_test
 }
 
 // flow actor idle checking
@@ -361,17 +324,31 @@ void flow_actor::replication_output(bess::Packet* pkt){
 void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){
   pkt_counter_+=1;
 
+
+
+
+	if(FLAGS_deduplicate_target_flag&&is_duplicate_packet(pkt)){
+
+		coordinator_actor_->gp_collector_.collect(pkt);
+
+	}else{
+
+	  for(size_t i=0; i<service_chain_length_; i++){
+	    rte_prefetch0(fs_.nf_flow_state_ptr[i]);
+	    nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
+	  }
+
+	  rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
+
+	  (this->*replication_funcs_[replication_state_])(pkt);
+
+	}
+
+
   // output phase, ogate 0 of ec_scheduler is connected to the output port.
   // ogate 1 of ec_scheduler is connected to a sink
 
-  for(size_t i=0; i<service_chain_length_; i++){
-    rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-    nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
-  }
 
-  rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
-
-  (this->*replication_funcs_[replication_state_])(pkt);
 }
 
 void flow_actor::pkt_migration_target_processing(bess::Packet* pkt){
