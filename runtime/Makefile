@@ -147,10 +147,10 @@ M_START_EXEC = samples/migration/m_start
 M_START_OBJS = $(filter-out main.o $(filter-out samples/migration/m_start.o,$(SAMPLES_OBJS)),$(OBJS))
 
 R_INIT_EXEC = samples/replication/r_init
-R_INIT_OBJS = $(filter-out main.o $(filter-out samples/migration/r_init.o,$(SAMPLES_OBJS)),$(OBJS))
+R_INIT_OBJS = $(filter-out main.o $(filter-out samples/replication/r_init.o,$(SAMPLES_OBJS)),$(OBJS))
 
 R_START_EXEC = samples/replication/r_start
-R_START_OBJS = $(filter-out main.o $(filter-out samples/migration/r_start.o,$(SAMPLES_OBJS)),$(OBJS))
+R_START_OBJS = $(filter-out main.o $(filter-out samples/replication/r_start.o,$(SAMPLES_OBJS)),$(OBJS))
 .PHONY: all clean tests protobuf
 
 all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(R_INIT_EXEC) $(R_START_EXEC)
