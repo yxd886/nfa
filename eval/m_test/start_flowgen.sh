@@ -3,12 +3,12 @@
 PWD=`pwd`
 
 
-../../runtime/samples/replication/r_init
+../../runtime/samples/migration/m_init
 
 echo "Finish buildling up the topology. Sleep 1s"
 sleep 1
 
-../../runtime/samples/replication/r_start
+#../../runtime/samples/replication_start
 
 echo "Adding connections to portout"
 sudo ../../deps/bess/bessctl/bessctl add connection fg1 rt1_iport_portout

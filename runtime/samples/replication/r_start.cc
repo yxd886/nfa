@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
   LOG(INFO)<<checker_r2_10242.AddReplicas("202.45.128.156",10242);
 
 
-  LOG(INFO)<<checker_r2_10243.AddReplicas("202.45.128.156",10243);
+  // LOG(INFO)<<checker_r2_10243.AddReplicas("202.45.128.156",10243);
 
  /* LOG(INFO)<<checker_r3_10241.SetMigrationTarget("202.45.128.155",10241,1000);
   LOG(INFO)<<checker_r3_10241.MigrateTo("202.45.128.155",10241,50000);

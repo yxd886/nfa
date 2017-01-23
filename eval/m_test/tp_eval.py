@@ -61,7 +61,7 @@ def remote_start_up_ok(ssh, num_of_rts):
 
   for x in range(1, num_of_rts+1):
 
-    cmd="cat /home/net/nfa/eval/r_test/rt"+str(x)+"_log.log"
+    cmd="cat /home/net/nfa/eval/m_test/rt"+str(x)+"_log.log"
     print cmd
     stdin,stdout,stderr =  ssh.exec_command(cmd)
     success_flag = False
@@ -107,17 +107,17 @@ def start_r2(ssh, options):
   loop = True
   success_flag = False;
   while(loop):
-    cmd="sudo ~/nfa/eval/r_test/clean_rt.sh"
+    cmd="sudo ~/nfa/eval/m_test/clean_rt.sh"
     stdin,stdout,stderr =  ssh.exec_command(cmd);
     time.sleep(1)
 
-    cmd="cd ~/nfa/eval/r_test && sudo ./start_r2.sh " + str(options.r2_number) +" "+ str(options.service_chain)
+    cmd="cd ~/nfa/eval/m_test && sudo ./start_r2.sh " + str(options.r2_number) +" "+ str(options.service_chain)
     stdin,stdout,stderr =  ssh.exec_command(cmd);
     time.sleep(2)
 
     success_flag = True;
     for x in range(1, options.r2_number+1):
-      cmd="cat /home/net/nfa/eval/r_test/rt"+str(x)+"_log.log"
+      cmd="cat /home/net/nfa/eval/m_test/rt"+str(x)+"_log.log"
       stdin,stdout,stderr =  ssh.exec_command(cmd)
       success_flag = False
 
@@ -141,17 +141,17 @@ def start_r3(ssh, options):
   loop = True
   success_flag = False;
   while(loop):
-    cmd="sudo ~/nfa/eval/r_test/clean_rt.sh"
+    cmd="sudo ~/nfa/eval/m_test/clean_rt.sh"
     stdin,stdout,stderr =  ssh.exec_command(cmd);
     time.sleep(1)
 
-    cmd="cd ~/nfa/eval/r_test && sudo ./start_r3.sh " + str(options.r3_number) +" "+ str(options.service_chain)
+    cmd="cd ~/nfa/eval/m_test && sudo ./start_r3.sh " + str(options.r3_number) +" "+ str(options.service_chain)
     stdin,stdout,stderr =  ssh.exec_command(cmd);
     time.sleep(2)
 
     success_flag = True;
     for x in range(1, options.r3_number+1):
-      cmd="cat /home/net/nfa/eval/r_test/rt"+str(x)+"_log.log"
+      cmd="cat /home/net/nfa/eval/m_test/rt"+str(x)+"_log.log"
       stdin,stdout,stderr =  ssh.exec_command(cmd)
       success_flag = False
 
@@ -206,12 +206,12 @@ def test():
   ssh_r2 = paramiko.SSHClient()
   ssh_r2.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r2.connect('202.45.128.155',username='net',password='netexplo')
-  ssh_r2.exec_command('cd ~/nfa/eval/r_test')
+  ssh_r2.exec_command('cd ~/nfa/eval/m_test')
 
   ssh_r3 = paramiko.SSHClient()
   ssh_r3.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r3.connect('202.45.128.156',username='net',password='netexplo')
-  ssh_r3.exec_command('cd ~/nfa/eval/r_test')
+  ssh_r3.exec_command('cd ~/nfa/eval/m_test')
 
   print "Start runtimes..."
   start_r1(options)
