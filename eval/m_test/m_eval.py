@@ -69,9 +69,9 @@ def test_migration():
   print "r2 rt1 migration - "+str(detect_result(options, ssh_r2, 1))
   print "r2 rt2 migration - "+str(detect_result(options, ssh_r2, 2))
   print "r2 rt3 migration - "+str(detect_result(options, ssh_r2, 3))
-  print "r3 rt1 migration - "+str(detect_result(options, ssh_r2, 1))
-  print "r3 rt2 migration - "+str(detect_result(options, ssh_r2, 2))
-  print "r3 rt3 migration - "+str(detect_result(options, ssh_r2, 3))
+  print "r3 rt1 migration - "+str(detect_result(options, ssh_r3, 1))
+  print "r3 rt2 migration - "+str(detect_result(options, ssh_r3, 2))
+  print "r3 rt3 migration - "+str(detect_result(options, ssh_r3, 3))
 
 
 def main():
