@@ -158,21 +158,6 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
 
   flow_key_ = *flow_key;
   coordinator_actor_ = coordinator_actor;
-
-<<<<<<< HEAD
-
-
-	for(size_t i=0; i<service_chain_length_; i++){
-		rte_prefetch0(fs_.nf_flow_state_ptr[i]);
-		nfs_.nf[i]->nf_logic(pkt, fs_.nf_flow_state_ptr[i]);
-	}
-
-	rte_memcpy(pkt->head_data(), &(output_header_.ethh), sizeof(struct ether_hdr));
-
-	coordinator_actor_->ec_scheduler_batch_.add(pkt);
-
-
-=======
   pkt_counter_ = 0;
   sample_counter_ = 0;
 
@@ -212,7 +197,7 @@ void flow_actor::handle_message(flow_actor_init_with_first_rep_pkt_t,
                                                 static_cast<uint16_t>(flow_actor_messages::check_idle));
 
   cdlist_head_init(&buffer_head_);
->>>>>>> master
+
 }
 
 // flow actor idle checking
