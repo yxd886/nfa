@@ -98,7 +98,7 @@ public:
 
   inline void pop(uint32_t ack_seq_num, garbage_pkt_collector* gp_collector){
 
-    if(unlikely(cur_size_ == 0)){
+    if(unlikely(cur_size_ == 0 || ack_seq_num<=head_seq_num_ || ack_seq_num>next_seq_num_)){
       return;
     }
 

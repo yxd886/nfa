@@ -65,8 +65,8 @@ struct task_result coordinator_mp::RunTask(void *arg){
     }
   }*/
 
-  /*for(int i=0; i<32; i++){
-    if((coordinator_actor_->migration_qouta_==0) || (coordinator_actor_->outgoing_migrations_>1024)){
+  for(int i=0; i<32; i++){
+    if((coordinator_actor_->migration_qouta_==0) || (coordinator_actor_->outgoing_migrations_>256)){
       break;
     }
 
@@ -144,7 +144,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
     LOG(INFO)<<"Recovery takes "<<time<<"ms.";
 
     local_replication_iteration += 1;
-  }*/
+  }
 
   /*if(ctx.current_ns()>start_time){
     LOG(INFO)<<"The number of the flow in the htable is "<<coordinator_actor_->htable_.Count();

@@ -107,7 +107,7 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
 
   LOG(INFO)<<"Recevie ping message!";
 
-  if(counter==0){
+  /*if(counter==0){
     start_time = ctx.current_ns();
   }
 
@@ -117,7 +117,7 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
     LOG(INFO)<<"Receive "<<counter<<" messages.";
     uint64_t total_time = ctx.current_ns()-start_time;
     LOG(INFO)<<"The total transmission time is "<<(total_time/1000000)<<"ms";
-  }
+  }*/
 }
 
 void coordinator::handle_message(pong_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
