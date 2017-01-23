@@ -139,13 +139,13 @@ RECOVER_START_EXEC = samples/recover_start
 RECOVER_START_OBJS = $(filter-out main.o $(filter-out samples/recover_start.o,$(SAMPLES_OBJS)),$(OBJS))
 
 #for migration test
-MP_TCP_INIT_EXEC = samples/mp_tcp/mp_tcp_init
-MP_TCP_INIT_OBJS = $(filter-out main.o $(filter-out samples/mp_tcp/mp_tcp_init.o,$(SAMPLES_OBJS)),$(OBJS))
+DEDUPLICATION_INIT_EXEC = samples/deduplication/deduplication_init
+DEDUPLICATION_INIT_OBJS = $(filter-out main.o $(filter-out samples/mp_tcp/deduplication_init.o,$(SAMPLES_OBJS)),$(OBJS))
 
 
 .PHONY: all clean tests protobuf
 
-all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(MP_TCP_INIT_EXEC)
+all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(DEDUPLICATION_INIT_EXEC)
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -261,8 +261,8 @@ $(eval $(call BUILD, \
 	
 $(eval $(call BUILD, \
 	LD, \
-	$$(MP_TCP_INIT_EXEC), \
-	$$(MP_TCP_INIT_OBJS), \
+	$$(DEDUPLICATION_INIT_EXEC), \
+	$$(DEDUPLICATION_INIT_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 	
 
