@@ -75,7 +75,7 @@ struct rr_lists{
 
 struct migration_target_source_holder{
   uint64_t migration_qouta_;
-  int32_t migration_target_rt_id_;
+  uint32_t migration_target_rt_id_;
   uint64_t outgoing_migrations_;
   fixed_array<int32_t> migration_targets_;
 };
@@ -106,7 +106,7 @@ struct migration_stats{
 };
 
 struct replication_stats{
-  int32_t storage_rtid_;
+  uint32_t storage_rtid_;
   uint64_t out_going_recovery_;
 
   uint64_t recovery_iteration_;

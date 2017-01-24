@@ -42,6 +42,7 @@ struct task_result handle_command::RunTask(void *arg){
                                                    &(item->rt_config));
 
         coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.output_port_mac), &r);
+        LOG(INFO)<<"Finish creating a reliable to input runtime";
         break;
       }
       case rpc_operation::add_output_runtime :{
@@ -55,6 +56,18 @@ struct task_result handle_command::RunTask(void *arg){
                                                                  &(item->rt_config));
 
         coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.input_port_mac), &r);
+
+        uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+        ping_cstruct cstruct;
+        bool flag = r->reliable_send(
+                                     msg_id,
+                                     coordinator_actor_id,
+                                     coordinator_actor_id,
+                                     ping_t::value,
+                                     &cstruct);
+        assert(flag == true);
+
+        LOG(INFO)<<"Finish creating a reliable to output runtime";
         break;
       }
       case rpc_operation::delete_input_runtime :{
@@ -157,6 +170,16 @@ struct task_result handle_command::RunTask(void *arg){
           coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.control_port_mac), &r);
 
           r->inc_ref_cnt();
+
+          uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+          ping_cstruct cstruct;
+          bool flag = r->reliable_send(
+                                       msg_id,
+                                       coordinator_actor_id,
+                                       coordinator_actor_id,
+                                       ping_t::value,
+                                       &cstruct);
+          assert(flag == true);
         }
         else{
           r->inc_ref_cnt();
@@ -231,6 +254,16 @@ struct task_result handle_command::RunTask(void *arg){
           coordinator_actor_->mac_to_reliables_.Set(&(item->rt_config.control_port_mac), &r);
 
           r->inc_ref_cnt();
+
+          uint32_t msg_id = coordinator_actor_->allocate_msg_id();
+          ping_cstruct cstruct;
+          bool flag = r->reliable_send(
+                                       msg_id,
+                                       coordinator_actor_id,
+                                       coordinator_actor_id,
+                                       ping_t::value,
+                                       &cstruct);
+          assert(flag == true);
         }
         else{
           r->inc_ref_cnt();
@@ -297,7 +330,7 @@ struct task_result handle_command::RunTask(void *arg){
         break;
       }
       case rpc_operation::recover: {
-        if(coordinator_actor_->storage_rtid_ == -1){
+        if(coordinator_actor_->storage_rtid_ == 0){
           coordinator_actor_->storage_rtid_ = item->rt_config.runtime_id;
 
           coordinator_actor_->recovery_iteration_ +=1;
@@ -320,6 +353,7 @@ struct task_result handle_command::RunTask(void *arg){
         break;
     }
 
+    LOG(INFO)<<"The worker thread put the item to the ring";
     llring_sp_enqueue(coordinator_actor_->worker2rpc_ring_, static_cast<void*>(item));
   }
 

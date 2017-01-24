@@ -18,7 +18,9 @@ public:
       bess::Packet::Free(&garbage_pkt_batch);
       garbage_pkt_batch.clear();
     }
-    garbage_pkt_batch.CopyAddr(batch->pkts(), batch->cnt());
+    for(int i=0; i<batch->cnt(); i++){
+      garbage_pkt_batch.add(batch->pkts()[i]);
+    }
   }
 
   inline void init(){

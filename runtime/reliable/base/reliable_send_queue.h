@@ -98,11 +98,12 @@ public:
 
   inline void pop(uint32_t ack_seq_num, garbage_pkt_collector* gp_collector){
 
-    if(unlikely(cur_size_ == 0)){
+    if(unlikely(cur_size_ == 0 || ack_seq_num<=head_seq_num_ || ack_seq_num>next_seq_num_)){
       return;
     }
 
     uint64_t pop_num = ack_seq_num - head_seq_num_;
+    // this assert may be triggered!
     assert(pop_num<=cur_size_);
 
     for(uint64_t i=0; i<pop_num; i++){
@@ -177,6 +178,17 @@ public:
   inline uint64_t peek_remaining_size(){
     return N-cur_size_;
   }
+
+  /*inline void print(){
+    LOG(INFO)<<"head_pos_: "<<head_pos_<<"\n"
+        <<"head_seq_num_: "<<head_seq_num_<<"\n"
+        <<"tail_pos_: "<<tail_pos_<<"\n"
+        <<"next_seq_num_: "<<next_seq_num_<<"\n"
+        <<"cur_size_: "<<cur_size_<<"\n"
+        <<"window_pos_: "<<window_pos_<<"\n"
+        <<"window_pos_seq_num_: "<<window_pos_seq_num_<<"\n"
+        <<"pending_send_num_: "<<pending_send_num_;
+  }*/
 
 private:
   inline int smaller(uint64_t first, uint64_t second){

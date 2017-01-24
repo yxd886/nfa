@@ -13,7 +13,7 @@
 #include "traffic_class.h"
 #include "utils/common.h"
 
-#define MAX_WORKERS 4
+#define MAX_WORKERS 20
 
 #define MAX_MODULES_PER_PATH 256
 

@@ -40,6 +40,9 @@ reliable_p2p::reliable_p2p(uint64_t local_rt_mac, uint64_t dest_rt_mac,
   cur_msg_.init();
 
   is_connection_up_ = true;
+
+  // print_timer_ = 0;
+  // error_counter_ = 0;
 }
 
 reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
@@ -52,9 +55,18 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
+    error_counter_+=1;
+    if(error_counter_>16){
+      // LOG(INFO)<<"Expecting: "<<next_seq_num_to_recv_;
+      // LOG(INFO)<<"Receiving: "<<rh->seq_num;
+      error_counter_=0;
+      next_seq_num_to_recv_snapshot_ = next_seq_num_to_recv_-1;
+    }
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
+
+  error_counter_ = 0;
 
   next_seq_num_to_recv_ += 1;
   if(batch_.cnt()==0){
@@ -69,7 +81,14 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 
   if(batch_.cnt() == cur_msg_.rmh.msg_pkt_num){
-    cur_msg_.format(&batch_);
+    bool flag = cur_msg_.format(&batch_);
+    if(unlikely(flag == false)){
+      coordinator_actor_->gp_collector_.collect(&batch_);
+      batch_.clear();
+      cur_msg_.clean(&(coordinator_actor_->gp_collector_));
+      return nullptr;
+    }
+
     batch_.clear();
     return &cur_msg_;
   }
@@ -85,7 +104,8 @@ void reliable_p2p::check(uint64_t current_ns){
       prepend_to_reliable_send_list(num_to_send);
 
       consecutive_counter_ += 1;
-      if(consecutive_counter_ == 25000){ // around 500ms to connection down.
+      if(consecutive_counter_ == 5000){ // around 10s to connection down.
+        LOG(INFO)<<"Connection to "<<dest_rtid_<<" down!!!!!";
         is_connection_up_ = false;
         reset();
         next_seq_num_to_recv_ = 0;
@@ -99,6 +119,17 @@ void reliable_p2p::check(uint64_t current_ns){
     next_check_time_ = current_ns + next_check_times*send_queue_.peek_rtt();
     last_check_head_seq_num_ = send_queue_.peek_head_seq_num();
   }
+  /*if(ctx.current_ns()>print_timer_ && remote_rt_config_.runtime_id!=2){
+    LOG(INFO)<<"Runtime id: "<<remote_rt_config_.runtime_id<<"\n"
+             <<"Conection status: "<<is_connection_up_<<"\n"
+             <<"consecutive_counter_: "<<consecutive_counter_<<"\n"
+             <<"last_check_head_seq_num_: "<<last_check_head_seq_num_<<"\n"
+             <<"next_seq_num_to_recv_snapshot_: "<<next_seq_num_to_recv_snapshot_<<"\n"
+             <<"next_seq_num_to_recv_: "<<next_seq_num_to_recv_;
+    send_queue_.print();
+
+    print_timer_ = ctx.current_ns()+3000000000;
+  }*/
 }
 
 void reliable_p2p::reset(){

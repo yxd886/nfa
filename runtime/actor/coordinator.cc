@@ -41,7 +41,7 @@ coordinator::coordinator(llring_holder& holder){
   default_output_mac_ = convert_string_mac(FLAGS_default_output_mac);
 
   migration_qouta_ = 0;
-  migration_target_rt_id_ = -1;
+  migration_target_rt_id_ = 0;
   outgoing_migrations_ = 0;
   migration_targets_.init(relloc_size);
 
@@ -60,7 +60,7 @@ coordinator::coordinator(llring_holder& holder){
   migration_target_buffer_size_counter_ = 0;
   migrated_in_flow_num_ = 0;
 
-  storage_rtid_ = -1;
+  storage_rtid_ = 0;
   out_going_recovery_ = 0;
 
   recovery_iteration_ = 0;
@@ -95,7 +95,7 @@ void coordinator::handle_message(remove_flow_t, flow_actor* flow_actor, flow_key
 void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
                                  ping_cstruct* cstruct_ptr){
 
-  /*pong_cstruct cstruct;
+  pong_cstruct cstruct;
   cstruct.val = 1024;
   bool flag = reliables_.find(sender_rtid)->reliable_send(77364, 1, 1, pong_t::value, &cstruct);
   if(flag==false){
@@ -103,19 +103,21 @@ void coordinator::handle_message(ping_t, int32_t sender_rtid, uint32_t sender_ac
   }
   else{
     LOG(INFO)<<"Succeed to send the message";
-  }*/
+  }
 
-  if(counter==0){
+  LOG(INFO)<<"Recevie ping message!";
+
+  /*if(counter==0){
     start_time = ctx.current_ns();
   }
 
   counter += 1;
 
-  if(counter == 32*1000000){
+  if(counter == 2*32*1000000){
     LOG(INFO)<<"Receive "<<counter<<" messages.";
     uint64_t total_time = ctx.current_ns()-start_time;
     LOG(INFO)<<"The total transmission time is "<<(total_time/1000000)<<"ms";
-  }
+  }*/
 }
 
 void coordinator::handle_message(pong_t, int32_t sender_rtid, uint32_t sender_actor_id, uint32_t msg_id,
@@ -233,9 +235,6 @@ void coordinator::handle_message(replica_recover_t,
                                               &cstruct);
 }
 
-
-
-
 uint64_t coordinator::parse_service_chain(string str){
 	std::string::size_type pos;
 	std::string pattern(",");
@@ -267,7 +266,5 @@ uint64_t coordinator::parse_service_chain(string str){
   }
   LOG(INFO)<<"service_chain: "<<hex<<service_chain;
   return service_chain;
-
-
 }
 

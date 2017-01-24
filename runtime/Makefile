@@ -28,6 +28,8 @@ $(shell mkdir -p $(DEPDIR)/nf/httpparser > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable/base > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/real_rpc_basic > /dev/null)
+$(shell mkdir -p $(DEPDIR)/samples/migration > /dev/null)
+$(shell mkdir -p $(DEPDIR)/samples/replication > /dev/null)
 $(shell mkdir -p $(DEPDIR)/utils > /dev/null)
 
 # e.g., 4.9.3 -> 40903
@@ -119,21 +121,6 @@ SAMPLES_SRCS = $(wildcard samples/*.cc)
 SAMPLES_SRCS += $(wildcard samples/*/*.cc)
 SAMPLES_OBJS = $(SAMPLES_SRCS:.cc=.o)
 
-PROCESS_PACKET_EXEC = samples/process_packets
-PROCESS_PACKET_OBJS = $(filter-out main.o $(filter-out samples/process_packets.o,$(SAMPLES_OBJS)),$(OBJS))
-
-RPC_TEST_CLIENT_EXEC = samples/simple_rpc_client
-RPC_TEST_CLIENT_OBJS = $(filter-out main.o $(filter-out samples/simple_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
-
-RPC_TEST_SERVER_EXEC = samples/simple_rpc_server
-RPC_TEST_SERVER_OBJS = $(filter-out main.o $(filter-out samples/simple_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
-
-SIMPLE_RPC_RECURSIVE_EXEC = samples/simple_rpc_recursive_server
-SIMPLE_RPC_RECURSIVE_OBJS = $(filter-out main.o $(filter-out samples/simple_rpc_recursive_server.o,$(SAMPLES_OBJS)),$(OBJS))
-
-NFA_RPC_SERVER_EXEC = samples/nfa_rpc_server
-NFA_RPC_SERVER_OBJS = $(filter-out main.o $(filter-out samples/nfa_rpc_server.o,$(SAMPLES_OBJS)),$(OBJS))
-
 NFA_RPC_CLIENT_EXEC = samples/nfa_rpc_client
 NFA_RPC_CLIENT_OBJS = $(filter-out main.o $(filter-out samples/nfa_rpc_client.o,$(SAMPLES_OBJS)),$(OBJS))
 
@@ -152,13 +139,33 @@ REPLICATION_START_OBJS = $(filter-out main.o $(filter-out samples/replication_st
 RECOVER_START_EXEC = samples/recover_start
 RECOVER_START_OBJS = $(filter-out main.o $(filter-out samples/recover_start.o,$(SAMPLES_OBJS)),$(OBJS))
 
+
 DYNAMIC_SCALE_EXEC = samples/dynamic_scale
 DYNAMIC_SCALE_OBJS = $(filter-out main.o $(filter-out samples/dynamic_scale.o,$(SAMPLES_OBJS)),$(OBJS))
+
+#for migration test
+M_INIT_EXEC = samples/migration/m_init
+M_INIT_OBJS = $(filter-out main.o $(filter-out samples/migration/m_init.o,$(SAMPLES_OBJS)),$(OBJS))
+
+M_START_EXEC = samples/migration/m_start
+M_START_OBJS = $(filter-out main.o $(filter-out samples/migration/m_start.o,$(SAMPLES_OBJS)),$(OBJS))
+
+R_INIT_EXEC = samples/replication/r_init
+R_INIT_OBJS = $(filter-out main.o $(filter-out samples/replication/r_init.o,$(SAMPLES_OBJS)),$(OBJS))
+
+R_START_EXEC = samples/replication/r_start
+R_START_OBJS = $(filter-out main.o $(filter-out samples/replication/r_start.o,$(SAMPLES_OBJS)),$(OBJS))
+
+R_RECOVER_EXEC = samples/replication/r_recover
+R_RECOVER_OBJS = $(filter-out main.o $(filter-out samples/replication/r_recover.o,$(SAMPLES_OBJS)),$(OBJS))
+
 
 
 .PHONY: all clean tests protobuf
 
+
 all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(DYNAMIC_SCALE_EXEC)
+
 
 clean:
 	rm -rf $(EXEC) .deps/*.d .deps/*/*.d *_test */*_test *_bench */*_bench \
@@ -235,35 +242,6 @@ $(eval $(call BUILD, \
 	$$(AR) rcs $$@ $$^))
 
 # The rule for linking samples are added below here.
-$(eval $(call BUILD, \
-	LD, \
-	$$(PROCESS_PACKET_EXEC), \
-	$$(PROCESS_PACKET_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-	
-$(eval $(call BUILD, \
-	LD, \
-	$$(RPC_TEST_CLIENT_EXEC), \
-	$$(RPC_TEST_CLIENT_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-	
-$(eval $(call BUILD, \
-	LD, \
-	$$(RPC_TEST_SERVER_EXEC), \
-	$$(RPC_TEST_SERVER_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-
-$(eval $(call BUILD, \
-	LD, \
-	$$(SIMPLE_RPC_RECURSIVE_EXEC), \
-	$$(SIMPLE_RPC_RECURSIVE_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-	
-$(eval $(call BUILD, \
-	LD, \
-	$$(NFA_RPC_SERVER_EXEC), \
-	$$(NFA_RPC_SERVER_OBJS), \
-	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 	
 $(eval $(call BUILD, \
 	LD, \
@@ -300,6 +278,7 @@ $(eval $(call BUILD, \
 	$$(RECOVER_START_EXEC), \
 	$$(RECOVER_START_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
+	
 	
 $(eval $(call BUILD, \
 	LD, \

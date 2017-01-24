@@ -35,16 +35,6 @@ class PacketBatch {
                cnt * sizeof(Packet *));
   }
 
-  void CopyAddr(Packet** start_addr, int copy_num){
-    assert((copy_num+cnt_)<=32);
-
-    rte_memcpy(reinterpret_cast<void *>(pkts_+cnt_),
-               reinterpret_cast<const void *>(start_addr),
-               copy_num*sizeof(Packet*));
-
-    cnt_ += copy_num;
-  }
-
   static const size_t kMaxBurst = 32;
 
  private:

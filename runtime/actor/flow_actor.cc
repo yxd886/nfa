@@ -21,11 +21,13 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
 
   if(replica_item!=nullptr){
     replication_state_ = have_replica;
-    r_ = coordinator_actor_->reliables_.find(3);
+    r_ = coordinator_actor_->reliables_.find(replica_item->replica_rtid_);
     r_->inc_ref_cnt();
+    // LOG(INFO)<<"Flow is initailized with replica on runtime "<<r_->get_rt_config()->runtime_id;
   }
   else{
     replication_state_ = no_replica;
+    // LOG(INFO)<<"No replica";
   }
 
   int32_t input_rtid;
@@ -263,7 +265,7 @@ void flow_actor::replication_output(bess::Packet* pkt){
 
   bess::Packet* fs_state_pkt = bess::Packet::Alloc();
   assert(fs_state_pkt!=nullptr);
-  fs_state_pkt->set_data_off(SNBUF_HEADROOM);
+  fs_state_pkt->set_data_off(SNBUF_HEADROOM+pkt_msg_offset);
   fs_state_pkt->set_total_len(2*(sizeof(uint32_t)+sizeof(struct ether_addr)));
   fs_state_pkt->set_data_len(2*(sizeof(uint32_t)+sizeof(struct ether_addr)));
   rte_memcpy(fs_state_pkt->head_data(),
@@ -275,7 +277,7 @@ void flow_actor::replication_output(bess::Packet* pkt){
   bess::PacketBatch batch;
   batch.clear();
   batch.add(fs_state_pkt);
-
+  // LOG(INFO)<<"Sending packets to replica";
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   bool flag = r_->reliable_send(msg_id,
                                 actor_id_,
@@ -285,6 +287,7 @@ void flow_actor::replication_output(bess::Packet* pkt){
                                 pkt);
 
   if(unlikely(flag == false)){
+    // LOG(INFO)<<"Fail to send packets to replica";
     coordinator_actor_->gp_collector_.collect(&batch);
     coordinator_actor_->gp_collector_.collect(pkt);
   }
@@ -490,7 +493,7 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
   current_state_ = flow_actor_migration_source_after_route_change;
 
   bess::Packet* pkt = bess::Packet::Alloc();
-  pkt->set_data_off(SNBUF_HEADROOM);
+  pkt->set_data_off(SNBUF_HEADROOM+pkt_msg_offset);
   pkt->set_total_len(fs_size_.nf_flow_state_size[0]);
   pkt->set_data_len(fs_size_.nf_flow_state_size[0]);
   bess::PacketBatch batch;
@@ -498,17 +501,22 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
   batch.add(pkt);
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reliable_send(
+  bool flag = coordinator_actor_->reliables_.find(coordinator_actor_->migration_target_rt_id_)->reliable_send(
                                                   msg_id,
                                                   actor_id_,
                                                   migration_target_actor_id_,
                                                   migrate_flow_state_t::value,
                                                   &batch);
-
-  coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
-                                                ctx.current_ns(),
-                                                msg_id,
-                                                static_cast<uint16_t>(flow_actor_messages::migrate_flow_state_timeout));
+  if(flag == false){
+    coordinator_actor_->gp_collector_.collect(&batch);
+    failure_handling();
+  }
+  else{
+    coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
+                                                  ctx.current_ns(),
+                                                  msg_id,
+                                                  static_cast<uint16_t>(flow_actor_messages::migrate_flow_state_timeout));
+  }
 }
 
 // the final migration transaction
