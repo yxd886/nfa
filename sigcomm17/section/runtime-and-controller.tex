@@ -10,7 +10,7 @@
 \label{fig:runtime-arch}
 \end{figure}
 
-Figure \ref{fig:runtime-arch} demonstrates the internal architecture of a runtime. The runtime serves as a uniform program to run actors. \nfactor~runs each runtime inside a container for fast boot up. The uniform runtime design increases the scalability of~\nfactor, as \nfactor could be horizontally scaled up by adding more runtimes. \nfactor runs each runtime inside a container for quick boot up.
+Figure \ref{fig:runtime-arch} demonstrates the internal architecture of a runtime. The runtime serves as a uniform program to run actors. \nfactor~runs each runtime inside a container for fast boot up and assigns each runtime with a global unique ID to ease management. The uniform runtime design increases the scalability of~\nfactor, as \nfactor could be horizontally scaled up by adding more runtimes.
 
 The runtime consists of a single worker thread for actor scheduling, and an RPC thread for receiving RPC requests sent from the controller. The single-worker-thread design guarantees a sequential actor execution order, therefore completely eliminate the need to protect message passing by lock, resulting in a good performance achieved by \nfactor. It is configured with three ports, from which it can send and receive packets. Input packets of the runtime are first sent to a flow classifier, which uses traditional flow-5-tuple (i.e. IP destination address, IP source address, transmission layer protocol, source port and destination port) as the key to classify flows. The flow classifier creates one flow actor for each new flow and forwards all the flow packets to that flow actor.
 
@@ -26,36 +26,35 @@ There is a coordinator actor who is responsible for executing the RPC requests s
 
 \subsection{Virtual Switch}
 
-The virtual switch is a special runtime without service chain. Therefore, the flow actor created by the virtual switch does not need to do service chain processing and only performs virtual switching. Flow actors in the virtual switch are referred to as virtual switch actors throughout the rest of this paper.
+The virtual switch is a special runtime without service chain, it automatically balances the input traffic among all the runtimes, increasing the scalability of the system. We refer to the flow actor created by the virtual switch as virtual switch actor throughout this paper.
 
-When a virtual switch actor is created by the virtual switch, it selects one of the available runtimes as its destination runtime in a round-robin way. \nfactor uses round-robin algorithm because round-robin algorithm imposes the smallest overhead. Whenever the virtual switch actor receives an input packet, it replaces the destination MAC address of that of the input packet with the MAC address of the input port of the destination runtime, and modifies the source MAC address of the input packet into the MAC address of the output port of the virtual switch, it then sends the packet out from the output port.
+The virtual switch actor selects one of the available runtimes as its destination runtime in a round-robin way when it is created. Round-robin algorithm is used because it imposes the smallest overhead. Whenever the virtual switch actor receives an input packet, it replaces the destination MAC address of the packet to destination runtime's input port MAC address, and modifies the source MAC address of the input packet to virtual switch's output port mac address. it then sends the packet out from the output port.
 
-The flow actor on the destination runtime could analyze the source MAC address of the packet and determine which virtual switch this packet comes from. This helps the flow actor to contact the virtual switch actor during flow migration and replication to change flow route \ref{}.
-
-The virtual switch provides automatic load-balancing inside a NFActor cluster as shown in figure \ref{fig:runtime}, thereby improving the scalability of NFActor framework. When there is overload, the controller could launch a new runtime and the workload could be automatically balanced on that runtime. The architectural consistency of virtual switch and runtime also facilitates flow management tasks, as it enables direct communication between flow actors and virtual switch actors to dynamically change flow route \ref{} in a fully distributed fashion.
+The architectural consistency of virtual switch and runtime also facilitates flow migration and replication. The flow actor on the destination runtime could analyze the source MAC address of the packet and determine which virtual switch this packet comes from. This enables the flow actor to contact the virtual switch actor during flow migration and replication to change the destination runtime selected by the virtual switch actor \ref{}.
 
 \subsection{Controller and Control RPCs}
 
 %运行时系统暴露了一系列RPC以供controller进行调用。这些rpc可以分为以下几类：控制流管理任务的rpc仅仅
 
-The controller in NFActor is a light-weight one. It is responsible for monitoring the workload of each runtime, executes dynamic scaling. This is similar with NFV system controllers in E2 \cite{palkar2015e2} and Stratos \cite{gember2012stratos}. The most important difference of our controller is that it only needs to participate in the initiation phase of flow migration and replication. Due to the use of actor programming model, there is no need for the controller to coordinate flow migration and replication as in OpenNF \cite{gember2015opennf} and Split/Merge \cite{rajagopalan2013split}.
+The \nfactor's controller is responsible for monitoring the workload of each runtime and executing dynamic scaling. Due to the use of light-weight and distributed flow actors, the controller only needs to participate in the initiation phase of flow migration and replication. This feature differentiates \nfactor's controller with the controllers in OpenNF \cite{gember2015opennf} and Split/Merge \cite{rajagopalan2013split}, which need to fully coordinate the entire flow migration process. This simplifies the design of the controller and improve the failure resilience, as the controller does not need to maintain complicated states associated with flow migration.
 
-The controller communicates with runtime and virtual switches using a series of control RPCs. The use of control RPCs decouples the execution of the runtime with the execution of the controller and decreases the complexity in developing the controller. The controller uses control RPCs to poll workload information and notifies virtual switches and runtimes about the configuration information of each other. The configuration information includes mac address of the input/output/control port and ID of runtime/virtual switch. Virtual switches and runtimes can use the configuration information to contact each other \ref{}.
+The controller manages \nfactor~using a series of control RPCs exposed by each runtime, which are summarized in Table \ref{table:rpc}. The controller uses PollWorkload RPC to acquire the current workload on a runtime and generates dynamic scaling decision. The controller maintains the configuration of the cluster, which include the mac address of input/output/control port and the ID of all the runtime and virtual switches. The controller notifies the cluster configuration to a runtime using NotifyClusterCfg RPC. The last three RPCs are used to initiate flow migration and replication. After issuing these three calls, migration and replication are automatically executed without further involving with the controller.
 
-The following three RPCs enables the controller to initiate flow management tasks. The details of these RPCs are further illustrated in \ref{}.
-
-\begin{itemize}
-
-\item \textbf{Migrating Flows to Migration Target Runtime.} This RPC call sets up a migration target runtime for the RPC target and indicates the number of flows to migrate. When this call finishes, the RPC target should start migrating flows to the migration target.
-
-% 设置replication target。 为一个runtime设置replication target。replication target和当前runtime也必须处于同一个layer。当设置好replication target后，新到来的流就会被replicate到replication target上。
-
-\item \textbf{Setting up Repliation Target Runtime.} This RPC call sets up a replication target runtime. When this call finishes, the RPC target should start replicating new flows to the replication target runtime.
-
-% 恢复 failed runtime. 如果当前runtime 时failed runtime的replication target，那么保存在当前runtime上的flow replica就会被直接在当前runtime上恢复过来。
-\item \textbf{Recovering Failed Runtime.} If the RPC target is the replication target runtime of the failed runtime, then flows replicated on the RPC target are directly recovered on the RPC target.
-
-\end{itemize}
+\begin{table}[!h]
+\centering
+\caption{Control RPCs exposed from each runtime.}
+\label{table:rpc}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|l}
+Control RPC                                                                                   & Functionality                                                                                                                                              \\ \hline
+PollWorkload()                                                                                   & \begin{tabular}[c]{@{}l@{}}Poll the workload information \\ from the runtime.\end{tabular}                                                                 \\ \hline
+NotifyClusterCfg(cfg)                                                                         & \begin{tabular}[c]{@{}l@{}}Notify a runtime the current \\ cluster configuration.\end{tabular}                                                             \\ \hline
+\begin{tabular}[c]{@{}l@{}}SetMigrationTarget(runtime\_id, \\ migration\_number)\end{tabular} & \begin{tabular}[c]{@{}l@{}}Initiate flow migration. It tells \\ the runtime to migrate \\ migration\_num flows to runtime\\ with runtime\_id.\end{tabular} \\ \hline
+SetReplica(runtime\_id)                                                                       & \begin{tabular}[c]{@{}l@{}}Set the runtime with runtime\_id \\ as the replica.\end{tabular}                                                                \\ \hline
+Recover(runtime\_id)                                                                          & \begin{tabular}[c]{@{}l@{}}Recover all the flows replicated \\ from runtime with runtime\_id.\end{tabular}                                                 \\ \hline
+\end{tabular}
+}
+\end{table}
 
 \subsection{Flow Management}
 
