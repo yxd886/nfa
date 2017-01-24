@@ -7,7 +7,7 @@
   \label{fig:runtime}
 \end{figure}
 
-Figure \ref{fig:runtime} demonstrates the basic architecture of \nfactor, consisting of a light-weight controller, input and output virtual switches and several runtime systems (referred to as \textit{runtime} in short). \ac{Both runtime and virtual switch are uniform platforms to run actors, they are executed inside containers for quick rebooting in case of failure and elastic scaling in case of overload.} \cui{Section 3 Overview: should give a clear definition on what a "runtime" is. }
+Figure \ref{fig:runtime} demonstrates the basic architecture of \nfactor, consisting of a light-weight controller, input and output virtual switches and several runtime systems (referred to as \textit{runtime} in short). \ac{Both runtime and virtual switch are uniform platforms to run actors, they are inter-connected through a L2 network and executed inside containers for quick rebooting in case of failure and elastic scaling in case of overload.} \cui{Section 3 Overview: should give a clear definition on what a "runtime" is. }
 
 %NFActor framework runs virtual switches and runtimes inside containers, so that they can be quickly rebooted in case of failure and elastically scaled in case of overload.
 
@@ -21,4 +21,4 @@ our main observration is that actor privdes the unique feature to implement a hi
 
 light-weight, decentralized migration of network flow states
 
-Our main observation is that actor provides the unique benefits for light-weight, decentralized migration of network flow states. 
+Our main observation is that actor provides the unique benefits for light-weight, decentralized migration of network flow states.
