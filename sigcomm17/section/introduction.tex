@@ -62,7 +62,11 @@ implement resilience inevitably entangle with the core processing logic of NF
 software. It may lead to serious software bugs if not handled properly.
 
 
-In this paper, we propose a software framework for building resilient NFV systems, \nfactor, exploiting the actor framework for programming distributed services \cite{actor-wiki, akka, newell2016optimizing}. \nfactor~includes the following modules: (i) \ac{a light-weight controller for basic cluster management} (ii) \ac{runtimes that conduct service chain processing using actors} (iii) \ac{virtual switches for balancing the workload on runtimes.} \chuan{briefly introduce key modules in nfactor system}
+In this paper, we propose a software framework for building resilient NFV systems, \nfactor, exploiting the actor framework for programming distributed services \cite{actor-wiki, akka, newell2016optimizing}. Our main observation is that actor provides the unique benefits for light-weight, decentralized migration of network flow states. %We use actors to keep track of the flow states and migrate the actors without a centralized coordinator of a centralized controller.
+\nfactor~tracks each flow's state with our high-performance flow actor, which transparently separates flow state from NF processing logic. \nfactor's flow migration is achieved by flow actors themselves without involving a centralized coordinator.
+%\nfactor~uses actors to process flow packets at a high throughput rate. The flow states are keeped by the actors, which can be migrated without a centraliezd coordinator.
+
+%\nfactor~includes the following modules: (i) \ac{a light-weight controller for basic cluster management} (ii) \ac{runtimes that conduct service chain processing using actors} (iii) \ac{virtual switches for balancing the workload on runtimes.} \chuan{briefly introduce key modules in nfactor system}
 \nfactor~achieves transparent resilience, easy scalability and high performance in network flow processing based on the following technical highlights: \chuan{improve and add design highlights in the following}
 
 $\triangleright$  Unlike existing work
