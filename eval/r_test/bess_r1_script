@@ -172,6 +172,7 @@ payload = ('hello' + '0123456789' * 200)[:pkt_size-len(eth/ip/tcp)]
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
+
 fg1::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=10000)
 
 ip = scapy.IP(src='10.0.0.3', dst='10.0.0.4')   # dst IP is overwritten
@@ -179,31 +180,41 @@ pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
 
+
 fg2::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=10000)
+
 
 ip = scapy.IP(src='10.0.0.5', dst='10.0.0.6')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
+
 fg3::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=10000)
+
 
 ip = scapy.IP(src='10.0.0.7', dst='10.0.0.8')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
+
 fg4::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=10000)
+
 
 ip = scapy.IP(src='10.0.0.9', dst='10.0.0.10')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
+
 fg5::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=10000)
+
 
 ip = scapy.IP(src='10.0.0.11', dst='10.0.0.12')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
+
 fg6::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=10000)
+
 
 bess.add_worker(5, 5)
 bess.add_worker(6, 6)

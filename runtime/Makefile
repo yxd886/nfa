@@ -155,6 +155,7 @@ R_START_OBJS = $(filter-out main.o $(filter-out samples/replication/r_start.o,$(
 R_RECOVER_EXEC = samples/replication/r_recover
 R_RECOVER_OBJS = $(filter-out main.o $(filter-out samples/replication/r_recover.o,$(SAMPLES_OBJS)),$(OBJS))
 
+
 .PHONY: all clean tests protobuf
 
 all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(M_INIT_EXEC) $(M_START_EXEC) $(R_INIT_EXEC) $(R_START_EXEC) $(R_RECOVER_EXEC)

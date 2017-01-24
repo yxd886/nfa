@@ -14,6 +14,7 @@ import re
 #I0123 21:05:52.516814 124278 coordinator_mp.cc:144] Recovery takes 237ms.
      
 
+
 def parse_arguments():
   parser = optparse.OptionParser()
 
@@ -32,6 +33,7 @@ def start_recovery():
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
   output, error = process.communicate()
   print "Recover started and wait 5 seconds"
+
   time.sleep(5)
 
 
@@ -44,6 +46,7 @@ def detect_result(options, ssh, runtime):
   flow_result = ""
   number = ""
   for line in stdout:
+
     if line.find("Successful recovery")!=-1:
       number = line[line.find("Successful recovery"):]
       success_flag = True
@@ -53,15 +56,18 @@ def detect_result(options, ssh, runtime):
   return str(success_flag)+" "+str(number)+" "+str(time_result)
 
 def test_recovery():
+
   options,args = parse_arguments()
 
   ssh_r2 = paramiko.SSHClient()
   ssh_r2.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r2.connect('202.45.128.155',username='net',password='netexplo')
 
+
   ssh_r3 = paramiko.SSHClient()
   ssh_r3.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   ssh_r3.connect('202.45.128.156',username='net',password='netexplo')
+
 
   start_recovery()
   
@@ -70,9 +76,13 @@ def test_recovery():
   print "r3 rt3 recovery - "+str(detect_result(options, ssh_r3, 3))
 
 
+
+
 def main():
 
+
   test_recovery()
+
 
 if __name__ == "__main__" :
   main()
