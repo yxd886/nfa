@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <map>
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -11,7 +12,6 @@
 
 using namespace std;
 
-static constexpr long max_throughput = 2000000;
 static constexpr long min_throughput = 20000;
 static constexpr int server_num = 3;
 
@@ -325,39 +325,76 @@ bool init(std::vector<runtime_state>& active_runtimes){
 
 
 bool need_scale_in(const runtime_state runtime){
+
 	string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
-	long begin=0;
-	long end=0;
-  LivenessCheckClient checker(grpc::CreateChannel(
-  		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+	std::string t;
+	pid_t status;
+	bool success=false;
 
-  runtime_state tmp;
-  checker.GetRuntimeState(tmp);
-  begin=tmp.port_state.input_port_incoming_pkts;
-  sleep(1);
-  checker.GetRuntimeState(tmp);
-  end=tmp.port_state.input_port_incoming_pkts;
+	int32_t id=runtime.local_runtime.runtime_id;
+	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && sudo nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id= "+to_string(id%10)+" > state.log 2>&1 &";
+	const char*a = t.c_str();
+	status=std::system(a);
+	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
+		success=true;
+	}
+	else{
+    LOG(ERROR)<<"SSH Failure";
+    return false;
+	}
 
-	return (end-begin)<min_throughput?true:false;
+	char buffer1[256];
+	char buffer2[256];
+	memset(buffer1,0,sizeof(buffer1));
+	memset(buffer2,0,sizeof(buffer2));
+	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
+	if(!myfile){
+		LOG(ERROR)<< "Unable to open myfile";
+	  exit(1); // terminate with error
+	}
+	myfile.getline (buffer1,10);
+	myfile.getline (buffer2,10);
+
+  LOG(INFO)<<"throughput: "<<buffer2;
+
+	return atoi(buffer1)<min_throughput?false:true;
 
 }
 
 bool need_scale_out(const runtime_state runtime){
 
 	string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
-	long begin=0;
-	long end=0;
-  LivenessCheckClient checker(grpc::CreateChannel(
-  		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+	std::string t;
+	pid_t status;
+	bool success=false;
 
-  runtime_state tmp;
-  checker.GetRuntimeState(tmp);
-  begin=tmp.port_state.input_port_incoming_pkts;
-  sleep(1);
-  checker.GetRuntimeState(tmp);
-  end=tmp.port_state.input_port_incoming_pkts;
+	int32_t id=runtime.local_runtime.runtime_id;
+	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && sudo nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id= "+to_string(id%10)+" > state.log 2>&1 &";
+	const char*a = t.c_str();
+	status=std::system(a);
+	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
+		success=true;
+	}
+	else{
+    LOG(ERROR)<<"SSH Failure";
+    return false;
+	}
 
-	return (end-begin)>max_throughput?true:false;
+	char buffer1[256];
+	char buffer2[256];
+	memset(buffer1,0,sizeof(buffer1));
+	memset(buffer2,0,sizeof(buffer2));
+	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
+	if(!myfile){
+		LOG(ERROR)<< "Unable to open myfile";
+	  exit(1); // terminate with error
+	}
+	myfile.getline (buffer1,10);
+	myfile.getline (buffer2,10);
+
+  LOG(INFO)<<"dropped packet: "<<buffer2;
+
+	return atoi(buffer2)==0?false:true;
 
 }
 
