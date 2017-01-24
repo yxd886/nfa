@@ -27,9 +27,9 @@ public:
 	}
 
 
-	int32_t next_availiable_rtm_id(){
+	int32_t get_rtm_id(string ip, int32_t local_runtime_id){
 
-		return rtm_counter++;
+		return mac_prefixs.find(ip)->second*10+local_runtime_id;
 
 	}
 
@@ -63,8 +63,8 @@ public:
 	int32_t next_availiable_port_id(std::string ip){
 		auto it=port_counter.find(ip);
 		if(it==port_counter.end()){
-			port_counter.emplace(ip,10240);
-			return 10240;
+			port_counter.emplace(ip,10241);
+			return 10241;
 		}else{
 			it->second++;
 			return it->second;
@@ -242,7 +242,7 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	std::string rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	r1.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
 	r1.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
-	r1.local_runtime.runtime_id=static_allocator::get_allocator().next_availiable_rtm_id();
+	r1.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
 	r1.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
 	r1.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
 	r1.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
@@ -259,7 +259,7 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	r2.local_runtime.rpc_ip=convert_string_ip("202.45.128.155");
 	r2.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.155");
-	r2.local_runtime.runtime_id=static_allocator::get_allocator().next_availiable_rtm_id();
+	r2.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.155",local_rtm_id);
 	r2.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.155",local_rtm_id);
 	r2.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.155",local_rtm_id);
 	r2.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.155",local_rtm_id);
@@ -275,7 +275,7 @@ bool init(std::vector<runtime_state>& active_runtimes){
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	r3.local_runtime.rpc_ip=convert_string_ip("202.45.128.156");
 	r3.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.156");
-	r3.local_runtime.runtime_id=static_allocator::get_allocator().next_availiable_rtm_id();
+	r3.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.156",local_rtm_id);
 	r3.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.156",local_rtm_id);
 	r3.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.156",local_rtm_id);
 	r3.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.156",local_rtm_id);
@@ -403,7 +403,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
 	std::string rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	runtime.local_runtime.rpc_ip=convert_string_ip(ip);
 	runtime.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id(ip);
-	runtime.local_runtime.runtime_id=static_allocator::get_allocator().next_availiable_rtm_id();
+	runtime.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id(ip,local_rtm_id);
 	runtime.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr(ip,local_rtm_id);
 	runtime.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr(ip,local_rtm_id);
 	runtime.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr(ip,local_rtm_id);
