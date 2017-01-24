@@ -30,6 +30,10 @@
 
 \newcommand{\chuan}[1]{\textcolor{red}{{\bf Chuan:} #1}}
 
+\newcommand{\duan}[1]{\textcolor{red}{{\bf Duan:} #1}}
+
+\newcommand{\ac}[1]{\textcolor{blue}{#1}}
+
 \begin{document}
 
 \title{\Large \bf NFActor: A Resillient NFV System using the Distributed Actor Framework}
@@ -43,13 +47,13 @@ Paper \#44, xx pages
 \maketitle
 
 \begin{abstract}
-%Network Function Virtualization (NFV) has been the leading trend for network service provisioning in recent years, for significantly enhanced deployment flexibility and reduced cost. 
+%Network Function Virtualization (NFV) has been the leading trend for network service provisioning in recent years, for significantly enhanced deployment flexibility and reduced cost.
 
-With the advent of Network Function Virtualization (NFV) paradigm, a few NFV management systems have been proposed, enabling  NF service chaining, scaling, placement, load balancing, etc. Failure resilience of NF service chains is usually missing from the list, which nevertheless is of pivotal importance in practical NFV systems. We identify the absence is mainly due to the challenge of patching source code of the existing NF software for extracting important NF states, a necessary step toward flow migration and replication. %, and of providing an efficient control channel for transmitting states to new NF instances. 
- This paper proposes \nfactor, a novel NFV system that uses the actor programming model to provide transparent resilience, easy scalability and high performance in network flow processing. Based on the actor framework, a set of efficient APIs are provided for constructing NFs, with inherent support for scalability and resilience; a per-flow management principle is advocated - different from the existing systems - which provides dedicated service chain services for individual flows, enabling xxx for each flow \chuan{complete the advantage brought by per-flow management}. %NFActor does not rely on a central controller as heavily exploited as in a SDN-based NFV system. 
-Going beyond resilience, \nfactor~also enables several interesting applications, including live NF update, flow deduplication and reliable MPTCP subflow processing, which are not available xxx\chuan{state whether they can or cannot be achieved by other NFV systems}. We implement \nfactor~on a real-world testbed and show that it achieves supreme scalability, prompt flow migration and failure recovery, ... \chuan{add more detailed results}
+With the advent of Network Function Virtualization (NFV) paradigm, a few NFV management systems have been proposed, enabling  NF service chaining, scaling, placement, load balancing, etc. Failure resilience of NF service chains is usually missing from the list, which nevertheless is of pivotal importance in practical NFV systems. We identify the absence is mainly due to the challenge of patching source code of the existing NF software for extracting important NF states, a necessary step toward flow migration and replication. %, and of providing an efficient control channel for transmitting states to new NF instances.
+ This paper proposes \nfactor, a novel NFV system that uses the actor programming model to provide transparent resilience, easy scalability and high performance in network flow processing. Based on the actor framework, a set of efficient APIs are provided for constructing NFs, with inherent support for scalability and resilience; a per-flow management principle is advocated - different from the existing systems - which provides dedicated service chain services for individual flows, enabling \ac{decentralized flow migration and scalable replication} for each flow \chuan{complete the advantage brought by per-flow management}. %NFActor does not rely on a central controller as heavily exploited as in a SDN-based NFV system.
+Going beyond resilience, \nfactor~also enables several interesting applications, including live NF update, flow deduplication and reliable MPTCP subflow processing, which are not available in existing NFV systems \ac{due to the lack of decentralized flow migration.}\chuan{state whether they can or cannot be achieved by other NFV systems}. We implement \nfactor~on a real-world testbed and show that it achieves supreme scalability, prompt flow migration and failure recovery, ... \chuan{add more detailed results}
 
- 
+
 %The flow management in NFActor framework is fully scalable, it does not need coordination from a centralized controller. NFActor framework is implemented on top of DPDK to provide efficient flow management.
 
 
