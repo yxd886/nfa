@@ -34,7 +34,7 @@ bool is_duplicate_packet(bess::Packet* pkt){
 		return true;
 	}else{
 		LOG(INFO)<<"NO DUPLICATE PACKET";
-		LOG(INFO)<<std::string(tmp);
+		printf("%s\n",tmp);
 		return false;
 	}
 
