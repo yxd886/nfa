@@ -290,14 +290,12 @@ $(eval $(call BUILD, \
 	LD, \
 	$$(DYNAMIC_UPDATE_INIT_EXEC), \
 	$$(DYNAMIC_UPDATE_INIT_OBJS), \
-
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 	
 $(eval $(call BUILD, \
 	LD, \
 	$$(DYNAMIC_UPDATE_START_EXEC), \
 	$$(DYNAMIC_UPDATE_START_OBJS), \
-
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
 
 %.d: ;
