@@ -7,17 +7,47 @@
 		\centering
 		\includegraphics[width=\columnwidth]{figure/new-nfactor-runtime-arch.pdf}
 
-		\caption{The internal architecture of a NFActor runtime system. }
+		\caption{The internal structure of a runtime in \nfactor.}
 \label{fig:runtime-arch}
 \end{figure}
 
-Figure \ref{fig:runtime-arch} demonstrates the internal architecture of a runtime. The runtime serves as a uniform program to run actors. \nfactor~runs each runtime inside a container for fast boot up and assigns each runtime with a global unique ID to ease management. The uniform runtime design increases the scalability of~\nfactor, as \nfactor could be horizontally scaled up by adding more runtimes.
+The concept of a uniform runtime system, as a basic flow processing and scaling unit in \nfactor, does not appear in most existing work \cite{bremler2015openbox, gember2012stratos, palkar2015e2}. In existing NFV systems, the basic flow processing and scaling unit is an NF instance, which is a virtual machine or container hosting an instance of a NF. % and the NF instances are chained on the data-plane. % The flows must go through these NF instances in sequence.
+ The primary reason that we design such a runtime is to enable NFs/service chains to achieve failure resilience automatically without coordinator intervention, as the runtime provides a consistent communication channel
+ %a network transparent abstraction \chuan{change this `network transparent' to a more accurate wording} to communicate and
+ to exchange messages among each other, which are crucial for flow migration and replication.
+  Especially, in a runtime, we adopt the simple yet powerful design to create a micro execution context for each flow, and encapsulate processing functions of the flow over its entire service chain inside the micro execution context. Then we can enable failure resilience on the basis of each micro execution context (Sec.~\ref{sec:resilience}). To be able to process multiple flows, the runtime is capable of handling multiple micro execution contexts concurrently.
 
-The runtime consists of a single worker thread for actor scheduling, and an RPC thread for receiving RPC requests sent from the controller. The single-worker-thread design guarantees a sequential actor execution order, therefore completely eliminate the need to protect message passing by lock, resulting in a good performance achieved by \nfactor. It is configured with three ports, from which it can send and receive packets. Input packets of the runtime are first sent to a flow classifier, which uses traditional flow-5-tuple (i.e. IP destination address, IP source address, transmission layer protocol, source port and destination port) as the key to classify flows. The flow classifier creates one flow actor for each new flow and forwards all the flow packets to that flow actor.
+In \nfactor, we exploit the actor programming model to implement the micro execution context. Each micro execution context is a flow actor. Flow processing by NFs in the service chain, flow migration and replication functionalities are all implemented as message handlers of the flow actor. The runtime provides the basic runtime environment for all the flow actors that it has created.
 
-The runtime is configured with a specific service chain during the boot phase and initializes all the NF modules as specified in the service chain. When a flow actor is created, it loads these modules and uses the flow state allocation method in Table \ref{table:api} to allocates all the flow states and passes input packet along the NF modules in sequence. Besides service chain processing, the flow actor also provides an execution context for distributed flow migration and replication.
 
-There is a coordinator actor who is responsible for executing the RPC requests sent from the controller and coordinate flow actors during flow migration and replication. Flow actor and coordinator actor could directly exchanges local messages, or exchange remote messages through a reliable message passing module \ref{}.
+Fig.~\ref{fig:runtime-arch} shows the internal structure of a runtime. The input and output ports are used for receiving and sending flow packets from and to virtual switches. \ac{The control port as well as the input and output port are used for transmitting and receiving actor messages exchanged among different actors running on different runtimes for flow migration and replication, which are directly encapsulated inside L2 packets and sent/received using DPDK.} %Both input port and output port could be used transmit and send actor messages as well, for instance, during the second request-response in the flow migration and during flow recovery.
+ Input packets of dataplane flows are first sent to a flow classifier, which uses the classical 5-tuple of a flow (\ie, source IP address, destination IP address, transport-layer protocol, source port and destination port) to identify packets belonging to the same flow. One flow actor is created for each new flow. The flow actor loads NFs of the service chain configured in the runtime. All packets of the same flow are sent to the same flow actor, which processes them in sequence by passing them through NFs in the service chain.
+
+Each runtime is configured with a specific service chain by the coordinator during its booting phase. The runtime installs and initializes all the NFs as specified in the service chain upon booting. When a flow actor is created, it loads these NFs and uses a number of carefully defined NF APIs, as given in Table \ref{table:api} in Sec.~\ref{sec:NFAPIs}, to allocate new flow states and store them as internal actor state %\chuan{not clear what `allocate flow states' means. extract?}
+and xxx \chuan{describe what it does to facilitate flow migration and replication by rewriting the idea of the following sentence: `Besides service chain processing, the flow actor also provides an execution context for distributed flow migration and replication, in response to certain messages (Sec.~\ref{sec:resilience})'}.
+
+
+Each runtime can host one or multiple flow actors for flows passing through the same service chain that the runtime is configured with, depending on its resource availability and performance isolation requirements. In case of a multi-tenant NFV system, we can run actors processing flows of the same tenant on the same runtime, but those of different tenants on different runtimes, for better security and isolation. When multiple flow actors are concurrently running on one runtime, they are scheduled by a worker thread: \chuan{clearly describe how the flow actors are scheduled} whenever a message is received at the actor's mailbox, .... In addition, our design of the NF modules in the next section will show that passing packets to a NF for processing in a flow actor is essentially just a function call; only one copy of each NF software needs to be loaded in a runtime, while the flow actors can all make use of it. %An actor itself is a very lightweight one as millions of actors could be spawned in seconds \cite{chs-rapc-16}.
+
+
+
+The runtime also consists of a RPC thread for receiving RPC requests from the controller (for flow migration, replication, etc.) and responding to them. The RPC thread and the worker thread share a ring buffer, used for relaying RPC requests received by the RPC thread to a liaison actor in the worker thread. We use a high-speed shared ring buffer to achieve fast inter-thread communication \chuan{add citation}. The liaison actor is responsible for coordinating with flow actors to execute the RPC requests from the controller. % flow actor initialization, flow migration and flow replication. %Flow actor and coordinator actor could directly exchanges local messages, or exchange remote messages through a reliable message passing module \cite{}.
+
+
+
+
+
+\vspace{1mm}
+\noindent {\bf Discussions on Runtime Design Choices.} The design of supporting only one service chain in one runtime significantly reduces the overhead of installing many NFs and avoids service chain selection in one runtime, for higher packet processing efficiency (speed) and management simplicity. Our one-actor-one-flow design is useful for facilitating fast flow migration (Sec.~\ref{sec:resilience}), which migrates a flow by migrating the actor that processes it \chuan{revise to more accurate description}. There are a few possible alternatives to our one-actor-one-flow design: (1) {\em One flow actor handles multiple flows.} It compromises the efficiency of flow migration, especially when multiple flows come from different virtual switch actors. In this case, the flow actor must synchronize the responses sent from different virtual switch actors \chuan{clarify what are `responses sent from different virtual switch actors' and why the flow actor needs to sync them}, adding overhead to flow migration process. (2) {\em One flow actor runs one NF}. Additional overhead is needed for chaining multiple flow actors to constitute a service chain, lowering packet processing speed. %Therefore, the one-flow-one-actor design achieves a sweet point in minimizing the actor processing overhead and improving the efficiency of flow migration protocol design.
+Instead of using multiple worker threads in a runtime, the single-worker-thread design guarantees a sequential execution order of flow actors, thereby completely eliminating the need to protect message passing by locks \chuan{message passing among flow actors or what?}, and achieving higher efficiency.
+
+
+
+
+%The alternative design to one-runtime-one-service-chain is to dynamically configure multiple service chains on a single runtime. Then due to the one-flow-one-actor design, we need to do an additional service chain selection, based on some pre-defined rules. This adds additional overhead to the flow actor processing and increases the complexity when managing the NFActor cluster, because the controller must populates the service chain rule dynamically to each runtime. With the one-runtime-on-service-chain design, if another service chain is needed, the system administrator could launch a new NFActor cluster and configure a different service chain to use.
+
+
+
 
 %The runtime is designed as a single-worker-thread architecture to decrease the overhead of flow actors. A high speed NFV system may process millions of packets every second and migrates tens of thousands of flows. At such a high processing rate, message passing protected by shared lock in multi-threaded actor runtime system may incur a huge overhead and hurt the packet throughput.
 %The runtime is configured with a specific service chain during the boot phase and initializes all the NF modules as specified in the service chain. When a flow actor is created, it loads these modules and uses the flow state allocation method \ref{table:api} to allocates all the
@@ -25,52 +55,75 @@ There is a coordinator actor who is responsible for executing the RPC requests s
 
 %The reason that the runtime is designed as a single-worker-thread program is because the multi-worker-thread design may not bring significant performance gain. In our initial prototype implementation, we use LIBCAF \cite{caf} library to construct flow actors. LIBCAF library creates multiple worker threads and schedules flow actors to run on these worker threads. Because LIBCAF completely conceals the internal interfaces of the worker threads, we have to create a dedicated polling thread to poll packet from the input port. Under this design, we find that the maximum throughput of a runtime does not increase when the number of LIBCAF worker thread increases, because the polling thread has always been a bottleneck. Therefore, we abandon the multi-worker-thread design and use a single worker thread to poll packets and schedule flow actors. To our surprise, this architecture turns out to work very well because it allows us to perform aggressive optimization of actor programming model \ref{}. In the mean time, we can still maintain the scalability of the system by launching more runtimes.
 
-\subsection{NF Module API}
-\label{sec:module-api}
+\subsection{NF APIs}
+\label{sec:NFAPIs}
 
-\begin{table}[!b]
+To achieve transparent resilience together with the micro execution environments provided by runtimes in \nfactor, an important step is to separate useful NF states from the core processing logic of each NF. With this separation, a flow actor can retrieve and serialize NF states for transmission whenever needed, without interfering with packet processing of the NF. In \nfactor, we achieve this separation by designing a set of APIs that NF implementation should follow in \nfactor.
+
+\begin{table}[!t]
 \centering
-\caption{The public API methods that must be implemented for each NF modules in NFActor framework.}
+\caption{APIs to be Implemented by NFs in \nfactor.}
 \label{table:api}
 \resizebox{\columnwidth}{!}{
 \begin{tabular}{c|l}
 \textbf{API}                                      & \multicolumn{1}{c}{\textbf{Usage}}                                                                                                                                                                                                         \\ \hline
-nf.allocate\_new\_fs()                            & \begin{tabular}[c]{@{}l@{}}Allocate a new flow state for\\ a new flow actor.\end{tabular}                                                                                                                                                  \\ \hline
-nf.deallocate\_fs(fs)                             & \begin{tabular}[c]{@{}l@{}}Deallocate the flow state \\ when the flow actor expires\\ or quits.\end{tabular}                                                                                                                               \\ \hline
-nf.process\_pkt(input\_pkt, fs)                   & \begin{tabular}[c]{@{}l@{}}Process the input packet using the \\ current flow state associated with the\\ flow actor.\end{tabular}                                                                                                         \\ \hline
-nf.get\_migration\_target(cluster\_cfg, fs) & \begin{tabular}[c]{@{}l@{}}Query the NF using the current\\ cluster configuration and the current\\ flow state about where the flow\\ actor should be migrated to. This\\ method enables each actor to do\\ active migration.\end{tabular} \\ \hline
+nf.allocate\_new\_fs()                            & \begin{tabular}[c]{@{}l@{}}Create a new flow state object for\\ a new flow actor, to be used for storing flow state\end{tabular}                                                                                                                                                  \\ \hline
+nf.deallocate\_fs(fs)                             & \begin{tabular}[c]{@{}l@{}}Deallocate the flow state object\\ when the flow actor expires\\\end{tabular}                                                                                                                               \\ \hline
+nf.process\_pkt(input\_pkt, fs)                   & \begin{tabular}[c]{@{}l@{}}Process the input packet using the \\ current flow state\end{tabular}                                                                                                         \\ \hline
+%nf.get\_migration\_target(cluster\_cfg, fs) & \begin{tabular}[c]{@{}l@{}}Query an NF using the current\\ cluster configuration and \\ flow state about which runtime this flow\\ actor should be migrated to\end{tabular} \\ \hline
 \end{tabular}
 }
 \end{table}
 
-To facilitate transparent resilience, \nfactor needs to ensure a clean separation between the NF processing logic and the flow states associated with each flow. To enforce this criteria, we build a set of easy to use APIs that can be used to create a broad range of NF modules for \nfactor.
 
-Table \ref{table:api} \ac{summarizes these APIs, which are provided as four public methods for each NF module. The allocation and deallocation methods enforce each NF module to allocate a flow state that is stored by a flow actor, therefore transferring the primary access right of the flow state to the flow actor. When the flow actor receives a input packet message, it calls the packet processing method to process the input packet passing along the flow state, so that any changes to the flow state when calling the third method is immediately visible to the flow actor when the flow actor finishes processing an input packet.}
+The APIs are given in Table \ref{table:api}, provided as four public methods for each NF to implement. When a new flow actor is created to handle a new flow, it first calls $nf.allocate\_new\_fs()$ to create a flow state object. Whenever the actor receives a new packet, the actor passes the received packet and the flow state object to \\
+$nf.process\_pkt(input\_pkt, fs)$, for processing by the NFs, in sequence of the service chain. Any changes to the flow state when an NF has processed the packet is immediately visible to the flow actor. When the flow terminates, the flow actor expires and it calls $nf.deallocate\_fs(fs)$ to deallocate the flow state object. Using these three APIs, the flow actor always has direct access to the latest flow state, enabling it to transmit the flow state during flow migration and replication processes without disturbing packet processing of the NFs. %Therefore, the combination of the three methods servers as the basis for the transparent resilience in~\nfactor.
 
-\ac{When the flow actor processes messages during resilience operations, it always has direct access to the latest flow state, which could be transmitted without disturbing the normal of NF processing. Therefore, the combination of the three methods servers as the basis for the transparent resilience in~\nfactor. These three methods are simple to use and properly generalize the structure of NFs that processes flow packets based on per-flow state. Using these three methods, we are able to create several representing NFs as shown in \ref{}.} \cui{give a clearer description on why the four APIs can facilitate transparent resilience and build a rich set of NFs.}
+%\chuan{add the idea to flow migration section rather than exposign the API here} The fourth API $nf.get\_migration\_target(cluster\_cfg, fs)$ is used for checking where the NF would like the actor to migrate to, by passing the current cluster configuration and the current flow state. This enables the flow actor to actively migrate itself instead of waiting for migration initiation command sends from the controller \ref{}. This distributed design is the key to sparkle several useful applications, \ie, flow deduplication and reliable MPTCP subflow processing, which we will discuss in Sec.~\ref{sec:experiments}, that existing NFV systems based on centralized flow management cannot achieve. The flow actor should only call this method on the last NF in the service chain. Therefore NFs modules implementing this method should be placed on as the last NF in the service chain.
 
-Finally, the flow actor could use the fourth method to check where the NF would like the actor to migrate to, by passing the current cluster configuration and the current flow state. This enables the flow actor to actively migrate itself instead of waiting for migration initiation command sends from the controller \ref{}, and sparkles several useful applications (i.e. decreasing the output bandwidth during deduplication and ensuring reliable MPTCP subflow processing \ref{}) that none of existing NFV systems can achieve.
+%These three methods are simple to use and properly generalize the structure of NFs that processes flow packets based on per-flow state. Using these three methods, we are able to create several representing NFs as shown in \ref{}.}
+
+%The flow actor acquires the flow state of all the NF modules using the allocation API, and passes the packet across all the NF modules in sequence using the processing API.
+
+
+To implement an NF in \nfactor, core processing logic of the NF needs to be implemented following the actor model and the APIs in Table \ref{table:api}. Nevertheless, porting the core
+processing logic of an existing NF software is relatively straightforward. We have implemented a broad range of NFs in \nfactor and will present details in Sec.~\ref{sec:experiments}.
 
 
 \subsection{Virtual Switch}
 \label{sec:virtualswitch}
 
-One actor for one flow
+A virtual switch in \nfactor~is a special runtime where the actors do not run service chain but only a load balancer function. Following the one-actor-one-flow principle, a virtual switch can create multiple actors each to dispatch packets belonging to one flow.  We refer to the flow actor created by the virtual switch as virtual switch actor throughout this paper. Each switch receives information of the runtimes that it can dispatch flows to from the coordinator, including runtime's input port MAC addresses of the runtimes, load of the runtime, etc.
 
-The virtual switch is a special runtime without service chain, it automatically balances the input traffic among all the runtimes, increasing the scalability of the system. We refer to the flow actor created by the virtual switch as virtual switch actor throughout this paper.
 
-The virtual switch actor selects one of the available runtimes as its destination runtime in a round-robin way when it is created. Round-robin algorithm is used because it imposes the smallest overhead. Whenever the virtual switch actor receives an input packet, it replaces the destination MAC address of the packet to destination runtime's input port MAC address, and modifies the source MAC address of the input packet to virtual switch's output port mac address. it then sends the packet out from the output port.
+A virtual switch actor selects one of the available runtimes \chuan{define what available mean, not overloaded?} as its destination runtime in a round-robin way when it is created. We choose a simple round-robin algorithm because the vir- tual switch must run very fast and round-robin algorithm introduces the smallest amount of overhead while providing satisfactory performance. Whenever the virtual switch actor receives an input packet, it replaces the destination MAC address of the packet to destination runtime's input port MAC address, and modifies the source MAC address of the input packet to virtual switch's output port mac address. it then sends the packet out from the output port.
 
-The architectural consistency of virtual switch and runtime also facilitates flow migration and replication. The flow actor on the destination runtime could analyze the source MAC address of the packet and determine which virtual switch this packet comes from. This enables the flow actor to contact the virtual switch actor during flow migration and replication to change the destination runtime selected by the virtual switch actor \ref{}.
+
+Virtual switch actors communicate with each other through remote control messaging \chuan{explain what this communication is used for in virtual switch}
+
+
+
+
+
+Previous work either rely on SDN switches [20, 21] to route the traffic, or build a customized data-plane for inter- connecting different NF instances [31]. Our virtual switch is lightweight, only needs to dispatch flow to one runtime, but not individual NFs.
+
+
+The architectural consistency of virtual switch and runtime facilitates flow migration and replication. The flow actor on the destination runtime could analyze the source MAC address of the packet and determine which virtual switch this packet comes from. This enables the flow actor to contact the virtual switch actor during flow migration and replication to change the destination runtime selected by the virtual switch actor \ref{}.
 
 \subsection{Controller and Control RPCs}
 \label{sec:controller}
 
-%运行时系统暴露了一系列RPC以供controller进行调用。这些rpc可以分为以下几类：控制流管理任务的rpc仅仅
+To deploy a service chain in NFActor framework, the network administrator should first specify the configuration of the service chain to the controller and several SDN flow rules to match the input traffic. The controller then launches a new virtual switch and  a new runtime, configures the runtime with the service chain as required by the network administrator. Then the controller installs the SDN flow rules to direct the traffic to  virtual switch. Whenever the controller detects that the runtime connected with the virtual switch is overloaded, it scales up the cluster by launching a new runtime and configure the same service chain on that runtime.
 
 The \nfactor's controller is responsible for monitoring the workload of each runtime and executing dynamic scaling. Due to the use of light-weight and distributed flow actors, the controller only needs to participate in the initiation phase of flow migration and replication. This feature differentiates \nfactor's controller with the controllers in OpenNF \cite{gember2015opennf} and Split/Merge \cite{rajagopalan2013split}, which need to fully coordinate the entire flow migration process. This simplifies the design of the controller and improve the failure resilience, as the controller does not need to maintain complicated states associated with flow migration.
 
+Each runtime in NFActor regularly sends heartbeat messages to the controller, containing the current load information (i.e. CPU usage, memory usage) of the runtime. The controller gathers the information contained in the heartbeat messages into a cluster view list, which records the contact address, state (running, leaving, fail) and load information of all run- times. The controller broadcasts the cluster view list to each runtime and the virtual switch if there are any state/load changes, so that runtimes and virtual switch have a local copy of this list. The views at different runtime do not have to be consistent because flow migration and fault tolerance protocol perform safety checking by exchanging requests and responses to eliminate the inconsistency.
+
 The controller manages \nfactor~using a series of control RPCs exposed by each runtime, which are summarized in Table \ref{table:rpc}. The controller uses PollWorkload RPC to acquire the current workload on a runtime and generates dynamic scaling decision. The controller maintains the configuration of the cluster, which include the mac address of input/output/control port and the ID of all the runtime and virtual switches. The controller notifies the cluster configuration to a runtime using NotifyClusterCfg RPC. The last three RPCs are used to initiate flow migration and replication. After issuing these three calls, migration and replication are automatically executed without further involving with the controller.
+
+\chuan{briefly describe why using RPC}
+
+assigns each runtime with a global unique ID to ease management.
 
 \begin{table}[!h]
 \centering
@@ -89,6 +142,7 @@ Recover(runtime\_id)                                                            
 \end{table}
 
 \section{Flow Management for Resilience}
+\label{sec:resilience}
 
 \subsection{Distributed Flow Migration}
 
@@ -112,6 +166,8 @@ Recover(runtime\_id)                                                            
 \end{figure}
 
 Figure \ref{fig:mig} shows workflow of \nfactor's flow migration, which involves passing three request-response. Besides being fully distributed, the flow migration also guarantees two properties that (i) except for the migration target side buffer overflow or network packet reordering (which rarely happens in \nfactor), no flow packets are dropped by the flow migration protocol, which we refer to as \textbf{loss-avoidance} property (this is slightly weaker that the loss-free property in OpenNF \cite{gember2015opennf}) and (ii) the same \textbf{order-preserving} property as in OpenNF \cite{gember2015opennf}. There has been a long understanding that providing good properties for flow migration would compromise the performance of flow migration \cite{gember2015opennf}. \nfactor~ breaks this misunderstanding using the novel distributed flow migration.
+
+Runtimes can check the received cluster view list to obtain the contact address and load information of other runtimes, and select an appropriate target for flow migration and repli- cation.
 
 The details of the three request-responses are summarized below.
 \begin{itemize}
@@ -158,11 +214,3 @@ The biggest difference of the \nfactor's replication method and existing works s
 The detailed flow replication process is shown in figure \ref{fig:flow-rep}. When a flow actor is created, it acquires its replica runtime by querying a round-robin list. If the flow actor has a valid replica runtime, whenever it finishes processing the packet, it sends a remote message, containing the current flow state and the packet, to the coordinator actor on the replication target runtime. The coordinator actor on the replication target runtime creates a replica flow actor using the same flow-5-tuple as the original flow actor to handle all the replication messages. The replica flow actor saves the flow state and sends the packet out from the output port of the replica runtime. Similar with \cite{sherry2015rollback}, the receiver on the side of the output port of the replica runtime can only observe an output packet when the flow state has been replicated.
 
 When a runtime fails, the controller sends recovery RPC requests \ref{} to all the replica runtime of the failed runtime. This RPC enables replica flow actor to send a request to the virtual switch actor, asking it to change the destination runtime to the replica runtime. When the response is received by the replica flow actor, the original flow is successfully restored on the replica runtime.
-
-\subsection{Design Discussion}
-
-A runtime in NFActor framework is configured with a single service chain. Each flow is handled by a unique actor, which carries out all the processing on the configured service chain. Alternative design options do exist, however, they may not fully achieve our design goal to achieve low overhead and high scalability.
-
-There are two alternatives to the one-flow-one-actor design. First of all, using a single flow actor to process multiple flows compromise the efficiency of flow migration protocol, especially when multiple flows come from different virtual switch actors. Under this situation, the flow actor must synchronize the responses sent from different virtual switch actors, therefore decreasing the performance of migration. Secondly, chaining several flow actors together to process the same flow imposes unnecessary overhead for flow processing. Therefore, the one-flow-one-actor design achieves a sweet point in minimizing the actor processing overhead and improving the efficiency of flow migration protocol design.
-
-The alternative design to one-runtime-one-service-chain is to dynamically configure multiple service chains on a single runtime. Then due to the one-flow-one-actor design, we need to do an additional service chain selection, based on some pre-defined rules. This adds additional overhead to the flow actor processing and increases the complexity when managing the NFActor cluster, because the controller must populates the service chain rule dynamically to each runtime. With the one-runtime-on-service-chain design, if another service chain is needed, the system administrator could launch a new NFActor cluster and configure a different service chain to use.
