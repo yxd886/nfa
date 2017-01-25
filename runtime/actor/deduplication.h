@@ -26,15 +26,14 @@ bool is_duplicate_packet(bess::Packet* pkt){
 	CFormatPacket format_packet;
 	format_packet.Format(packet);
 	char tmp[20];
-	char cmp[]="duplicate";
 	memset(tmp,0,sizeof(tmp));
-	rte_memcpy(tmp,format_packet.GetData(),sizeof(cmp));
-	if(strcmp(tmp,cmp)==0){
+	rte_memcpy(tmp,format_packet.GetData(),sizeof(tmp));
+	std::string content(tmp);
+	if(content.find("duplicate")){
     LOG(INFO)<<"DUPLICATE PACKET";
 		return true;
 	}else{
 		LOG(INFO)<<"NO DUPLICATE PACKET";
-		printf("%s\n",tmp);
 		return false;
 	}
 
