@@ -3,7 +3,7 @@
 PWD=`pwd`
 
 
-../../runtime/samples/deduplication_test/deduplication_init
+../../runtime/samples/deduplication/deduplication_init
 
 echo "Finish buildling up the topology. Sleep 1s"
 sleep 1
