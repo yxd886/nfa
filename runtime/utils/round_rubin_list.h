@@ -62,6 +62,11 @@ public:
     return &rr_list_head_;
   }
 
+
+  inline int  size(){
+    return cdlist_count(&rr_list_head_);
+  }
+
 private:
   struct cdlist_head rr_list_head_;
 

@@ -81,12 +81,13 @@ def test():
 
   tmp1,tmp2 = read_pkts(ssh,options.local_id)
   after_received +=tmp1;
+  after_dropped +=tmp2;
 
 
   after_time = time.time() * 1000
 
   ssh.close()
-  return (after_received-before_received)/3, before_dropped, after_time-before_time
+  return (after_received-before_received)/3, after_dropped-before_dropped, after_time-before_time
 
 
 def main():

@@ -248,50 +248,29 @@ def local_test():
 
   after_time = time.time() * 1000
 
-  #stop_traffic_gen(options)
-  time.sleep(1)
   return (after_received-before_received)/3, after_dropped-before_dropped, after_time-before_time
 
 def main():
 
   throughput= []
   flowgen=[]
-  
-  for i in range(6):
-    packet_out, packet_dropped, duration_time = test()
-    local_packet_out, local_packet_dropped, local_duration_time = local_test()
-    print str(packet_out)
-    print str(local_packet_out)
-    throughput.append(packet_out)
-    flowgen.append(local_packet_out)
-    cmd="sudo ../../deps/bess/bessctl/bessctl add connection fg"+str(i+1)+" rt"+str(i+1)+"_iport_portout"
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-  
-    packet_out, packet_dropped, duration_time = test()
-    local_packet_out, local_packet_dropped, local_duration_time = local_test()
-    print str(packet_out)
-    print str(local_packet_out)
-    throughput.append(packet_out)
-    flowgen.append(local_packet_out) 
-    time.sleep(3)
     
-  for i in range(6):
+  for i in range(50):
     packet_out, packet_dropped, duration_time = test()
     local_packet_out, local_packet_dropped, local_duration_time = local_test()
     print str(packet_out)
     print str(local_packet_out)
     throughput.append(packet_out)
     flowgen.append(local_packet_out)
-    cmd="sudo ../../deps/bess/bessctl/bessctl delete connection fg"+str(i+1)+" ogate"
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-  
-    packet_out, packet_dropped, duration_time = test()
-    local_packet_out, local_packet_dropped, local_duration_time = local_test()
-    print str(packet_out)
-    print str(local_packet_out)
-    throughput.append(packet_out)
-    flowgen.append(local_packet_out)
-    time.sleep(3)
+    time.sleep(1)
+    
+  print "throughput:"
+  for i in range(len(throughput)):
+    print throughput[i]
+      
+  print "flowgen:"
+  for i in range(len(flowgen)):
+    print flowgen[i]
 
   
   

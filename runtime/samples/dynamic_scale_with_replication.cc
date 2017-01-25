@@ -12,7 +12,7 @@
 using namespace std;
 
 static constexpr long min_throughput = 20000;
-static constexpr int server_num = 3;
+static constexpr int server_num = 8;
 
 
 class rtm_allocator{
@@ -236,84 +236,205 @@ bool local_open(std::string rtm_name, runtime_state runtime_state, std::string s
 bool init(std::vector<runtime_state>& active_runtimes){
 
 	bool success;
-	runtime_state r1;
+	runtime_state r11;
 	int32_t local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.154");
 	std::string rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
-	r1.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
-	r1.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
-	r1.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
-	r1.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
-	r1.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
-	r1.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
+	r11.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
+	r11.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
+	r11.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
+	r11.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
+	r11.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
+	r11.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
 
-	success=local_open(rtm_name,r1,"null");
+	success=local_open(rtm_name,r11,"null");
 	if(success){
-		 LOG(INFO)<<"init r1 success";
+		 LOG(INFO)<<"init r11 success";
 	}else{
-		LOG(INFO)<<"init r1 fail";
+		LOG(INFO)<<"init r11 fail";
 	}
 
-	runtime_state r2;
+	runtime_state r12;
+	local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.154");
+	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
+	r12.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
+	r12.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
+	r12.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
+	r12.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
+	r12.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
+	r12.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
+
+	success=local_open(rtm_name,r12,"null");
+	if(success){
+		 LOG(INFO)<<"init r12 success";
+	}else{
+		LOG(INFO)<<"init r12 fail";
+	}
+
+	runtime_state r13;
+	local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.154");
+	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
+	r13.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
+	r13.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
+	r13.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
+	r13.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
+	r13.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
+	r13.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
+
+	success=local_open(rtm_name,r13,"null");
+	if(success){
+		 LOG(INFO)<<"init r13 success";
+	}else{
+		LOG(INFO)<<"init r13 fail";
+	}
+
+	runtime_state r14;
+	local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.154");
+	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
+	r14.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
+	r14.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
+	r14.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
+	r14.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
+	r14.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
+	r14.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
+
+	success=local_open(rtm_name,r14,"null");
+	if(success){
+		 LOG(INFO)<<"init r14 success";
+	}else{
+		LOG(INFO)<<"init r14 fail";
+	}
+
+	runtime_state r15;
+	local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.154");
+	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
+	r15.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
+	r15.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
+	r15.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
+	r15.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
+	r15.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
+	r15.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
+
+	success=local_open(rtm_name,r15,"null");
+	if(success){
+		 LOG(INFO)<<"init r15 success";
+	}else{
+		LOG(INFO)<<"init r15 fail";
+	}
+
+	runtime_state r16;
+	local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.154");
+	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
+	r16.local_runtime.rpc_ip=convert_string_ip("202.45.128.154");
+	r16.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.154");
+	r16.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.154",local_rtm_id);
+	r16.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.154",local_rtm_id);
+	r16.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.154",local_rtm_id);
+	r16.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.154",local_rtm_id);
+
+	success=local_open(rtm_name,r16,"null");
+	if(success){
+		 LOG(INFO)<<"init r16 success";
+	}else{
+		LOG(INFO)<<"init r16 fail";
+	}
+
+	runtime_state r21;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.155");
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
-	r2.local_runtime.rpc_ip=convert_string_ip("202.45.128.155");
-	r2.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.155");
-	r2.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.155",local_rtm_id);
-	r2.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.155",local_rtm_id);
-	r2.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.155",local_rtm_id);
-	r2.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.155",local_rtm_id);
-	success=success&&remote_open(rtm_name,r2,"pkt_counter,firewall");
+	r21.local_runtime.rpc_ip=convert_string_ip("202.45.128.155");
+	r21.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.155");
+	r21.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.155",local_rtm_id);
+	r21.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.155",local_rtm_id);
+	r21.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.155",local_rtm_id);
+	r21.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.155",local_rtm_id);
+	success=success&&remote_open(rtm_name,r21,"pkt_counter,firewall");
 
 	if(success){
-		 LOG(INFO)<<"init r2 success";
+		 LOG(INFO)<<"init r21 success";
 	}else{
-		LOG(INFO)<<"init r2 fail";
+		LOG(INFO)<<"init r21 fail";
 	}
-	runtime_state r3;
+	runtime_state r31;
   local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id("202.45.128.156");
 	rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
-	r3.local_runtime.rpc_ip=convert_string_ip("202.45.128.156");
-	r3.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.156");
-	r3.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.156",local_rtm_id);
-	r3.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.156",local_rtm_id);
-	r3.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.156",local_rtm_id);
-	r3.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.156",local_rtm_id);
-	success=success&&remote_open(rtm_name,r3,"pkt_counter,firewall");
+	r31.local_runtime.rpc_ip=convert_string_ip("202.45.128.156");
+	r31.local_runtime.rpc_port=static_allocator::get_allocator().next_availiable_port_id("202.45.128.156");
+	r31.local_runtime.runtime_id=static_allocator::get_allocator().get_rtm_id("202.45.128.156",local_rtm_id);
+	r31.local_runtime.input_port_mac=static_allocator::get_allocator().next_availiable_input_mac_addr("202.45.128.156",local_rtm_id);
+	r31.local_runtime.output_port_mac=static_allocator::get_allocator().next_availiable_output_mac_addr("202.45.128.156",local_rtm_id);
+	r31.local_runtime.control_port_mac=static_allocator::get_allocator().next_availiable_control_mac_addr("202.45.128.156",local_rtm_id);
+	success=success&&remote_open(rtm_name,r31,"pkt_counter,firewall");
 	if(success){
-		 LOG(INFO)<<"init r3 success";
+		 LOG(INFO)<<"init r31 success";
 	}else{
-		LOG(INFO)<<"init r3 fail";
+		LOG(INFO)<<"init r31 fail";
 	}
 
   sleep(3);
 
 
-  LivenessCheckClient checker_r1(grpc::CreateChannel(
-  		concat_with_colon("202.45.128.154",std::to_string(r1.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
-  LivenessCheckClient checker_r2(grpc::CreateChannel(
-  		concat_with_colon("202.45.128.155",std::to_string(r2.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
-  LivenessCheckClient checker_r3(grpc::CreateChannel(
-  		concat_with_colon("202.45.128.156",std::to_string(r3.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r11(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.154",std::to_string(r11.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r12(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.154",std::to_string(r12.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r13(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.154",std::to_string(r13.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r14(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.154",std::to_string(r14.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r15(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.154",std::to_string(r15.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r16(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.154",std::to_string(r16.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r21(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.155",std::to_string(r21.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LivenessCheckClient checker_r31(grpc::CreateChannel(
+  		concat_with_colon("202.45.128.156",std::to_string(r31.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
 
 
-  LOG(INFO)<<checker_r1.SingleAddOutputRt("202.45.128.155",r2.local_runtime.rpc_port);
-  LOG(INFO)<<checker_r1.SingleAddOutputRt("202.45.128.156",r3.local_runtime.rpc_port);
-  LOG(INFO)<<checker_r1.AddOutputMac("202.45.128.155",r2.local_runtime.rpc_port);
-  LOG(INFO)<<checker_r1.AddOutputMac("202.45.128.156",r3.local_runtime.rpc_port);
-  LOG(INFO)<<checker_r2.AddInputMac("202.45.128.154",r1.local_runtime.rpc_port);
-  LOG(INFO)<<checker_r3.AddInputMac("202.45.128.154",r1.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r11.SingleAddOutputRt("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r11.SingleAddOutputRt("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r12.SingleAddOutputRt("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r12.SingleAddOutputRt("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r13.SingleAddOutputRt("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r13.SingleAddOutputRt("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r14.SingleAddOutputRt("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r14.SingleAddOutputRt("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r15.SingleAddOutputRt("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r15.SingleAddOutputRt("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r16.SingleAddOutputRt("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r16.SingleAddOutputRt("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r11.AddOutputMac("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r11.AddOutputMac("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r12.AddOutputMac("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r12.AddOutputMac("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r13.AddOutputMac("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r13.AddOutputMac("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r14.AddOutputMac("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r14.AddOutputMac("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r15.AddOutputMac("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r15.AddOutputMac("202.45.128.156",r31.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r16.AddOutputMac("202.45.128.155",r21.local_runtime.rpc_port);
+  LOG(INFO)<<checker_r16.AddOutputMac("202.45.128.156",r31.local_runtime.rpc_port);
 
-
-  LOG(INFO)<<checker_r2.AddReplicas("202.45.128.156",r3.local_runtime.rpc_port);
-
+  LOG(INFO)<<checker_r21.AddReplicas("202.45.128.156",r31.local_runtime.rpc_port);
 
   runtime_state active_runtime;
 
-  LOG(INFO)<<checker_r1.GetRuntimeState(active_runtime);
+  LOG(INFO)<<checker_r11.GetRuntimeState(active_runtime);
   active_runtimes.push_back(active_runtime);
-  LOG(INFO)<<checker_r2.GetRuntimeState(active_runtime);
+  LOG(INFO)<<checker_r12.GetRuntimeState(active_runtime);
   active_runtimes.push_back(active_runtime);
-  LOG(INFO)<<checker_r3.GetRuntimeState(active_runtime);
+  LOG(INFO)<<checker_r13.GetRuntimeState(active_runtime);
+  active_runtimes.push_back(active_runtime);
+  LOG(INFO)<<checker_r14.GetRuntimeState(active_runtime);
+  active_runtimes.push_back(active_runtime);
+  LOG(INFO)<<checker_r15.GetRuntimeState(active_runtime);
+  active_runtimes.push_back(active_runtime);
+  LOG(INFO)<<checker_r16.GetRuntimeState(active_runtime);
+  active_runtimes.push_back(active_runtime);
+  LOG(INFO)<<checker_r21.GetRuntimeState(active_runtime);
+  active_runtimes.push_back(active_runtime);
+  LOG(INFO)<<checker_r31.GetRuntimeState(active_runtime);
   active_runtimes.push_back(active_runtime);
 
 	return success;

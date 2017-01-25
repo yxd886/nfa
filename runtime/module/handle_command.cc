@@ -341,6 +341,7 @@ struct task_result handle_command::RunTask(void *arg){
         break;
       }
       case rpc_operation::get_stats :{
+      		item->stat.active_flows=coordinator_actor_->active_flows_rrlist_.size();
         break;
       }
       case rpc_operation::shut_down :{
