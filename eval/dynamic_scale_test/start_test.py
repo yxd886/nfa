@@ -12,7 +12,7 @@ def main():
 
   throughput= []
   flowgen=[]
-  cmd="python ./catch_data.py tee data.log"
+  cmd="python ./catch_data.py | tee data.log"
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
   
   cmd="sudo ../../deps/bess/bessctl/bessctl add connection fg6 rt6_iport_portout"
