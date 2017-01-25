@@ -178,7 +178,7 @@ def start_traffic_gen(options):
   output, error = process.communicate()
 
 def read_pkts(ssh,rt_num):
-  cmd="sudo ~/nfa/deps/bess/bessctl/bessctl show port rt"+str(rt_num)+"_iport"
+  cmd="sudo ~/nfa/deps/bess/bessctl/bessctl show port rt"+str(rt_num)+"_oport"
   stdin,stdout,stderr = ssh.exec_command(cmd);
 
   received_pkts_line = ''
