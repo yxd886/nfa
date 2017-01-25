@@ -14,16 +14,16 @@ int main(int argc, char** argv) {
 
   LivenessCheckClient checker_r1_10243(grpc::CreateChannel(
       "202.45.128.154:10243", grpc::InsecureChannelCredentials()));
- 
+
   LivenessCheckClient checker_r1_10244(grpc::CreateChannel(
       "202.45.128.154:10244", grpc::InsecureChannelCredentials()));
- 
+
   LivenessCheckClient checker_r1_10245(grpc::CreateChannel(
       "202.45.128.154:10245", grpc::InsecureChannelCredentials()));
- 
+
   LivenessCheckClient checker_r1_10246(grpc::CreateChannel(
       "202.45.128.154:10246", grpc::InsecureChannelCredentials()));
- 
+
 
  LivenessCheckClient checker_r2_10241(grpc::CreateChannel(
       "202.45.128.155:10241", grpc::InsecureChannelCredentials()));
@@ -39,21 +39,21 @@ int main(int argc, char** argv) {
   LivenessCheckClient checker_r3_10243(grpc::CreateChannel(
       "202.45.128.156:10243", grpc::InsecureChannelCredentials()));
   // Test set replication
-
-
   LOG(INFO)<<"r2 rt1"<<checker_r2_10241.Check();
   LOG(INFO)<<"r2 rt2"<<checker_r2_10242.Check();
   LOG(INFO)<<"r2 rt3"<<checker_r2_10243.Check();
-  
+
   LOG(INFO)<<"r3 rt1"<<checker_r3_10241.Check();
   LOG(INFO)<<"r3 rt2"<<checker_r3_10242.Check();
   LOG(INFO)<<"r3 rt3"<<checker_r3_10243.Check();
+  /*
+  checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
+  checker_r1_10241.AddOutputMac("202.45.128.155",10241);
+
+  checker_r1_10241.SingleAddOutputRt("202.45.128.156",10241);
+  */
 
   checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
-  checker_r1_10241.SingleAddOutputRt("202.45.128.156",10241);
-
-
-  /*checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
   checker_r1_10241.AddOutputMac("202.45.128.155",10241);
 
   checker_r1_10241.SingleAddOutputRt("202.45.128.155",10242);
@@ -61,10 +61,10 @@ int main(int argc, char** argv) {
 
   checker_r1_10241.SingleAddOutputRt("202.45.128.155",10243);
   checker_r1_10241.AddOutputMac("202.45.128.155",10243);
-  
+
   checker_r1_10241.SingleAddOutputRt("202.45.128.156",10241);
   checker_r1_10241.AddOutputMac("202.45.128.156",10241);
- 
+
   checker_r1_10241.SingleAddOutputRt("202.45.128.156",10242);
   checker_r1_10241.AddOutputMac("202.45.128.156",10242);
 
@@ -79,10 +79,10 @@ int main(int argc, char** argv) {
 
   checker_r1_10242.SingleAddOutputRt("202.45.128.155",10243);
   checker_r1_10242.AddOutputMac("202.45.128.155",10243);
-  
+
   checker_r1_10242.SingleAddOutputRt("202.45.128.156",10241);
   checker_r1_10242.AddOutputMac("202.45.128.156",10241);
- 
+
   checker_r1_10242.SingleAddOutputRt("202.45.128.156",10242);
   checker_r1_10242.AddOutputMac("202.45.128.156",10242);
 
@@ -97,10 +97,10 @@ int main(int argc, char** argv) {
 
   checker_r1_10243.SingleAddOutputRt("202.45.128.155",10243);
   checker_r1_10243.AddOutputMac("202.45.128.155",10243);
-  
+
   checker_r1_10243.SingleAddOutputRt("202.45.128.156",10241);
   checker_r1_10243.AddOutputMac("202.45.128.156",10241);
- 
+
   checker_r1_10243.SingleAddOutputRt("202.45.128.156",10242);
   checker_r1_10243.AddOutputMac("202.45.128.156",10242);
 
@@ -115,10 +115,10 @@ int main(int argc, char** argv) {
 
   checker_r1_10244.SingleAddOutputRt("202.45.128.155",10243);
   checker_r1_10244.AddOutputMac("202.45.128.155",10243);
-  
+
   checker_r1_10244.SingleAddOutputRt("202.45.128.156",10241);
   checker_r1_10244.AddOutputMac("202.45.128.156",10241);
- 
+
   checker_r1_10244.SingleAddOutputRt("202.45.128.156",10242);
   checker_r1_10244.AddOutputMac("202.45.128.156",10242);
 
@@ -133,10 +133,10 @@ int main(int argc, char** argv) {
 
   checker_r1_10245.SingleAddOutputRt("202.45.128.155",10243);
   checker_r1_10245.AddOutputMac("202.45.128.155",10243);
-  
+
   checker_r1_10245.SingleAddOutputRt("202.45.128.156",10241);
   checker_r1_10245.AddOutputMac("202.45.128.156",10241);
- 
+
   checker_r1_10245.SingleAddOutputRt("202.45.128.156",10242);
   checker_r1_10245.AddOutputMac("202.45.128.156",10242);
 
@@ -151,16 +151,28 @@ int main(int argc, char** argv) {
 
   checker_r1_10246.SingleAddOutputRt("202.45.128.155",10243);
   checker_r1_10246.AddOutputMac("202.45.128.155",10243);
-  
+
   checker_r1_10246.SingleAddOutputRt("202.45.128.156",10241);
   checker_r1_10246.AddOutputMac("202.45.128.156",10241);
- 
+
   checker_r1_10246.SingleAddOutputRt("202.45.128.156",10242);
   checker_r1_10246.AddOutputMac("202.45.128.156",10242);
 
   checker_r1_10246.SingleAddOutputRt("202.45.128.156",10243);
   checker_r1_10246.AddOutputMac("202.45.128.156",10243);
 
-  return 0;*/
 
+  checker_r2_10241.SetMigrationTarget("202.45.128.156",10241,10000);
+  checker_r2_10241.SetMigrationTarget("202.45.128.156",10242,10000);
+  checker_r2_10241.SetMigrationTarget("202.45.128.156",10243,10000);
+
+  checker_r2_10242.SetMigrationTarget("202.45.128.156",10241,10000);
+  checker_r2_10242.SetMigrationTarget("202.45.128.156",10242,10000);
+  checker_r2_10242.SetMigrationTarget("202.45.128.156",10243,10000);
+
+  checker_r2_10243.SetMigrationTarget("202.45.128.156",10241,10000);
+  checker_r2_10243.SetMigrationTarget("202.45.128.156",10242,10000);
+  checker_r2_10243.SetMigrationTarget("202.45.128.156",10243,10000);
+
+  return 0;
 }
