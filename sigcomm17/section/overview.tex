@@ -11,13 +11,13 @@ We present the design and key modules of \nfactor~in this section.
 
 \subsection{Overview}
 
-\nfactor~includes three key modules: (i) runtime systems that enable flow processing using actors; (ii) virtual switches for distributing and balancing flows to runtime systems; and (iii) a light-weight controller for basic system management. % (\eg, runtime load monitoring and scaling, participate in the initiation phase of flow migration and replication).
+\nfactor~includes three key modules: (i) runtime systems that enable flow processing using actors; (ii) virtual switches for distributing and balancing flows to runtime systems; and (iii) a light-weight coordinator for basic system management. % (\eg, runtime load monitoring and scaling, participate in the initiation phase of flow migration and replication).
  An illustration of the architecture of \nfactor~is given in Fig.~\ref{fig:runtime}.
 
 A runtime system, referred to as \textit{runtime} for short, is the execution environment of NFs and service chains. A runtime is running on a container, for quick launching and rebooting in cases of scaling up and failure recovery. There can be multiple runtimes (containers) running on the same physical server. In \nfactor, the virtual switches are running in the same environments (containers) as those runtimes and run actors for flow distribution, \ie, a virtual switch can be regarded as a special runtime that runs a load balancer function. Runtimes and virtual switches are inter-connected through a L2 network.
 
 %When a dataplan flow arrives in the system, it is first sent to a virtual switch.
-The virtual switch is configured with an entry IP address and the controller sets up corresponding flow rules to direct the dataplane flow to the virtual switch,%\chuan{clarify how a flow gets to be sent to a virtual switch, by knowing its IP address or being sent by the coordinator?},
+The virtual switch is configured with an entry IP address and the coordinator sets up corresponding flow rules to direct the dataplane flow to the virtual switch,%\chuan{clarify how a flow gets to be sent to a virtual switch, by knowing its IP address or being sent by the coordinator?},
  which dispatches it to a runtime hosting the NF service chain that the flow is to traverse (Sec.~\ref{sec:virtualswitch}). When a runtime receives a new flow, it creates a new flow actor to process the flow. Our runtime design follows the one-actor-one flow principle (Sec.~\ref{sec:runtime}): the flow actor loads all the required NFs of the service chain, and passes the received packets of the flow to these NFs in sequence. %of the service chain.
  Once a packet has been processed by all NFs in the service chain, the runtime sends the packet to another virtual switch,
 %(which can be the same or a different virtual switch where the flow comes into the system),

@@ -27,6 +27,7 @@ The runtime needs to poll packets from the input port, schedule flow actors to r
 The runtime uses BESS scheduler to schedule these 5 pipelines in a round-rubin manner to simulate a time-sharing scheduling.
 
 \subsection{Customized Actor Library}
+\label{sec:actor-library}
 
 To minimize the overhead of actor programming, we choose to implement our own actor library. In this actor library, due to the single-worker-thread design, local actor message transmission is directly implemented as a function call, therefore eliminating the overhead of enqueuing and dequeuing messages from an actor mailbox \cite{}. For remote actor message passing, we assign a unique ID to each runtime and each actor. The sender actor only needs to specify the receiver actor's ID and runtime ID, then the reliable transmission module \ref{} could deliver the remote actor message to the receiver actor.
 
