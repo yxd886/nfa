@@ -51,11 +51,12 @@ Paper \#44, xx pages
 \begin{abstract}
 %Network Function Virtualization (NFV) has been the leading trend for network service provisioning in recent years, for significantly enhanced deployment flexibility and reduced cost.
 
-With the advent of Network Function Virtualization (NFV) paradigm, a few NFV management systems have been proposed, enabling  NF service chaining, scaling, placement, load balancing, etc. \ac{Unfortunately, although failure resilience is of pivotal importance in practical NFV systems, it is mostly absent in existing systems.}
+With the advent of Network Function Virtualization (NFV) paradigm, a few NFV management systems have been proposed, enabling  NF service chaining, scaling, placement, load balancing, etc. Unfortunately, although failure resilience is of pivotal importance in practical NFV systems, it is mostly absent in existing systems.
 % Failure resilience of NF service chains is usually missing from the list, which nevertheless is of pivotal importance in practical NFV systems.
 We identify the absence is mainly due to the challenge of patching source code of the existing NF software for extracting important NF states, a necessary step toward flow migration and replication. %, and of providing an efficient control channel for transmitting states to new NF instances.
- This paper proposes \nfactor, a novel NFV system that uses the actor programming model to provide transparent resilience, easy scalability and high performance in network flow processing. Our main observation is that actor provides the unique benefits for light-weight, decentralized migration of network flow states. Based on~\nfactor, a set of efficient APIs are provided for constructing NFs, with inherent support for scalability and resilience; a per-flow management principle is advocated - different from the existing systems - which provides dedicated service chain services for individual flows, enabling \ac{decentralized flow migration and scalable replication} for each flow \chuan{complete the advantage brought by per-flow management}. %NFActor does not rely on a central controller as heavily exploited as in a SDN-based NFV system.
-Going beyond resilience, \nfactor~also enables several interesting applications, including live NF update, flow deduplication and reliable MPTCP subflow processing, which are not available in existing NFV systems \ac{due to the lack of decentralized flow migration.}\chuan{state whether they can or cannot be achieved by other NFV systems}. We implement \nfactor~on a real-world testbed and show that it achieves supreme scalability, prompt flow migration and failure recovery, ... \chuan{add more detailed results}
+ This paper proposes \nfactor, a novel NFV system that uses the actor programming model to provide transparent resilience, easy scalability and high performance in network flow processing. %Our main observation is that actor provides the unique benefits for light-weight, decentralized migration of network flow states. 
+ In~\nfactor, a set of efficient APIs are provided for constructing NFs, with inherent support for scalability and resilience; a per-flow management principle is advocated - different from the existing systems - which provides dedicated service chain services for individual flows, enabling decentralized flow migration and scalable replication for each flow. %NFActor does not rely on a central controller as heavily exploited as in a SDN-based NFV system.
+Going beyond resilience, \nfactor~also enables several interesting applications, including live NF update, flow deduplication and reliable MPTCP subflow processing, which are not available in existing NFV systems due to the lack of decentralized flow migration. We implement \nfactor~on a real-world testbed and show that it achieves supreme scalability, prompt flow migration and failure recovery, ... \chuan{add more detailed results}
 
 
 %The flow management in NFActor framework is fully scalable, it does not need coordination from a centralized controller. NFActor framework is implemented on top of DPDK to provide efficient flow management.
@@ -75,14 +76,14 @@ Going beyond resilience, \nfactor~also enables several interesting applications,
 \end{abstract}
 
 \input{section/introduction.tex}
-\input{section/background.tex}
+%\input{section/background.tex}
+\input{section/related-work.tex}
 \input{section/overview.tex}
 \input{section/module-api.tex}
 \input{section/runtime-and-controller.tex}
 \input{section/implementation.tex}
 \input{section/evaluation.tex}
 %\input{section/discussion.tex}
-\input{section/related-work.tex}
 \input{section/conclusion.tex}
 
 \bibliographystyle{abbrv}

@@ -9,16 +9,16 @@ they may launch virtualized devices (virtual machines or containers) to run NFs 
 drastically reduces the cost and complexity of deploying network services, usually consisting of a sequence of NFs such as ``firewall$\rightarrow$IDS$\rightarrow$proxy'', {\em i.e.}, a service chain.
 
  %However, simply running NF software in virtualized environment is not enough to satisfy the stringent requirement of NFV. What network operators need is a full-fledged NFV system, that is capable of handling different kinds of NFV management tasks.
-A number of NFV management systems have been designed in recent years, \eg, E2 \cite{palkar2015e2}, OpenBox \cite{bremler2015openbox}, CoMb
+A number of NFV management systems have been designed in recent years, \eg, E2 \cite{palkar2015e2}, OpenBox \cite{OpenBox}, CoMb
 \cite{sekar2012design}, xOMB \cite{anderson2012xomb}, Stratos
 \cite{gember2012stratos}, OpenNetVM \cite{hwang2015netvm, zhang2016opennetvm}, ClickOS \cite{martins2014clickos}. They implement a
 broad range of NF management functionalities, including %line-speed packet processing \chuan{it is not management functionality},
  dynamic NF placement, elastic NF scaling,
 load balancing, etc., which facilitate network operators in operating NF service chains in virtualized environments. However, none of the existing systems enable failure
 tolerance \cite{rajagopalan2013pico, sherry2015rollback} and flow migration \cite{gember2015opennf, rajagopalan2013split, khalid2016paving} capabilities simultaneously, both of which are of pivotal importance in practical NFV systems for resilience and scalability.
+%\cui{add dpdk}
 
-
-{\em Failure resilience is crucial for stateful NFs.}  Many NFs maintain important per-flow states. Intrusion
+{\em Failure resilience is crucial for stateful NFs.}  Many NFs maintain important per-flow states \cite{EnablingNF}. Intrusion
 detection systems such as Bro \cite{bro} parse different network/application
 protocols, and store and update protocol-related
 states for each flow to alert potential attacks. Firewalls \cite{firewall}
@@ -40,52 +40,60 @@ connection for fetching a large amount of data from CDN servers. %These applicat
 
 
 Given the importance of failure resilience and flow migration in an NFV system, why are they absent in the existing NF management systems? The reason is simple: implementing flow migration and fault
-tolerance has been a challenging task on the existing NFV software architectures. To provide resilience, important NF states must be correctly extracted from the NF software for transmitting to a new NF instance. However, a separation between NF states and core processing logic is not enforced in the state-of-the-art implementation of NF software. Especially, important NF states may be scattered across the code base of the software, making
+tolerance has been a challenging task on the existing NFV software architectures. To provide resilience, important NF states must be correctly extracted from the NF software for transmitting to a new NF instance, needed both for flow migration and replication (for resilience). However, a separation between NF states and core processing logic is not enforced in the state-of-the-art implementation of NF software. Especially, important NF states may be scattered across the code base of the software, making
 extracting and serializing NF states a daunting task. Patch codes need to be
 manually added to the source code of different NFs to extract and serialize NF
 states \cite{gember2015opennf}\cite{rajagopalan2013split}. This usually requires a huge amount of manual work to add up to
-thousands of lines of source code for one NF, \eg, \cite{gember2015opennf} reports
+thousands of lines of source code for one NF, \eg, Gember-Jacobson {\em et al.}~\cite{gember2015opennf} report
 that it needs to add 3.3K LOC for Bro \cite{bro} and 7.8K LOC for Squid caching
-proxy \cite{squid}.  Realizing this difficulty, \cite{khalid2016paving} uses
+proxy \cite{squid}.  Realizing this difficulty, Khalid {\em et al.}~\cite{khalid2016paving} use
 static program analysis technique to automate this process. However, applying
 static program analysis itself is a challenging task and the inaccuracy of
 static program analysis may prevent some important NF states from being
 correctly retrieved.
 
-Even if NF states can be correctly acquired, transmitting
-the states among different NFs %and the NFV system controller
- requires an
-effective message passing service. The existing NF software (\eg,
-Click\cite{kohler2000click}) does not usually provide the support for a messaging channel, and programmers need to manually add this communication
-channel into the NF software. Finally, the additional codes that are patched to
-implement resilience inevitably entangle with the core processing logic of NF
-software. It may lead to serious software bugs if not handled properly.
+Even if NF states can be correctly acquired and NF replicas created, flows need to be redirected to the new NF instances in cases of NF load balancing and failure recovery. In the existing systems, this is usually handled by a centralized SDN controller, which initiates and coordinates the entire migration process for each flow. Aside from compromised scalability due to the centralized control, for lossless flow migration, the controller has to perform complicated migration protocols that involve multiple passes of messages among the SDN controller, switches, migration source and migration target \cite{gember2015opennf}, which adds delay to flow processing and limits packet processing throughput of the system.
+%Even if NF states can be correctly acquired, transmitting
+%the states among different NFs %and the NFV system controller
+% requires an
+%effective message passing service. The existing NF software (\eg,
+%Click\cite{kohler2000click}) does not usually provide the support for a messaging channel, and programmers need to manually add this communication
+%channel into the NF software. Finally, the additional codes that are patched to
+%implement resilience inevitably entangle with the core processing logic of NF
+%software. It may lead to serious software bugs if not handled properly.
 
 
-In this paper, we propose a software framework for building resilient NFV systems, \nfactor, exploiting the actor framework for programming distributed services \cite{actor-wiki, akka, newell2016optimizing}. Our main observation is that actor provides the unique benefits for light-weight, decentralized migration of network flow states. %We use actors to keep track of the flow states and migrate the actors without a centralized coordinator of a centralized controller.
-\nfactor~tracks each flow's state with our high-performance flow actor, which transparently separates flow state from NF processing logic. \nfactor's flow migration is achieved by flow actors themselves without involving a centralized coordinator.
-%\nfactor~uses actors to process flow packets at a high throughput rate. The flow states are keeped by the actors, which can be migrated without a centraliezd coordinator.
-
+In this paper, we propose a software framework for building resilient NFV systems, \nfactor, exploiting the actor framework for programming distributed services \cite{actor-wiki, akka, newell2016optimizing}. Our main observation is that actor provides the unique benefits for light-weight, decentralized migration of network flow states, based on which we enable highly efficient flow migration and replication. %We use actors to keep track of the flow states and migrate the actors without a centralized coordinator of a centralized controller.
+\nfactor~tracks each flow's state with our high-performance flow actor, whose design transparently separates flow state from NF processing logic. \nfactor~provides service chain processing of flows using flow actors on carefully designed uniform runtime environment, and enables fast flow migration and replication without relying much on centralized control.
+%\nfactor~uses actors to process flow packets at a high throughput rate. The flow states are kept by the actors, which can be migrated without a centraliezd coordinator.
 %\nfactor~includes the following modules: (i) \ac{a light-weight controller for basic cluster management} (ii) \ac{runtimes that conduct service chain processing using actors} (iii) \ac{virtual switches for balancing the workload on runtimes.} \chuan{briefly introduce key modules in nfactor system}
-\nfactor~achieves transparent resilience, easy scalability and high performance in network flow processing based on the following technical highlights: \chuan{improve and add design highlights in the following}
+\nfactor~achieves transparent resilience, easy scalability and high performance in network flow processing based on the following design highlights: %\chuan{improve and add design highlights in the following}
 
-$\triangleright$  Unlike existing work
-\cite{gember2015opennf, sherry2015rollback} that patch resilience
-functionalities into NF software, \nfactor~achieves {\em transparent resilience} by providing a clean separation between important NF states and core NF processing logic in each NF module using a unique API, which makes extracting, serializing and transmitting important flow states an easy task. Using \nfactor, programmer implementing NF modules only needs to focus on the core processing logic.
+$\triangleright$ {\em Clean separation between NF processing logic and resilience support.} Unlike existing work
+\cite{gember2015opennf, sherry2015rollback} that patch functionalities for failure resilience into NF software, \nfactor~provides a clean separation between important NF states and core NF processing logic in each NF using a unique API, which makes extracting, serializing and transmitting important flow states an easy task.
+Based on this, the \nfactor~framework can transparently carry out flow migration and replication operations, those needed to enable failure resilience, regardless of the concrete network function to be replicated, \ie, which we refer to as {\em transparent resilience}. Using \nfactor, programmers implementing the NFs only need to focus on the core NF logic, and the framework provides the resilience support. % On the other hand, flow actors can be transparently migrated and replicated as long as they load NF modules that are written with \nfactor~API. We refer to this as transparent resilience in~\nfactor.
 
 
-$\triangleright$ Fundamentally different from the existing systems, \nfactor~adopts a per-flow management principle. \duan{I want to modify this sentence into: adopts a one-flow-one-actor management principle.} \ac{\nfactor~manages flows through a one-actor-one-flow abstraction. Packet processing of a flow are completely delegated to a unique actor that is specially created for that flow. Actors in \nfactor~are configured with a rich set of message handlers and run on uniform runtime systems, enabling direct communication between remote actors running on different runtime systems. The per-flow management provides a distributed environment to execute tasks, \ie~flow migration and replication, that involve non-trivial distributed protocols. }\chuan{describe what the per-flow management is about and its advantages}
+$\triangleright$ {\em Per-flow micro-management.} Fundamentally different from the existing systems, \nfactor~creates a micro execution context for each flow by providing a dedicated service chain on one actor for processing packets of this flow on the actor. This can be viewed as a micro (service chain) service dedicated to the flow.
+ %Actors in \nfactor~are configured with a rich set of message handlers and run on uniform runtime systems, enabling direct communication between remote actors running on different runtime systems.
+\chuan{idea of the following sentence has been covered by the paragraph above; instead you should describe how this per-flow management can enable better scalability and high speed packet processing} The micro execution context is constructed using actor framework, which has been proven to be a light-weight and scalable abstraction for building high-performance systems \cite{newell2016optimizing}. \ac{Scheduling actors to execute only incurs a small overhead, enabling \nfactor to have a high packet processing throughput. The horizontal scalability of \nfactor is also improved as actors can be scheduled to run on uniform runtime systems. }
+%Inside this execution context, the flow actor can actively exchange messages with other actors and transmit flow states without disturbing the normal NF processing.
+
 
 %to provide dedicated service chain services for individual flows,  \chuan{briefly discuss how the design enables easy scalability and high performance in network flow processing}.
 
 %NFs in a service chain are deployed inside the execution context of an actor, instead of being chained through different virtualized devices (\eg, virtual machines or containers). In this way, a unique actor is responsible for processing a network flow through a dedicated service chain. This unique actor fully monitors the flow processing. It can interrupt the flow processing for flow migration or fault tolerance without the need to contact the service chain.
 
 
-$\triangleright$ Resilience support in \nfactor~is provided in a fully distributed fashion, without directly involving a central controller, which distinguishes \nfactor~from the existing NFV systems \cite{gember2015opennf}. Due to the message passing and decentralized nature of actor programming model, the flow management tasks are fully automated by actor scheduling and message passing. There is no need for the continuous monitoring of a centralized controller. Therefore the controller in NFActor framework is extremely light-weighted and failure resilient. The actor programming model only imposes a small overhead during service chain processing and flow management, improving the performance of NFActor. \duan{Personally, I think the previous 3 paragraphs can explain why using actor can achieve transparent resilience}
+$\triangleright$ {\em Largely decentralized implementation.} Based on decentralized message passing of the actor framework, flow migration and replication in \nfactor~are fully automated, achieved in a fully distributed fashion without continuous monitoring of a centralized controller, which distinguishes \nfactor~from the existing NFV systems \cite{gember2015opennf}. The controller in \nfactor~is \ac{only used for controlling dynamic scaling and initiating flow migration and replication,} \chuan{describe what the controller is used for}, thus light-weighted and failure resilient \ac{as the controller does not need to maintain complicated state generated by flow migration and can be easily replicated by storing its simple state on a reliable storage system like ZooKeeper \cite{hunt2010zookeeper}}. \chuan{clarify why the controller is failure resilient}. In addition, \nfactor~is implemented on top of the high speed packet I/O library, DPDK \cite{dpdk}, which further improves the performance of \nfactor.
 
-Going beyond resilience, NFActor framework also enables several interesting new applications that existing NFV systems are hard to provide. These applications utilize the feature of decentralized flow migration to reduce the output bandwidth consumption during deduplication and ensures correct MPTCP subflow processing. NFActor framework also provides live updates to NFs that process packets at the rate of millions packets per second with almost zero down time, due to the blazingly fast flow migration speed.
+%The actor programming model only imposes a small overhead during service chain processing and flow management, improving the performance of NFActor.
 
-We implement \nfactor~on a real-world testbed. \chuan{improve the result discussion} The result shows that the performance of the runtime system is desirable. The runtimes have almost linear scalbility. The flow migration is blazingly fast. The flow replication is scalable, achieves desirable throughput and recover fast. The dynamic scaling of NFActor framework is good with flow migration. The result of the applications are good and positive.
+
+Going beyond resilience, our NFActor framework also enables several interesting applications that the existing NFV systems are difficult to support, including live NF update, flow deduplication and reliable MPTCP subflow processing. These applications require individual NFs to initiate flow migration, %explicitly notify the flow actor to migrate,
+which is hard to achieve (without significant overhead) in existing systems where flow migration is initiated and fully monitored by a centralized controller. In \nfactor, these applications can utilize our decentralized and fast flow migration to achieve live NF update with almost no interruption to high-speed packet processing of the NF, best flow deduplication to conserve bandwidth, and correct MPTCP subflow processing, with ease. %NFActor framework also provides live updates to NFs that process packets at the rate of millions packets per second with almost zero down time, due to the blazingly fast flow migration speed.
+
+We implement \nfactor~on a real-world testbed and opensource the project code \cite{projectcode} \chuan{complete the url in the bib}. \chuan{improve the result discussion} The result shows that the performance of the runtime system is desirable. The runtimes have almost linear scalbility. The flow migration is blazingly fast. The flow replication is scalable, achieves desirable throughput and recover fast. The dynamic scaling of NFActor framework is good with flow migration. The result of the applications are good and positive.
 
 
 The rest of the paper is organized as follows. \chuan{to complete} %We present background about NFV and the actor model in Sec.~\ref{sec:background} and overview our \nfactor~system in Sec.~\ref{sec:overview}. We discuss in detail the fault tolerance and flow migration design in Sec.~\ref{sec:fm} and Sec.~\ref{sec:ft}. We show the implementation and evaluation results in Sec.~\ref{sec:implementation} and Sec.~\ref{sec:experiments}, followed by related work in Sec.~\ref{sec:relatedwork}. Sec.~\ref{sec:conclusion} concludes the paper.
