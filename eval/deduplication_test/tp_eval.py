@@ -186,9 +186,9 @@ def read_pkts(ssh,rt_num):
 
   i = 0
   for line in stdout:
-    if i == 6:
+    if i == 2:
 	received_pkts_line = line
-    if i == 7:
+    if i == 3:
         dropped_pkts_line = line
     i=i+1
 
