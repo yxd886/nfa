@@ -29,11 +29,9 @@ $(shell mkdir -p $(DEPDIR)/reliable > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable/base > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/real_rpc_basic > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/migration > /dev/null)
-<<<<<<< HEAD
+
 $(shell mkdir -p $(DEPDIR)/samples/dynamic_update > /dev/null)
-=======
-$(shell mkdir -p $(DEPDIR)/samples/replication > /dev/null)
->>>>>>> master
+
 $(shell mkdir -p $(DEPDIR)/utils > /dev/null)
 
 # e.g., 4.9.3 -> 40903
