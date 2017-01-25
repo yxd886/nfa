@@ -107,6 +107,7 @@ struct reliable_single_msg{
 
           return_flag = false;
           i = batch->cnt();
+          garbage.clear();
           break;
         }
       }

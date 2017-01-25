@@ -21,11 +21,13 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
 
   if(replica_item!=nullptr){
     replication_state_ = have_replica;
-    r_ = coordinator_actor_->reliables_.find(3);
+    r_ = coordinator_actor_->reliables_.find(replica_item->replica_rtid_);
     r_->inc_ref_cnt();
+    // LOG(INFO)<<"Flow is initailized with replica on runtime "<<r_->get_rt_config()->runtime_id;
   }
   else{
     replication_state_ = no_replica;
+    // LOG(INFO)<<"No replica";
   }
 
   int32_t input_rtid;
@@ -275,7 +277,7 @@ void flow_actor::replication_output(bess::Packet* pkt){
   bess::PacketBatch batch;
   batch.clear();
   batch.add(fs_state_pkt);
-
+  // LOG(INFO)<<"Sending packets to replica";
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   bool flag = r_->reliable_send(msg_id,
                                 actor_id_,
@@ -285,6 +287,7 @@ void flow_actor::replication_output(bess::Packet* pkt){
                                 pkt);
 
   if(unlikely(flag == false)){
+    // LOG(INFO)<<"Fail to send packets to replica";
     coordinator_actor_->gp_collector_.collect(&batch);
     coordinator_actor_->gp_collector_.collect(pkt);
   }

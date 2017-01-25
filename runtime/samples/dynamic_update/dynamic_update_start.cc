@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
   // LOG(INFO)<<checker_10242.GetRuntimeState();
 
 
-  LOG(INFO)<<"print any key to migrate all flows in r1 rt1 to r2 rt1";
+  LOG(INFO)<<"print any key to migrate all flows in r11 to r21";
 	getchar();
 
 	LOG(INFO)<<checker_r2_10241.SetMigrationTarget("202.45.128.156",10241,20000);
