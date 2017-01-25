@@ -105,12 +105,12 @@ assert ret is None, 'Incorrect response'
 print 'adding dp_l2forward rule ok'
 
 ret = cp_l2forward.add([
-						{'addr':'52:54:03:01:00:03', 'gate':0},
-						{'addr':'52:54:03:02:00:03', 'gate':0},
-						{'addr':'52:54:03:03:00:03', 'gate':0},
-						{'addr':'52:54:02:01:00:03', 'gate':1},
-						{'addr':'52:54:02:02:00:03', 'gate':2},
-						{'addr':'52:54:02:03:00:03', 'gate':3}])
+                        {'addr':'52:54:03:01:00:03', 'gate':0},
+                        {'addr':'52:54:03:02:00:03', 'gate':0},
+                        {'addr':'52:54:03:03:00:03', 'gate':0},
+                        {'addr':'52:54:02:01:00:03', 'gate':1},
+                        {'addr':'52:54:02:02:00:03', 'gate':2},
+                        {'addr':'52:54:02:03:00:03', 'gate':3}])
 assert ret is None, 'Incorrect response'
 print 'adding cp_l2forward rule ok'
 

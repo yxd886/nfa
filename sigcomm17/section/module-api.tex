@@ -1,23 +1,24 @@
 \section{NF Module API}
 
-\begin{figure}[!h]
-\begin{subfigure}[t]{0.49\linewidth}
-   \centering
-   \includegraphics[width=\columnwidth]{figure/nf-module-api-init.pdf}
-   \caption{The API that is used to initialize flow state when the flow actor is created.}\label{fig:init-api}
-  \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.49\linewidth}
- \centering
-   \includegraphics[width=\columnwidth]{figure/nf-module-api-process_pkt.pdf}
-   \caption{The API that is used to process input packet.}\label{fig:pkt-process-api} \end{subfigure}\hfill
- \caption{The API exposed by NFActor for implementing new NF modules. (NF: Network function. FS: Flow state. pkt: packet.)}
-\label{fig:api}
-\end{figure}
+\begin{table}[!b]
+\centering
+\caption{The public API methods that must be implemented for each NF modules in NFActor framework.}
+\label{table:api}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{c|l}
+\textbf{API}                                      & \multicolumn{1}{c}{\textbf{Usage}}                                                                                                                                                                                                         \\ \hline
+nf.allocate\_new\_fs()                            & \begin{tabular}[c]{@{}l@{}}Allocate a new flow state for\\ a new flow actor.\end{tabular}                                                                                                                                                  \\ \hline
+nf.deallocate\_fs(fs)                             & \begin{tabular}[c]{@{}l@{}}Deallocate the flow state \\ when the flow actor expires\\ or quits.\end{tabular}                                                                                                                               \\ \hline
+nf.process\_pkt(input\_pkt, fs)                   & \begin{tabular}[c]{@{}l@{}}Process the input packet using the \\ current flow state associated with the\\ flow actor.\end{tabular}                                                                                                         \\ \hline
+nf.get\_migration\_target(cluster\_cfg, fs) & \begin{tabular}[c]{@{}l@{}}Query the NF using the current\\ cluster configuration and the current\\ flow state about where the flow\\ actor should be migrated to. This\\ method enables each actor to do\\ active migration.\end{tabular} \\ \hline
+\end{tabular}
+}
+\end{table}
 
-Each NF used by NFActor is implemented as a loadable module. The runtime system could select which NF module to load and use. In order to achieve the service chain processing as indicated in figure \ref{fig:runtime-arch}, we pass in an argument indicating the composition of the service chain before initializing a runtime. The runtime guarantees that each flow actor processes the packet through each NF as indicated in the service chain. The modular NF design is similar to that in NetBricks \cite{199352}, however, NFActor modifies the interface exposed by the NF module to achieve efficient flow management.
+To facilitate transparent resilience, \nfactor needs to ensure a clean separation between the NF processing logic and the flow states associated with each flow. To enforce this criteria, we build a set of easy to use APIs that can be used to create a broad range of NF modules for \nfactor.
 
-When executing flow management tasks, flow actor must be able to extract and transmit the flow states of all the NFs on the service chain, without disturbing the normal service chain processing. To speed up this process, we propose to separate the flow state with the processing logic of the NF module, and store the flow state inside the flow actor.
+Table \ref{table:api} \ac{summarizes these APIs, which are provided as four public methods for each NF module. The allocation and deallocation methods enforce each NF module to allocate a flow state that is stored by a flow actor, therefore transferring the primary access right of the flow state to the flow actor. When the flow actor receives a input packet message, it calls the packet processing method to process the input packet passing along the flow state, so that any changes to the flow state when calling the third method is immediately visible to the flow actor when the flow actor finishes processing an input packet.}
 
-We summarize the core APIs used by NFActor to construct new NF modules in figure \ref{fig:api}. Using these APIs, the flow actor could acquire a new flow state when it is created. When the flow actor processes a packet, the flow actor passes the current flow state and the input packet together into the processing logic of a NF module. The processing logic could directly update the flow state according to the input packet. Since the flow state is stored by the flow actor, the flow actor could directly manipulate its flow state when executing flow management tasks, without disturbing the NF processing logic.
+\ac{When the flow actor processes messages during resilience operations, it always has direct access to the latest flow state, which could be transmitted without disturbing the normal of NF processing. Therefore, the combination of the three methods servers as the basis for the transparent resilience in~\nfactor. These three methods are simple to use and properly generalize the structure of NFs that processes flow packets based on per-flow state. Using these three methods, we are able to create several representing NFs as shown in \ref{}.} \cui{give a clearer description on why the four APIs can facilitate transparent resilience and build a rich set of NFs.}
 
-Even though this design facilitates flow management tasks, it has its own limitation. Using this design, it is hard to extract and tranismit shared states. However, it is a complicated tasks to guaratee the consistency of shared states when managing a single flow. It may require multiple synchronizations, thereby affecting the processing speed of a single flow management task. Sice our primary goal when designing NFActor is to provide a high performance exeuction context, we do not aim to synchronize shared state. Instead, when flow management affects the consistency of the shared state, we could explicitly notify the NF about the result of flow management tasks and let NF module to handle the inconsistecy.
+Finally, the flow actor could use the fourth method to check where the NF would like the actor to migrate to, by passing the current cluster configuration and the current flow state. This enables the flow actor to actively migrate itself instead of waiting for migration initiation command sends from the controller \ref{}, and sparkles several useful applications (i.e. decreasing the output bandwidth during deduplication and ensuring reliable MPTCP subflow processing \ref{}) that none of existing NFV systems can achieve.

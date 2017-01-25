@@ -29,8 +29,12 @@ $(shell mkdir -p $(DEPDIR)/reliable > /dev/null)
 $(shell mkdir -p $(DEPDIR)/reliable/base > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/real_rpc_basic > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/migration > /dev/null)
+<<<<<<< HEAD
 $(shell mkdir -p $(DEPDIR)/samples/mp_tcp > /dev/null)
 $(shell mkdir -p $(DEPDIR)/samples/deduplication > /dev/null)
+=======
+$(shell mkdir -p $(DEPDIR)/samples/replication > /dev/null)
+>>>>>>> master
 $(shell mkdir -p $(DEPDIR)/utils > /dev/null)
 
 # e.g., 4.9.3 -> 40903
@@ -144,8 +148,18 @@ RECOVER_START_OBJS = $(filter-out main.o $(filter-out samples/recover_start.o,$(
 DEDUPLICATION_INIT_EXEC = samples/deduplication/deduplication_init
 DEDUPLICATION_INIT_OBJS = $(filter-out main.o $(filter-out samples/deduplication/deduplication_init.o,$(SAMPLES_OBJS)),$(OBJS))
 
+R_INIT_EXEC = samples/replication/r_init
+R_INIT_OBJS = $(filter-out main.o $(filter-out samples/replication/r_init.o,$(SAMPLES_OBJS)),$(OBJS))
+
+R_START_EXEC = samples/replication/r_start
+R_START_OBJS = $(filter-out main.o $(filter-out samples/replication/r_start.o,$(SAMPLES_OBJS)),$(OBJS))
+
+R_RECOVER_EXEC = samples/replication/r_recover
+R_RECOVER_OBJS = $(filter-out main.o $(filter-out samples/replication/r_recover.o,$(SAMPLES_OBJS)),$(OBJS))
+
 
 .PHONY: all clean tests protobuf
+
 
 all: $(OBJS) $(REAL_RPC_BASIC_MAIN_EXEC) $(MIGRATION_START_EXEC) $(NFA_RPC_CLIENT_EXEC) $(REPLICATION_START_EXEC) $(RECOVER_START_EXEC) $(DEDUPLICATION_INIT_EXEC)
 
@@ -266,7 +280,7 @@ $(eval $(call BUILD, \
 	$$(DEDUPLICATION_INIT_EXEC), \
 	$$(DEDUPLICATION_INIT_OBJS), \
 	$$(CXX) -o $$@ $$^ $$(LDFLAGS) $$(LIBS)))
-	
+
 
 %.d: ;
 

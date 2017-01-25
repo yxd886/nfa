@@ -53,6 +53,7 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
       }
       else{
         // using a round rubin to choose replica
+        // LOG(INFO)<<"Receive a flow and select a replica";
         generic_list_item* replica_item = coordinator_actor_->replicas_rrlist_.rotate();
 
         coordinator_actor_->active_flows_rrlist_.add_to_tail(actor);

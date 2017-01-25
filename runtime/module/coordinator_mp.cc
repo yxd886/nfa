@@ -87,7 +87,7 @@ struct task_result coordinator_mp::RunTask(void *arg){
 
   cdlist_head* replica_flow_list = coordinator_actor_->replica_flow_lists_.find(coordinator_actor_->storage_rtid_);
   for(int i=0; i<32; i++){
-    if(coordinator_actor_->storage_rtid_ == 0 || coordinator_actor_->out_going_recovery_>1024){
+    if(coordinator_actor_->storage_rtid_ == 0 || coordinator_actor_->out_going_recovery_>256){
       break;
     }
 

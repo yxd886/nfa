@@ -55,16 +55,19 @@ reliable_single_msg* reliable_p2p::recv(bess::Packet* pkt){
   }
 
   if(unlikely(rh->seq_num != next_seq_num_to_recv_)){
-    /*error_counter_+=1;
-    if(error_counter_>4096){
-      LOG(INFO)<<"Expecting: "<<next_seq_num_to_recv_;
-      LOG(INFO)<<"Receiving: "<<rh->seq_num;
-    }*/
+    error_counter_+=1;
+    if(error_counter_>16){
+      // LOG(INFO)<<"Expecting: "<<next_seq_num_to_recv_;
+      // LOG(INFO)<<"Receiving: "<<rh->seq_num;
+      error_counter_=0;
+      next_seq_num_to_recv_snapshot_ = next_seq_num_to_recv_-1;
+    }
     coordinator_actor_->gp_collector_.collect(pkt);
     return nullptr;
   }
 
-  // error_counter_ = 0;
+  error_counter_ = 0;
+
   next_seq_num_to_recv_ += 1;
   if(batch_.cnt()==0){
     reliable_message_header* rmh = reinterpret_cast<reliable_message_header*>(rh+1);
