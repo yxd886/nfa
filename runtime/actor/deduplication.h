@@ -29,7 +29,7 @@ bool is_duplicate_packet(bess::Packet* pkt){
 	memset(tmp,0,sizeof(tmp));
 	rte_memcpy(tmp,format_packet.GetData(),sizeof(tmp));
 	std::string content(tmp);
-	if(content.find("duplicate"!=std::string::npos)){
+	if(content.find("duplicate")!=std::string::npos){
     LOG(INFO)<<"DUPLICATE PACKET";
 		return true;
 	}else{
