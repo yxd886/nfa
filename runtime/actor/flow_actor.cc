@@ -333,6 +333,7 @@ void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){
 	if(FLAGS_deduplicate_target_flag&&is_duplicate_packet(pkt)){
 
 		coordinator_actor_->gp_collector_.collect(pkt);
+		LOG(INFO)<<"Deduplicate target received duplicate pkts";
 
 	}else{
 
