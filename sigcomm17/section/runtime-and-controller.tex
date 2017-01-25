@@ -104,7 +104,7 @@ Because the second response are sent after the destination runtime of the virtua
 
 \textbf{Error Handling.} The three request-responses may not always be successfully executed. In case of request timeout, the migration source actor is responsible for restoring the destination runtime of the virtual switch actor (if it is changed) and resumes normal packet processing. The migration target actor is automatically deleted after a timeout.
 
-\subsubsection{Scalable Flow Replication}
+\subsubsection{Lightweight Flow Replication}
 
 \begin{figure}[!h]
 \begin{subfigure}[t]{0.49\linewidth}
