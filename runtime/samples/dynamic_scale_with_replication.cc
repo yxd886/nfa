@@ -516,12 +516,27 @@ bool need_scale_out(const runtime_state runtime){
 
 }
 
+bool only_one_rtm_in_server(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
+
+	int rtm_id=runtime.local_runtime.runtime_id;
+	int server_id=rtm_id/10;
+	int counter=0;
+	for(auto it=active_runtimes->begin();it!=active_runtimes->end();it++){
+		if(*it->local_runtime.runtime_id/10==server_id){
+			counter++;
+		}
+	}
+	return counter==1?true:false;
+
+
+
+}
 
 void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
 
 
-	if(active_runtimes->size()<=server_num)
+	if(only_one_rtm_in_server(runtime,active_runtimes))
 		return;
 	LOG(INFO)<<"scale in";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
