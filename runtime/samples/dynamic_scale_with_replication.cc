@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <map>
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -502,7 +503,7 @@ bool need_scale_out(const runtime_state runtime){
 	char buffer2[256];
 	memset(buffer1,0,sizeof(buffer1));
 	memset(buffer2,0,sizeof(buffer2));
-	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
+	ifstream myfile("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
 	  exit(1); // terminate with error
