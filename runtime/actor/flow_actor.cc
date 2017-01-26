@@ -406,7 +406,7 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
   rte_memcpy(&(cstruct.flow_key), &flow_key_, sizeof(flow_key_t));
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
-  LOG(INFO)<<input_header_.dest_rtid;
+  // LOG(INFO)<<input_header_.dest_rtid;
   coordinator_actor_->reliables_.find(input_header_.dest_rtid)->reliable_send(
                                       msg_id,
                                       actor_id_,

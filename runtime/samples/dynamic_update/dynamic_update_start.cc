@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 
 	LOG(INFO)<<checker_r2_10241.MigrateTo("202.45.128.156",10241,300000);
 
-	sleep(2);
+	sleep(1);
 
 	LOG(INFO)<<checker_r1_10241.DeleteOutputRt("202.45.128.155",10241);
 	LOG(INFO)<<checker_r1_10242.DeleteOutputRt("202.45.128.155",10241);
@@ -152,13 +152,19 @@ int main(int argc, char** argv) {
   LOG(INFO)<<"please restart r2 rt1, then press any key to continue";
 	getchar();
 
-	// LOG(INFO)<<checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
-	// LOG(INFO)<<checker_r1_10241.AddOutputMac("202.45.128.155",10241);
-	// LOG(INFO)<<checker_r2_10241.AddInputMac("202.45.128.154",10241);
+	LOG(INFO)<<checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10242.SingleAddOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10243.SingleAddOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10244.SingleAddOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10245.SingleAddOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10246.SingleAddOutputRt("202.45.128.155",10241);
 
-
-
-
+	LOG(INFO)<<checker_r1_10241.AddOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10242.AddOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10243.AddOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10244.AddOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10245.AddOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10246.AddOutputMac("202.45.128.155",10241);
 
   return 0;
 }
