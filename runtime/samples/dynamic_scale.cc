@@ -145,7 +145,7 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
 	int32_t rtm_id=runtime_state.local_runtime.runtime_id;
 	std::string ip=convert_uint32t_ip(runtime_state.local_runtime.rpc_ip);
 	int32_t port=runtime_state.local_runtime.rpc_port;
-	t= "ssh net@"+ip+" sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" &";
+	t= "ssh net@"+ip+" sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" > /home/net/nfa/eval/dynamic_scale_test/rt"+std::to_string(rtm_id%10)+"_log 2>&1 &";
 	LOG(INFO)<<"remote command: "<<t;
 	const char*a = t.c_str();
 	status=std::system(a);
@@ -194,7 +194,7 @@ bool local_open(std::string rtm_name, runtime_state runtime_state, std::string s
 	int32_t rtm_id=runtime_state.local_runtime.runtime_id;
 	std::string ip=convert_uint32t_ip(runtime_state.local_runtime.rpc_ip);
 	int32_t port=runtime_state.local_runtime.rpc_port;
-	t="sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" &";
+	t="sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" > /home/net/nfa/eval/dynamic_scale_test/rt"+std::to_string(rtm_id%10)+"_log 2>&1 &";
 	LOG(INFO)<<"local command: "<<t;
 	const char*a = t.c_str();
 	status=std::system(a);
@@ -446,7 +446,7 @@ bool need_scale_in(const runtime_state runtime){
 	bool success=false;
 
 	int32_t id=runtime.local_runtime.runtime_id;
-	t= "nohup python /home/net/nfa/eval/dynamic_scale_test/read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" &";
+	t= "nohup python /home/net/nfa/eval/dynamic_scale_test/read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
 	const char*a = t.c_str();
 	/*FILE *fp;
 	if((fp=popen(t.c_str(),"r"))==NULL){
@@ -551,7 +551,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
   checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),runtime.migration_target.rpc_port,runtime.flow_state.active_flows);
 
-
+  sleep(2);
   checker_source.ShutdownRuntime();
 
   for(auto it=active_runtimes->begin();it!=active_runtimes->end();it++){
@@ -562,7 +562,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
   	}
   }
 
-
+  getchar();
 
 }
 
@@ -593,7 +593,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
   runtime_state tmp;
   checker_dest.GetRuntimeState(tmp);
   active_runtimes->push_back(tmp);
-
+  getchar();
 
 }
 
