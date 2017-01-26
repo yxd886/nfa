@@ -425,6 +425,7 @@ void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid
                                       create_migration_target_actor_t::value,
                                       &cstruct);
 
+  LOG(INFO)<<"migration_timer_.request_msg_id_: "<<migration_timer_.request_msg_id_;
   coordinator_actor_->req_timer_list_.add_timer(&migration_timer_,
                                                 ctx.current_ns(),
                                                 msg_id,
