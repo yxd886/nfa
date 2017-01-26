@@ -433,7 +433,7 @@ void flow_actor::handle_message(start_migration_t, int32_t migration_target_rtid
 
 void flow_actor::handle_message(start_migration_timeout_t){
   migration_timer_.invalidate();
-  //LOG(INFO)<<"start_migration_timeout is triggered";
+  LOG(INFO)<<"start_migration_timeout is triggered";
 
   // modify state
   current_state_ = flow_actor_normal_processing;
@@ -454,8 +454,8 @@ void flow_actor::handle_message(start_migration_response_t, start_migration_resp
     return;
   }
 
-  //LOG(INFO)<<"The response is successfully received, the id of the migration target is "
-  //         <<cstruct_ptr->migration_target_actor_id;
+  LOG(INFO)<<"The response is successfully received, the id of the migration target is "
+           <<cstruct_ptr->migration_target_actor_id;
   migration_timer_.invalidate();
 
   migration_target_actor_id_ = cstruct_ptr->migration_target_actor_id;
@@ -502,7 +502,7 @@ void flow_actor::failure_handling(){
 
 void flow_actor::handle_message(change_vswitch_route_timeout_t){
   migration_timer_.invalidate();
-  //LOG(INFO)<<"change_vswitch_route_timeout is triggered";
+  LOG(INFO)<<"change_vswitch_route_timeout is triggered";
 
   reliable_p2p* r = coordinator_actor_->reliables_.find(input_header_.dest_rtid);
   if(r->check_connection_status()==false){
@@ -529,7 +529,7 @@ void flow_actor::handle_message(change_vswitch_route_response_t, change_vswitch_
     return;
   }
 
-  //LOG(INFO)<<"The response is successfully received, the route has been changed";
+  LOG(INFO)<<"The response is successfully received, the route has been changed";
   migration_timer_.invalidate();
 
   if( (current_state_ == flow_actor_migration_failure_processing) ||
@@ -584,7 +584,7 @@ void flow_actor::handle_message(migrate_flow_state_t,
                                 uint32_t sender_actor_id,
                                 uint32_t request_msg_id,
                                 bess::PacketBatch* fs_pkt_batch){
-  //LOG(INFO)<<"Receive fs_pkt_batch!!!";
+  LOG(INFO)<<"Receive fs_pkt_batch!!!";
 
   uint32_t msg_id = coordinator_actor_->allocate_msg_id();
   migrate_flow_state_response_cstruct cstruct;
