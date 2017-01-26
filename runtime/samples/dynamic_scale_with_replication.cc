@@ -488,7 +488,7 @@ bool need_scale_out(const runtime_state runtime){
 	bool success=false;
 
 	int32_t id=runtime.local_runtime.runtime_id;
-	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && sudo nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
+	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
 	const char*a = t.c_str();
 	status=std::system(a);
 	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
