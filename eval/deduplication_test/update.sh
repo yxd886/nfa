@@ -1,6 +1,6 @@
 #! /bin/sh
 
-git pull
+git pull xiaodong deduplication_test
 
 make -C ../../runtime -j8
 
