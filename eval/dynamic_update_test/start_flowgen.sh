@@ -6,7 +6,7 @@ PWD=`pwd`
 ../../runtime/samples/dynamic_update/dynamic_update_init
 
 echo "Finish buildling up the topology. Sleep 1s"
-sleep 1
+sleep 5
 
 
 echo "Adding connections to portout"
