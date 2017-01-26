@@ -1,4 +1,5 @@
 #include "../../rpc/livesness_check_client.h"
+#include <unistd.h>
 
 int main(int argc, char** argv) {
   FLAGS_logtostderr = 1;
@@ -124,12 +125,26 @@ int main(int argc, char** argv) {
 
 	LOG(INFO)<<checker_r2_10241.SetMigrationTarget("202.45.128.156",10241,20000);
 
-	// LOG(INFO)<<checker_r1_10241.DeleteOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10241.DeleteOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10242.DeleteOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10243.DeleteOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10244.DeleteOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10245.DeleteOutputMac("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10246.DeleteOutputMac("202.45.128.155",10241);
+
 	// LOG(INFO)<<checker_r2_10241.DeleteInputMac("202.45.128.154",10241);
 
 	LOG(INFO)<<checker_r2_10241.MigrateTo("202.45.128.156",10241,300000);
 
-	// LOG(INFO)<<checker_r1_10241.DeleteOutputRt("202.45.128.155",10241);
+	sleep(2);
+
+	LOG(INFO)<<checker_r1_10241.DeleteOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10242.DeleteOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10243.DeleteOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10244.DeleteOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10245.DeleteOutputRt("202.45.128.155",10241);
+	LOG(INFO)<<checker_r1_10246.DeleteOutputRt("202.45.128.155",10241);
+
 	// LOG(INFO)<<checker_r2_10241.DeleteInputRt("202.45.128.154",10241);
 
   LOG(INFO)<<"please shutdown the r2 rt1 , then press any key to continue";
