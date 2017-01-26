@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <cassert>
 
 
 
@@ -599,7 +600,9 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
 
 int main(int argc, char** argv) {
 
-	std::vector<runtime_state>active_runtimes(100);
+	std::vector<runtime_state>active_runtimes;
+	active_runtimes.reserve(100);
+	assert(active_runtimes.size()==0);
 
 	init(active_runtimes);
 
