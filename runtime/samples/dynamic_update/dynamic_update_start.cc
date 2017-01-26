@@ -124,22 +124,22 @@ int main(int argc, char** argv) {
 
 	LOG(INFO)<<checker_r2_10241.SetMigrationTarget("202.45.128.156",10241,20000);
 
-	LOG(INFO)<<checker_r1_10241.DeleteOutputMac("202.45.128.155",10241);
-	LOG(INFO)<<checker_r2_10241.DeleteInputMac("202.45.128.154",10241);
+	// LOG(INFO)<<checker_r1_10241.DeleteOutputMac("202.45.128.155",10241);
+	// LOG(INFO)<<checker_r2_10241.DeleteInputMac("202.45.128.154",10241);
 
 	LOG(INFO)<<checker_r2_10241.MigrateTo("202.45.128.156",10241,300000);
 
-	LOG(INFO)<<checker_r1_10241.DeleteOutputRt("202.45.128.155",10241);
-	LOG(INFO)<<checker_r2_10241.DeleteInputRt("202.45.128.154",10241);
+	// LOG(INFO)<<checker_r1_10241.DeleteOutputRt("202.45.128.155",10241);
+	// LOG(INFO)<<checker_r2_10241.DeleteInputRt("202.45.128.154",10241);
 
   LOG(INFO)<<"please shutdown the r2 rt1 , then press any key to continue";
 	getchar();
   LOG(INFO)<<"please restart r2 rt1, then press any key to continue";
 	getchar();
 
-	LOG(INFO)<<checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
-	LOG(INFO)<<checker_r1_10241.AddOutputMac("202.45.128.155",10241);
-	LOG(INFO)<<checker_r2_10241.AddInputMac("202.45.128.154",10241);
+	// LOG(INFO)<<checker_r1_10241.SingleAddOutputRt("202.45.128.155",10241);
+	// LOG(INFO)<<checker_r1_10241.AddOutputMac("202.45.128.155",10241);
+	// LOG(INFO)<<checker_r2_10241.AddInputMac("202.45.128.154",10241);
 
 
 
