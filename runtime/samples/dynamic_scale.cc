@@ -598,7 +598,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
 
 int main(int argc, char** argv) {
 
-	std::vector<runtime_state>active_runtimes;
+	std::vector<runtime_state>active_runtimes(100);
 
 	init(active_runtimes);
 
