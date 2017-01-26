@@ -15,7 +15,8 @@ public:
 
   inline void add_timer(actor_timer<T>* timer, uint64_t now_ns,
                         uint32_t request_msg_id, uint16_t msg_type){
-    assert(timer->request_msg_id_ == invalid_message_id);
+    LOG(INFO)<<"timer->request_msg_id_: "<<timer->request_msg_id_;
+  		assert(timer->request_msg_id_ == invalid_message_id);
 
     timer->to_time_ = now_ns+to_ns_;
     timer->request_msg_id_ = request_msg_id;
