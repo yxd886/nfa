@@ -145,19 +145,7 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
 	int32_t port=runtime_state.local_runtime.rpc_port;
 	t= "ssh net@"+ip+" && sudo nohup /home/net/nfa/runtime/samples/real_rpc_basic/server_main --runtime_id="+std::to_string(rtm_id)+" --input_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.input_port_mac)+"\" --output_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.output_port_mac)+"\" --control_port_mac=\""+convert_uint64t_mac(runtime_state.local_runtime.control_port_mac)+"\" --rpc_ip=\""+convert_uint32t_ip(runtime_state.local_runtime.rpc_ip)+"\" --rpc_port="+std::to_string(port)+" --input_port=\""+rtm_name+"_iport\" --output_port=\""+rtm_name+"_oport\" --control_port=\""+rtm_name+"_cport\" --worker_core="+std::to_string(core_id)+" --service_chain=\""+service_chain+"\" &";
 	LOG(INFO)<<"remote command: "<<t;
-	fstream myfile;
-	myfile.open("/home/net/nfa/eval/dynamic_scale_test/ssh.sh",ios::out|ios::trunc);
-	if(!myfile){
-		LOG(ERROR)<< "Unable to open myfile";
-	  exit(1); // terminate with error
-	}
-	myfile<<t;
-
-  myfile.close();
-  std::string cmd;
-  cmd="sh /home/net/nfa/eval/dynamic_scale_test/ssh.sh";
-
-	const char*a = cmd.c_str();
+	const char*a = t.c_str();
 	status=std::system(a);
 	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
 		//successful
