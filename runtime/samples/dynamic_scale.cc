@@ -455,6 +455,7 @@ bool need_scale_in(const runtime_state runtime){
     return false;
 	}
 
+	char buffer[512];
 	char buffer1[256];
 	char buffer2[256];
 	memset(buffer1,0,sizeof(buffer1));
@@ -464,6 +465,8 @@ bool need_scale_in(const runtime_state runtime){
 		LOG(ERROR)<< "Unable to open myfile";
 	  exit(1); // terminate with error
 	}
+	myfile.getline (buffer,10);
+	myfile.getline (buffer,10);
 	myfile.getline (buffer1,10);
 	myfile.getline (buffer2,10);
 
@@ -492,6 +495,7 @@ bool need_scale_out(const runtime_state runtime){
     return false;
 	}
 
+	char buffer[512];
 	char buffer1[256];
 	char buffer2[256];
 	memset(buffer1,0,sizeof(buffer1));
@@ -501,9 +505,10 @@ bool need_scale_out(const runtime_state runtime){
 		LOG(ERROR)<< "Unable to open myfile";
 	  exit(1); // terminate with error
 	}
+	myfile.getline (buffer,10);
+	myfile.getline (buffer,10);
 	myfile.getline (buffer1,10);
 	myfile.getline (buffer2,10);
-
   LOG(INFO)<<"dropped packet: "<<buffer2;
   myfile.close();
 
