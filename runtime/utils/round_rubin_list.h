@@ -62,6 +62,8 @@ public:
     return &rr_list_head_;
   }
 
+
+
 private:
   struct cdlist_head rr_list_head_;
 

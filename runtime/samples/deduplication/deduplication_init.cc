@@ -161,11 +161,11 @@ int main(int argc, char** argv) {
   checker_r1_10246.SingleAddOutputRt("202.45.128.156",10243);
   //checker_r1_10246.AddOutputMac("202.45.128.156",10243);
 
-  checker_r2_10241.SetMigrationTarget("202.45.128.156",10241,10000);
-  checker_r2_10242.SetMigrationTarget("202.45.128.156",10241,10000);
-  checker_r2_10243.SetMigrationTarget("202.45.128.156",10241,10000);
-  checker_r3_10242.SetMigrationTarget("202.45.128.156",10241,10000);
-  checker_r3_10243.SetMigrationTarget("202.45.128.156",10241,10000);
+  checker_r2_10241.SetMigrationTarget("202.45.128.156",10241,50000);
+  checker_r2_10242.SetMigrationTarget("202.45.128.156",10241,50000);
+  checker_r2_10243.SetMigrationTarget("202.45.128.156",10241,50000);
+  checker_r3_10242.SetMigrationTarget("202.45.128.156",10241,50000);
+  checker_r3_10243.SetMigrationTarget("202.45.128.156",10241,50000);
 
 
   return 0;
