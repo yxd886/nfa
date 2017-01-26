@@ -51,8 +51,8 @@ def read_pkts(ssh,rt_num):
 
 def test():
   options,args = parse_arguments()
-  print "Start Test with the following options:"
-  print options
+  #print "Start Test with the following options:"
+  #print options
 
   #print "Creating SSH to R2 & R3"
 

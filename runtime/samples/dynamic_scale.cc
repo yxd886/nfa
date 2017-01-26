@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 
 
@@ -175,7 +176,7 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
   		LOG(INFO)<<checker_new.SingleAddOutputRt(convert_uint32t_ip(it->second.rpc_ip),it->second.rpc_port);
 
   }
-
+  sleep(2);
   return success;
 
 
@@ -444,8 +445,18 @@ bool need_scale_in(const runtime_state runtime){
 	bool success=false;
 
 	int32_t id=runtime.local_runtime.runtime_id;
-	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
+	t= "nohup python /home/net/nfa/eval/dynamic_scale_test/read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" &";
 	const char*a = t.c_str();
+	/*FILE *fp;
+	if((fp=popen(t.c_str(),"r"))==NULL){
+		LOG(ERROR)<<"POPEN Failure";
+		exit(-1);
+
+	}else{
+
+
+	}
+	*/
 	status=std::system(a);
 	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
 		success=true;
@@ -455,22 +466,20 @@ bool need_scale_in(const runtime_state runtime){
     return false;
 	}
 
-	char buffer[512];
-	char buffer1[256];
-	char buffer2[256];
+	int throughput;
+	int drop;
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
 	  exit(1); // terminate with error
 	}
-	myfile.getline (buffer,10);
-	myfile.getline (buffer,10);
-	myfile.getline (buffer1,10);
-	myfile.getline (buffer2,10);
-  LOG(INFO)<<"throughput: "<<std::string(buffer1);
-  LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
+	myfile>>throughput;
+	myfile>>drop;
+
+  LOG(INFO)<<"throughput: "<<throughput;
+  LOG(INFO)<<"dropped packet: "<<drop;
   myfile.close();
-	return atoi(buffer1)<min_throughput?false:true;
+	return throughput<min_throughput?false:true;
 
 }
 
@@ -493,23 +502,20 @@ bool need_scale_out(const runtime_state runtime){
     return false;
 	}
 
-	char buffer[512];
-	char buffer1[256];
-	char buffer2[256];
+	int throughput;
+	int drop;
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
 	  exit(1); // terminate with error
 	}
-	myfile.getline (buffer,10);
-	myfile.getline (buffer,10);
-	myfile.getline (buffer1,10);
-	myfile.getline (buffer2,10);
-  LOG(INFO)<<"throughput: "<<std::string(buffer1);
-  LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
+	myfile>>throughput;
+	myfile>>drop;
+  LOG(INFO)<<"throughput: "<<throughput;
+  LOG(INFO)<<"dropped packet: "<<drop;
   myfile.close();
 
-	return atoi(buffer2)==0?false:true;
+	return drop==0?false:true;
 
 }
 
