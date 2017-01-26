@@ -456,8 +456,8 @@ bool need_scale_in(const runtime_state runtime){
 	}
 
 	char buffer[512];
-	int throughput;
-	int drop;
+	char buffer1[256];
+	char buffer2[256];
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
@@ -465,10 +465,10 @@ bool need_scale_in(const runtime_state runtime){
 	}
 	myfile.getline (buffer,10);
 	myfile.getline (buffer,10);
-	myfile>>throughput;
-	myfile>>drop;
-
-  LOG(INFO)<<"throughput: "<<throughput;
+	myfile.getline (buffer1,10);
+	myfile.getline (buffer2,10);
+  LOG(INFO)<<"throughput: "<<std::string(buffer1);
+  LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   myfile.close();
 	return throughput<min_throughput?false:true;
 
@@ -494,8 +494,8 @@ bool need_scale_out(const runtime_state runtime){
 	}
 
 	char buffer[512];
-	int throughput;
-	int drop;
+	char buffer1[256];
+	char buffer2[256];
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
@@ -503,9 +503,10 @@ bool need_scale_out(const runtime_state runtime){
 	}
 	myfile.getline (buffer,10);
 	myfile.getline (buffer,10);
-	myfile>>throughput;
-	myfile>>drop;
-  LOG(INFO)<<"dropped packet: "<<drop;
+	myfile.getline (buffer1,10);
+	myfile.getline (buffer2,10);
+  LOG(INFO)<<"throughput: "<<std::string(buffer1);
+  LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   myfile.close();
 
 	return drop==0?false:true;
