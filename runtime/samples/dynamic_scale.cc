@@ -456,10 +456,8 @@ bool need_scale_in(const runtime_state runtime){
 	}
 
 	char buffer[512];
-	char buffer1[256];
-	char buffer2[256];
-	memset(buffer1,0,sizeof(buffer1));
-	memset(buffer2,0,sizeof(buffer2));
+	int throughput;
+	int drop;
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
@@ -467,12 +465,12 @@ bool need_scale_in(const runtime_state runtime){
 	}
 	myfile.getline (buffer,10);
 	myfile.getline (buffer,10);
-	myfile.getline (buffer1,10);
-	myfile.getline (buffer2,10);
+	myfile>>throughput;
+	myfile>>drop;
 
-  LOG(INFO)<<"throughput: "<<buffer2;
+  LOG(INFO)<<"throughput: "<<throughput;
   myfile.close();
-	return atoi(buffer1)<min_throughput?false:true;
+	return throughput<min_throughput?false:true;
 
 }
 
@@ -496,10 +494,8 @@ bool need_scale_out(const runtime_state runtime){
 	}
 
 	char buffer[512];
-	char buffer1[256];
-	char buffer2[256];
-	memset(buffer1,0,sizeof(buffer1));
-	memset(buffer2,0,sizeof(buffer2));
+	int throughput;
+	int drop;
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
@@ -507,12 +503,12 @@ bool need_scale_out(const runtime_state runtime){
 	}
 	myfile.getline (buffer,10);
 	myfile.getline (buffer,10);
-	myfile.getline (buffer1,10);
-	myfile.getline (buffer2,10);
-  LOG(INFO)<<"dropped packet: "<<buffer2;
+	myfile>>throughput;
+	myfile>>drop;
+  LOG(INFO)<<"dropped packet: "<<drop;
   myfile.close();
 
-	return atoi(buffer2)==0?false:true;
+	return drop==0?false:true;
 
 }
 
