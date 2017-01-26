@@ -528,7 +528,7 @@ bool only_one_rtm_in_server(runtime_state runtime,std::vector<runtime_state>* ac
 	int server_id=rtm_id/10;
 	int counter=0;
 	for(auto it=active_runtimes->begin();it!=active_runtimes->end();it++){
-		if(*it->local_runtime.runtime_id/10==server_id){
+		if(it->local_runtime.runtime_id/10==server_id){
 			counter++;
 		}
 	}
