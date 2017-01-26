@@ -105,9 +105,12 @@ void flow_actor::handle_message(flow_actor_init_with_pkt_t,
 
   if(FLAGS_deduplicate_flag&&is_duplicate_packet(first_packet)){
 
-  		coordinator_actor_->outgoing_migrations_+=1;
-		coordinator_actor_->migration_target_rt_id_=FLAGS_deduplicate_rtm_id;
-		handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
+  		if(coordinator_actor_->outgoing_migrations_<256){
+    		coordinator_actor_->outgoing_migrations_+=1;
+    		coordinator_actor_->migration_target_rt_id_=FLAGS_deduplicate_rtm_id;
+    		handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
+  		}
+
 
 
   }
@@ -332,8 +335,17 @@ void flow_actor::pkt_normal_nf_processing(bess::Packet* pkt){
 
 
 
+  if(FLAGS_deduplicate_flag&&is_duplicate_packet(pkt)){
 
-	if(FLAGS_deduplicate_target_flag&&is_duplicate_packet(pkt)){
+  		if(coordinator_actor_->outgoing_migrations_<256){
+    		coordinator_actor_->outgoing_migrations_+=1;
+    		coordinator_actor_->migration_target_rt_id_=FLAGS_deduplicate_rtm_id;
+    		handle_message(start_migration_t::value, FLAGS_deduplicate_rtm_id);
+  		}
+
+
+
+  }else if(FLAGS_deduplicate_target_flag&&is_duplicate_packet(pkt)){
 
 		coordinator_actor_->gp_collector_.collect(pkt);
 		//LOG(INFO)<<"Deduplicate target received duplicate pkts";
