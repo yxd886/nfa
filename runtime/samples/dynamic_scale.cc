@@ -426,18 +426,6 @@ bool init(std::vector<runtime_state>& active_runtimes){
 
   runtime_state active_runtime;
 
-  LOG(INFO)<<checker_r11.GetRuntimeState(active_runtime);
-  active_runtimes.push_back(active_runtime);
-  LOG(INFO)<<checker_r12.GetRuntimeState(active_runtime);
-  active_runtimes.push_back(active_runtime);
-  LOG(INFO)<<checker_r13.GetRuntimeState(active_runtime);
-  active_runtimes.push_back(active_runtime);
-  LOG(INFO)<<checker_r14.GetRuntimeState(active_runtime);
-  active_runtimes.push_back(active_runtime);
-  LOG(INFO)<<checker_r15.GetRuntimeState(active_runtime);
-  active_runtimes.push_back(active_runtime);
-  LOG(INFO)<<checker_r16.GetRuntimeState(active_runtime);
-  active_runtimes.push_back(active_runtime);
   LOG(INFO)<<checker_r21.GetRuntimeState(active_runtime);
   active_runtimes.push_back(active_runtime);
   LOG(INFO)<<checker_r31.GetRuntimeState(active_runtime);
@@ -456,7 +444,7 @@ bool need_scale_in(const runtime_state runtime){
 	bool success=false;
 
 	int32_t id=runtime.local_runtime.runtime_id;
-	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && sudo nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id= "+to_string(id%10)+" > state.log 2>&1 &";
+	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
 	const char*a = t.c_str();
 	status=std::system(a);
 	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
