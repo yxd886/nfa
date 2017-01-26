@@ -470,7 +470,7 @@ bool need_scale_in(const runtime_state runtime){
   LOG(INFO)<<"throughput: "<<std::string(buffer1);
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   myfile.close();
-	return throughput<min_throughput?false:true;
+	return atoi(buffer1)<min_throughput?false:true;
 
 }
 
@@ -509,7 +509,7 @@ bool need_scale_out(const runtime_state runtime){
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   myfile.close();
 
-	return drop==0?false:true;
+	return atoi(buffer2)==0?false:true;
 
 }
 
