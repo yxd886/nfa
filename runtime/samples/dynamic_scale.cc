@@ -480,7 +480,7 @@ bool need_scale_in(const runtime_state runtime){
 	myfile.getline (buffer2,10);
 
   LOG(INFO)<<"throughput: "<<buffer2;
-
+  myfile.close();
 	return atoi(buffer1)<min_throughput?false:true;
 
 }
@@ -517,6 +517,7 @@ bool need_scale_out(const runtime_state runtime){
 	myfile.getline (buffer2,10);
 
   LOG(INFO)<<"dropped packet: "<<buffer2;
+  myfile.close();
 
 	return atoi(buffer2)==0?false:true;
 
