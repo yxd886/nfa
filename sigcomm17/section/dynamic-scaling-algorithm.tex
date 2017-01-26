@@ -1,0 +1,61 @@
+\section{Dynamic Scaling}
+\label{sec:ds}
+
+The dynamic scaling algorithm used by the controller is shown in Algorithm \ref{algo:ds}. The algorithm fully exploits the fast and scalable distributed flow migration to quickly resolve hot spot during scale-up and immediately shutdown idle runtime during scale-in.
+
+The algorithm starts (line 2 in Algorithm \ref{algo:ds}) by polling the workload statistics from all the runtimes, containing the number of dropped packets on the input port, the current packet processing throughput and the current active flow number.
+
+Since each runtime has a polling worker thread that keeps the CPU usage to 100\% all the time, the controller can not decide whether the runtime is overloaded simply by reading the CPU usage. Instead, the controller uses the total number of dropped packets on the input port to determine overloaded. This is a very effective indicator in~\nfactor~because when the runtime is not overloaded, it can not timely polls the all the packets from the input port, therefore increasing the number of the dropped packets. The controller keeps recording the maximum throughput during the previous overload for each runtime and uses that to identify idleness. If the current throughput is smaller than half of maximum throughput, then the controller identifies the runtime as idle.
+
+Then algorithm decides whether to scale-out or scale-in (line 3-9 in Algorithm \ref{algo:ds}) and executes corresponding operations. To scale-up (line 10-15 in Algorithm \ref{algo:ds}), the runtime launches a new runtime and keeps migrating 500 flows from each overloaded runtimes, until all the hotspots are resolved. If the new runtime is overloaded during the migration, the algorithm continues to scale-up. To scale-in (line 16-20), the runtime selects a runtime with smallest packet throughput and migrate its flows to the rest of the runtime.
+
+The algorithm uses 500 flows as the basic migration number, which is a tunable value in~\nfactor. We use this value because 500 flows could be migrated within one millisecond in~\nfactor and the controller could gradually increases the workload during migration to evenly balance the workload.
+
+
+%The overall design rationale of the dynamic scaling algorithm in~\nfactor~is that flows could be migrated at a small overhead. Therefore we can use flow migration to quickly resolve hotspot and quickly shutdown idle runtimes. The dynamic scaling algorithm is constantly executed by the controller, which involves several round.
+
+%First, poll workload from each runtime. The controller uses PollWorkload() RPC shown in Table \ref{} to acquire the current workload statistics from the runtime. The workload statistics includes how many active flows are there on the runtime, the current packet processing throughput, interpreted as packets per second and the total number of the dropped packets on the input port. The controller calls PollWorkload() RPC on each runtime and collects all the workload statistics.
+
+%Second, the controller analyze the workload statistics, and determine whether to scale-up or scale-down. If the number of dropped packets on an runtime's input port is larger than the number acquired during the previous round, then the runtime is identified as overloaded. If there is at least one overloaded runtime, the controller steps to scale-up. Otherwise, the controller checks whether all the runtime are idle. If that is, the controller steps to scale-down. Otherwise, the controller directly goes to the next round.
+
+%%For scale-up, the controller launches a new runtime, use flow migration to migrate 10\% flows from all the overloaded runtime, until there are no overloaded runtime in the system. If the newly launched runtime becomes overloaded after the migration, the controller scale-up once again.
+
+%For scale-down, the controller select the runtime with the smallest workload, send 10\% of its flows to other runtimes in a round-robin fashion, until the active flows becomes 0 on the selected runtime. Then controller shutdown the selected runtime.
+
+\begin{algorithm}[!h]
+%\DontPrintSemicolon
+\While{True}{
+  {get the workload statistics of all the runtimes}\;
+  {state = null}\;
+  \If{at least one runtime is overloaded}{
+    {state = scale-out}\;
+  }
+  \ElseIf{the current throughput of all runtimes are smaller than half of the maximum throughput}{
+    {state = scale-in}\;
+  }
+  \Else{
+    {state = null}\;
+  }
+
+  \If{state $==$ scale-out}{
+    {launch a new runtime}\;
+    \While{the new runtime is not overloaded $\&\&$ the hotspots in overloaded runtimes are not resolved}{
+      \ForEach{overloaded runtime}{
+        {migrate 500 flows to the new runtime}\;
+      }
+      {update the workload statistics of all the runtimes}\;
+    }
+  }
+  \If{state $==$ scale-in}{
+    {select a runtime with the smallest throughput to scale-in}\;
+    {notify the virtual switch to stop sending new flows to the selected runtime}\;
+    \While{active flows on selected runtime is larger than 0}{
+      {migrate 500 flows to other runtimes in a round-robin way};
+    }
+  }
+}
+
+
+\caption{The dynamic scaling algorithm used by \nfactor's controller.}
+\label{algo:ds}
+\end{algorithm}
