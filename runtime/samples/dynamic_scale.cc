@@ -638,23 +638,19 @@ int main(int argc, char** argv) {
   	for(auto it=active_runtimes.begin();it!=active_runtimes.end();it++){
 
   		if(need_scale_out(*it)){
-  			it->scale_out_counter++;
-  			if(it->scale_out_counter==1){
-  				it->scale_out_counter=0;
-    			scale_out(*it,&active_runtimes);
-  			}
 
+			scale_out(*it,&active_runtimes);
   			continue;
   		}
 
 
   		if(need_scale_in(*it)){
   			LOG(INFO)<<"need scale in";
-  			it->scale_in_counter++;
-  			if(it->scale_in_counter==1){
-  				it->scale_in_counter=0;
-    			scale_in(*it,&active_runtimes);
-  			}
+
+
+
+			scale_in(*it,&active_runtimes);
+
 
   			continue;
   		}
