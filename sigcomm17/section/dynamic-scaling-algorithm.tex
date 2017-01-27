@@ -4,13 +4,13 @@
 In \nfactor, the coordinator performs dynamic scaling of the runtimes and virtual switches according to the workload variation. It fully exploits the fast and scalable distributed flow migration mechanism, to quickly resolve hot spot and immediately shut down mostly idle runtimes.
 
 The coordinator periodically polls the load statistics from all the runtimes, containing the number of dropped packets on the input port, the current packet processing throughput and the number of active flows.
-In \nfactor, each runtime has a worker thread that keeps its CPU usage up to 100\% all the time (due to using DPDK to busy poll the input port Sec.~\ref{implementation}). Therefore, CPU usage is not a good indicator to tell whether a runtime has been overloaded. Instead, the coordinator uses the total number of dropped packets on the input port of a runtime to determine overload, which is a very effective indicator in~\nfactor: an overloaded runtime can not timely poll all the packets from its input port, therefore increasing the number of dropped packets significantly. The maximum packet processing throughput from each runtime during the previous overload \chuan{what is `previous overload'?} is recorded by the coordinator, for identifying idleness in each cluster. % if the current throughput is smaller than half of the maximum throughput, the runtime is identified as `idle'.
+In \nfactor, each runtime has a worker thread that keeps its CPU usage up to 100\% all the time (due to using DPDK to busy poll the input port Sec.~\ref{implementation}). Therefore, CPU usage is not a good indicator to tell whether a runtime has been overloaded. Instead, the coordinator uses the total number of dropped packets on the input port of a runtime to determine overload, which is a very effective indicator in~\nfactor: an overloaded runtime can not timely poll all the packets from its input port, therefore increasing the number of dropped packets significantly. The maximum packet processing throughput from each runtime during the previous overload \chuan{what is `previous overload'?} is recorded by the coordinator, for identifying idleness in each cluster. % if the current throughput is smaller than half of the maximum throughput, the runtime is identified as `idle'. 
 \chuan{how is the number of active flows on each runtime used in the scaling alg?}
 
 When the number of dropped packets on a runtime exceeds a threshold (Sec.~\ref{sec:implementation}), the runtime is identified as overloaded. If there is at least one overloaded runtime in a cluster, the coordinator launches a new runtime, configures it to run the same service chain as others in the cluster, and keeps migrating a configurable number of flows from overloaded runtimes (500 as in our implementation in Sec.~\ref{sec:implementation}) to the new runtime, until all the hotspots are resolved. If the new runtime becomes overloaded during flow migration, more new runtimes are added. We add new runtimes instead of moving flows across existing runtimes, since the load on existing runtimes is largely balanced, due to the load-balancing flow dispatching implemented at the virtual switches.
 
 If the current throughput of all runtimes in a cluster is smaller than half of the maximum throughput, the coordinator scales-in the cluster: it selects a runtime with the smallest throughput, migrates all its flows to the other runtimes, and shuts the runtime down when all its flows have been successfully migrated out. \chuan{what does the following mean in the alg. that I commented out due to lack of space: while active flows on selected runtime is larger than 0, migrate 500 flows to other runtimes in a round-robin way}.
-
+ 
 
 %The algorithm starts (line 2 in Algorithm \ref{algo:ds}) by polling the workload statistics from all the runtimes, containing the number of dropped packets on the input port, the current packet processing throughput and the current active flow number.
 
@@ -18,7 +18,7 @@ If the current throughput of all runtimes in a cluster is smaller than half of t
 
 
 
-%The steps are summarized in Alg.~\ref{algo:ds}.
+%The steps are summarized in Alg.~\ref{algo:ds}. 
 \chuan{describe how virtual switch scaling is done} Scaling of virtual switches is done in a similar fashion...
 
 %The overall design rationale of the dynamic scaling algorithm in~\nfactor~is that flows could be migrated at a small overhead. Therefore we can use flow migration to quickly resolve hotspot and quickly shutdown idle runtimes. The dynamic scaling algorithm is constantly executed by the coordinator, which involves several round.
