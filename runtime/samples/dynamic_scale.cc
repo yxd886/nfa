@@ -163,11 +163,14 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
     return false;
 	}
 
+	sleep(3);
   LivenessCheckClient checker_new(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(port)), grpc::InsecureChannelCredentials()));
   for(auto it=runtime_state.input_runtimes.begin();it!=runtime_state.input_runtimes.end();it++){
   		LivenessCheckClient checker_input(grpc::CreateChannel(
   				concat_with_colon(convert_uint32t_ip(it->second.rpc_ip),std::to_string(it->second.rpc_port)), grpc::InsecureChannelCredentials()));
+  		LOG(INFO)<<"ip:"<<convert_uint32t_ip(it->second.rpc_ip);
+  		LOG(INFO)<<"port:"<<it->second.rpc_port;
   		LOG(INFO)<<checker_input.SingleAddOutputRt(ip,port);
 
   }
