@@ -79,6 +79,19 @@ def test():
   before_received +=tmp1;
   before_dropped +=tmp2;
   
+  tmp1,tmp2 = read_pkts(ssh_r2,4)
+  before_received +=tmp1;
+  before_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r2,5)
+  before_received +=tmp1;
+  before_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r2,6)
+  before_received +=tmp1;
+  before_dropped +=tmp2;
+  
+  
 
   tmp1,tmp2 = read_pkts(ssh_r3,1)
   before_received +=tmp1;
@@ -91,6 +104,19 @@ def test():
   tmp1,tmp2 = read_pkts(ssh_r3,3)
   before_received +=tmp1;
   before_dropped +=tmp2;
+  
+  
+  tmp1,tmp2 = read_pkts(ssh_r3,4)
+  before_received +=tmp1;
+  before_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r3,5)
+  before_received +=tmp1;
+  before_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r3,6)
+  before_received +=tmp1;
+  before_dropped +=tmp2;
 
   beforer21tmp1,beforer21tmp2 = read_pkts(ssh_r2,1)
 
@@ -99,6 +125,14 @@ def test():
 
 
   beforer23tmp1,beforer23tmp2 = read_pkts(ssh_r2,3)
+  
+  beforer24tmp1,beforer24tmp2 = read_pkts(ssh_r2,4)
+
+
+  beforer25tmp1,beforer25tmp2 = read_pkts(ssh_r2,5)
+
+
+  beforer26tmp1,beforer26tmp2 = read_pkts(ssh_r2,6)
 
   
 
@@ -109,6 +143,14 @@ def test():
 
 
   beforer33tmp1,beforer33tmp2 = read_pkts(ssh_r3,3)
+  
+  beforer34tmp1,beforer34tmp2 = read_pkts(ssh_r3,4)
+
+
+  beforer35tmp1,beforer35tmp2 = read_pkts(ssh_r3,5)
+
+
+  beforer36tmp1,beforer36tmp2 = read_pkts(ssh_r3,6)
   
   before_time = time.time() * 1000
 
@@ -125,6 +167,18 @@ def test():
   tmp1,tmp2 = read_pkts(ssh_r2,3)
   after_received +=tmp1;
   after_dropped +=tmp2;
+  
+  tmp1,tmp2 = read_pkts(ssh_r2,4)
+  after_received +=tmp1;
+  after_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r2,5)
+  after_received +=tmp1;
+  after_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r2,6)
+  after_received +=tmp1;
+  after_dropped +=tmp2;
 
   tmp1,tmp2 = read_pkts(ssh_r3,1)
   after_received +=tmp1;
@@ -137,6 +191,20 @@ def test():
   tmp1,tmp2 = read_pkts(ssh_r3,3)
   after_received +=tmp1;
   after_dropped +=tmp2;
+  
+  
+  tmp1,tmp2 = read_pkts(ssh_r3,4)
+  after_received +=tmp1;
+  after_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r3,5)
+  after_received +=tmp1;
+  after_dropped +=tmp2;
+
+  tmp1,tmp2 = read_pkts(ssh_r3,6)
+  after_received +=tmp1;
+  after_dropped +=tmp2;
+
 
   afterr21tmp1,afterr21tmp2 = read_pkts(ssh_r2,1)
 
@@ -145,6 +213,14 @@ def test():
 
 
   afterr23tmp1,afterr23tmp2 = read_pkts(ssh_r2,3)
+  
+  afterr24tmp1,afterr24tmp2 = read_pkts(ssh_r2,4)
+
+
+  afterr25tmp1,afterr25tmp2 = read_pkts(ssh_r2,5)
+
+
+  afterr26tmp1,afterr26tmp2 = read_pkts(ssh_r2,6)
 
   
   afterr31tmp1,afterr31tmp2 = read_pkts(ssh_r3,1)
@@ -155,19 +231,40 @@ def test():
 
   afterr33tmp1,afterr33tmp2 = read_pkts(ssh_r3,3)
   
+    
+  afterr34tmp1,afterr34tmp2 = read_pkts(ssh_r3,4)
+
+
+  afterr35tmp1,afterr35tmp2 = read_pkts(ssh_r3,5)
+
+
+  afterr36tmp1,afterr36tmp2 = read_pkts(ssh_r3,6)
+  
   
   print "r21throughput:"+str((afterr21tmp1-beforer21tmp1)/3)
   print "r22throughput:"+str((afterr22tmp1-beforer22tmp1)/3)
   print "r23throughput:"+str((afterr23tmp1-beforer23tmp1)/3)
+  print "r24throughput:"+str((afterr24tmp1-beforer24tmp1)/3)
+  print "r25throughput:"+str((afterr25tmp1-beforer25tmp1)/3)
+  print "r26throughput:"+str((afterr26tmp1-beforer26tmp1)/3)
   print "r31throughput:"+str((afterr31tmp1-beforer31tmp1)/3)
   print "r32throughput:"+str((afterr32tmp1-beforer32tmp1)/3)
   print "r33throughput:"+str((afterr33tmp1-beforer33tmp1)/3)
+  print "r34throughput:"+str((afterr34tmp1-beforer34tmp1)/3)
+  print "r35throughput:"+str((afterr35tmp1-beforer35tmp1)/3)
+  print "r36throughput:"+str((afterr36tmp1-beforer36tmp1)/3)
   print "r21drop:"+str(afterr21tmp2-beforer21tmp2)
   print "r22drop:"+str(afterr22tmp2-beforer22tmp2)
   print "r23drop:"+str(afterr23tmp2-beforer23tmp2)
+  print "r24drop:"+str(afterr24tmp2-beforer24tmp2)
+  print "r25drop:"+str(afterr25tmp2-beforer25tmp2)
+  print "r26drop:"+str(afterr26tmp2-beforer26tmp2)
   print "r31drop:"+str(afterr31tmp2-beforer31tmp2)
   print "r32drop:"+str(afterr32tmp2-beforer32tmp2)
   print "r33drop:"+str(afterr33tmp2-beforer33tmp2)
+  print "r34drop:"+str(afterr34tmp2-beforer34tmp2)
+  print "r35drop:"+str(afterr35tmp2-beforer35tmp2)
+  print "r36drop:"+str(afterr36tmp2-beforer36tmp2)
 
   after_time = time.time() * 1000
 
@@ -210,6 +307,14 @@ def seperate_test():
 
 
   beforer23tmp1,beforer23tmp2 = read_pkts(ssh_r2,3)
+  
+  beforer24tmp1,beforer24tmp2 = read_pkts(ssh_r2,4)
+
+
+  beforer25tmp1,beforer25tmp2 = read_pkts(ssh_r2,5)
+
+
+  beforer26tmp1,beforer26tmp2 = read_pkts(ssh_r2,6)
 
   
 
@@ -220,6 +325,14 @@ def seperate_test():
 
 
   beforer33tmp1,beforer33tmp2 = read_pkts(ssh_r3,3)
+  
+  beforer34tmp1,beforer34tmp2 = read_pkts(ssh_r3,4)
+
+
+  beforer35tmp1,beforer35tmp2 = read_pkts(ssh_r3,5)
+
+
+  beforer36tmp1,beforer36tmp2 = read_pkts(ssh_r3,6)
 
 
   
@@ -234,6 +347,14 @@ def seperate_test():
 
 
   afterr23tmp1,afterr23tmp2 = read_pkts(ssh_r2,3)
+  
+  afterr24tmp1,afterr24tmp2 = read_pkts(ssh_r2,4)
+
+
+  afterr25tmp1,afterr25tmp2 = read_pkts(ssh_r2,5)
+
+
+  afterr26tmp1,afterr26tmp2 = read_pkts(ssh_r2,6)
 
   
   afterr31tmp1,afterr31tmp2 = read_pkts(ssh_r3,1)
@@ -243,6 +364,15 @@ def seperate_test():
 
 
   afterr33tmp1,afterr33tmp2 = read_pkts(ssh_r3,3)
+  
+    
+  afterr34tmp1,afterr34tmp2 = read_pkts(ssh_r3,4)
+
+
+  afterr35tmp1,afterr35tmp2 = read_pkts(ssh_r3,5)
+
+
+  afterr36tmp1,afterr36tmp2 = read_pkts(ssh_r3,6)
   
   
   print "r21throughput:"+str((afterr21tmp1-beforer21tmp1)/3)
