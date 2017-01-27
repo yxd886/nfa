@@ -147,17 +147,17 @@ cp_l2forward:6 -> rt6_cport_portout
 
 ret = dp_l2forward.add([
                         {'addr':'52:54:02:01:00:01', 'gate':0},
-			                  {'addr':'52:54:02:02:00:01', 'gate':0},
-		                    {'addr':'52:54:02:03:00:01', 'gate':0},
+                              {'addr':'52:54:02:02:00:01', 'gate':0},
+                            {'addr':'52:54:02:03:00:01', 'gate':0},
                         {'addr':'52:54:03:01:00:01', 'gate':0},
                         {'addr':'52:54:03:02:00:01', 'gate':0},
                         {'addr':'52:54:03:03:00:01', 'gate':0},
-		                    {'addr':'52:54:01:04:00:02', 'gate':4},
-		                    {'addr':'52:54:01:05:00:02', 'gate':5},
-		                    {'addr':'52:54:01:06:00:02', 'gate':6},
-		                    {'addr':'52:54:01:01:00:02', 'gate':1},
-		                    {'addr':'52:54:01:02:00:02', 'gate':2},
-		                    {'addr':'52:54:01:03:00:02', 'gate':3}])
+                            {'addr':'52:54:01:04:00:02', 'gate':4},
+                            {'addr':'52:54:01:05:00:02', 'gate':5},
+                            {'addr':'52:54:01:06:00:02', 'gate':6},
+                            {'addr':'52:54:01:01:00:02', 'gate':1},
+                            {'addr':'52:54:01:02:00:02', 'gate':2},
+                            {'addr':'52:54:01:03:00:02', 'gate':3}])
 assert ret is None, 'Incorrect response'
 print 'adding dp_l2forward rule ok'
 
@@ -172,38 +172,38 @@ payload = ('hello' + '0123456789' * 200)[:pkt_size-len(eth/ip/tcp)]
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
-fg1::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
+fg1::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=10, flow_duration=3600, concurrent_flows=100000)
 
 ip = scapy.IP(src='10.0.0.3', dst='10.0.0.4')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
 
-fg2::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
+fg2::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=10, flow_duration=3600, concurrent_flows=100000)
 
 ip = scapy.IP(src='10.0.0.5', dst='10.0.0.6')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
-fg3::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
+fg3::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=10, flow_duration=3600, concurrent_flows=100000)
 
 ip = scapy.IP(src='10.0.0.7', dst='10.0.0.8')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
-fg4::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
+fg4::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=10, flow_duration=3600, concurrent_flows=100000)
 
 ip = scapy.IP(src='10.0.0.9', dst='10.0.0.10')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
-fg5::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
+fg5::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=10, flow_duration=3600, concurrent_flows=100000)
 
 ip = scapy.IP(src='10.0.0.11', dst='10.0.0.12')   # dst IP is overwritten
 pkt = eth/ip/tcp/payload
 pkt_data = bytearray(str(pkt))
 
-fg6::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=20, flow_duration=3600, concurrent_flows=50000)
+fg6::MyFlowGen(template=pkt_data, flow_arrival_interval=500, flow_pps=10, flow_duration=3600, concurrent_flows=100000)
 
 bess.add_worker(5, 5)
 bess.add_worker(6, 6)
