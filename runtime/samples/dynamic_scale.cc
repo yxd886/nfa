@@ -652,7 +652,7 @@ int main(int argc, char** argv) {
   			LOG(INFO)<<"need scale in";
   			it->scale_in_counter++;
   			if(it->scale_in_counter==1){
-  				it->scale_out_counter=0;
+  				it->scale_in_counter=0;
     			scale_in(*it,&active_runtimes);
   			}
 
