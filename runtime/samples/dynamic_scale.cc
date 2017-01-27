@@ -467,8 +467,8 @@ bool need_scale_in(const runtime_state runtime){
     return false;
 	}
 
-	int throughput;
-	int drop;
+	uint32_t throughput;
+	uint32_t drop;
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
@@ -480,6 +480,7 @@ bool need_scale_in(const runtime_state runtime){
   LOG(INFO)<<"throughput: "<<throughput;
   LOG(INFO)<<"dropped packet: "<<drop;
   myfile.close();
+  getchar();
 	return throughput<min_throughput?false:true;
 
 }
@@ -504,8 +505,8 @@ bool need_scale_out(const runtime_state runtime){
     return false;
 	}
 
-	int throughput;
-	int drop;
+	uint32_t throughput;
+	uint32_t drop;
 	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
@@ -516,6 +517,7 @@ bool need_scale_out(const runtime_state runtime){
   LOG(INFO)<<"throughput: "<<throughput;
   LOG(INFO)<<"dropped packet: "<<drop;
   myfile.close();
+  getchar();
 
 	return drop==0?false:true;
 
@@ -569,6 +571,8 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
 void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
+	if(active_runtimes.size()>=6)
+		return;
 	LOG(INFO)<<"scale out";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
