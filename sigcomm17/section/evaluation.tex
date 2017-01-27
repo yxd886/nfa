@@ -32,11 +32,11 @@ A runtime is identified as overloaded if more than $100$ packet drops are record
 %\end{figure}
 
 \begin{figure}[!t]
- \begin{subfigure}[t]{0.49\linewidth}
+ \begin{subfigure}[t]{0.475\linewidth}
    \centering
    \includegraphics[width=\columnwidth]{figure/revised-throughput-test.pdf}
    \caption{}\label{fig:normal-case-eval} \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.49\linewidth}
+  \begin{subfigure}[t]{0.505\linewidth}
    \centering
    \includegraphics[width=\columnwidth]{figure/Mixtest.pdf}
    \caption{}\label{fig:mix-work-flow}
@@ -83,7 +83,7 @@ flow rate varies from 1kpps to 2kpps, %with a 1000-flow step.
  The runtimes are configured with a service chain `flow monitor $\rightarrow$ HTTP parser $\rightarrow$ IDS'. Fig.~\ref{fig:mix-work-flow} shows the average throughput and packet drop of each runtime, when different numbers of runtimes are deployed for each service chain. An error bar indicates the standard deviation. We can see that the flow processing load is quite balanced among different runtimes (using our simple round-robin scheduling algorithm) and the runtimes can handle all the incoming flows when the number of runtimes is scaled up to six (zero loss). The primary reason that the round-robin algorithm used by the virtual switch balances workload well enough even in case of non-uniform flows is because the total number of injected flows are large enough (550K), which is a common case for high-speed NFV system. 
 
 These results exhibit high efficiency of the runtime design and flow migration protocol in \nfactor. % enabling close to line-rate flow processing. % good packet processing performance achieved by~\nfactor is primarily due to our efficient actor design.
- The development of \nfactor~has gone through a few trials and errors. In our previous version of \nfactor~design and prototype implementation using Libcaf \cite{caf}, we used 4 worker threads per runtime. Compared with the old design, our current design with one worker thread per runtime can achieve up to 4x throughput. We believe the reason is that the customized actor library and the single worker thread design completely eliminate the overhead of multi-threaded contention for shared resource, \ie actor's mailbox as in our original prototype, enabling current version to out-perform the previous version.
+ The development of \nfactor~has gone through a few trials and errors. In our previous version of \nfactor~design and prototype implementation using Libcaf \cite{caf}, we used 4 worker threads per runtime. Compared with the old design, our current design with one worker thread per runtime can achieve up to 4x throughput. We believe the reason is that the customized actor library and the single worker thread design completely eliminate the overhead of multi-threaded contention for shared resource, \ie actor's mailbox. % enabling current version to out-perform the previous version.
 
 % We believe the reason is that the combination of our customized actor library and the DPDK-based reliable message passing eliminates a lot of overhead associated with actor processing. \chuan{the reason you gave is not relevant to 4 worker threads per runtime}
 %The traffic generator generates  generate the same amount of traffic to each service chain.  using differnt number of runtimes, running three service chains. The traffic generators generates flows each lasts for 10 second with a 20 pps (packet per second) flow rate. The packet size is 64 byte. We increase the number of concurrently generated flows to generate packets at around 14Mpps, reaching NIC line-rate. We set up different number of runtimes and configure runtimes with different service chains and calculate the cumulative packet rate from all the runtimes. From \ref{fig:normal-case-eval}, we can see that the runtime in~\nfactor can scale almost linearly and achieve almost line-rate processing when scaled up to 9 runtimes. Therefore,~\nfactor has good packet processing throughput and can satisfy the stringent requirement of modern NFV system.
@@ -98,7 +98,7 @@ These results exhibit high efficiency of the runtime design and flow migration p
  \begin{figure}[!t]
 	\begin{subfigure}[t]{0.49\linewidth}
 		\centering
-		\includegraphics[width=\columnwidth]{figure/Migration.pdf}
+		\includegraphics[width=1.05\columnwidth]{figure/Migration.pdf}
 		\caption{}\label{fig:tot-mig} \end{subfigure}\hfill
 	 \begin{subfigure}[t]{0.49\linewidth}
 		\centering
@@ -171,17 +171,14 @@ We also compare \nfactor~with OpenNF \cite{gember2015opennf} for flow migration.
 
 \begin{figure*}[!t]
 \captionsetup{width=0.3\textwidth}
-\vspace*{-7mm}
 \begin{center}
-\begin{minipage}[t]{0.35\linewidth}
-\includegraphics[width=\textwidth]{figure/Scale.pdf}
-
-\vspace*{-2mm}
+\begin{minipage}[t]{0.355\linewidth}
+\includegraphics[width=1\textwidth]{figure/Scale.pdf}
 	\caption{Throughput during dynamic scaling.}
 \label{fig:normal-case-scale}
 \end{minipage}
 \hfill
-\begin{minipage}[t]{0.62\linewidth}
+\begin{minipage}[t]{0.615\linewidth}
  \begin{subfigure}[t]{0.48\linewidth}
 		\centering
 		\includegraphics[width=\columnwidth]{figure/ReplicaTP.pdf}
@@ -190,13 +187,14 @@ We also compare \nfactor~with OpenNF \cite{gember2015opennf} for flow migration.
 	 \end{subfigure}\hfill
 	 \begin{subfigure}[t]{0.49\linewidth}
 	\centering
-		\includegraphics[width=\columnwidth]{figure/Recover.pdf}
+		\includegraphics[width=1\columnwidth]{figure/Recover.pdf}
 		%\caption{The recovery time of three failed runtimes under different settings. The tuple on the $x$ axis represents the number of the runtime used in the evaluation and the total input packet rate. }
 		\caption{}\label{fig:rep-recovery} \end{subfigure}
 	\caption{Performance of flow migration}
 \label{fig:rep-perf}
 \end{minipage}
 \end{center}
+\vspace{-5mm}
 \end{figure*}
 
 
@@ -261,26 +259,6 @@ We do not show results evaluating failure resilience of the coordinator and the 
 \subsection{Other Applications}
 \label{sec:applications}
 
-\begin{figure}[!t]
-\begin{subfigure}[t]{0.49\linewidth}
-   \centering
-   \includegraphics[width=1.1\columnwidth]{figure/Dynamic.pdf}
-   %\caption{The packet processing throughput when dynamically update the firewall rule of a runtime configured with firewall NF. }
-   \caption{}\label{fig:dynamic-update}
-  \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.49\linewidth}
- \centering
-   \includegraphics[width=1.1\columnwidth]{figure/MPTCP.pdf}
-   %\caption{Total number of correctly processed MPTCP flows by three runtimes when MPTCP detection is enabled on runtimes or disabled on runtimes.}
-   \caption{}\label{fig:mptcp} \end{subfigure}%\hfill
-  %\begin{subfigure}[t]{0.33\linewidth}
-% \centering
- %  \includegraphics[width=\columnwidth]{figure/Dedup.pdf}
-   %\caption{The output throughput of three runtimes when deduplication is disabled, enabled or enabled half way. }
- %  \caption{}\label{fig:deduplication} \end{subfigure}
- \caption{New applications enabled with distributed flow migration capability of \nfactor.}
-\label{fig:rep-perf}
-\end{figure}
 
 
 In addition, we build two applications based on \nfactor, which exploit its lightweight, distributed flow migration capability to achieve useful functionalities. %, including live NF update, reduce output bandwidth for deduplication NF and ensure reliable and safe MPTCP processing. We evaluate and demonstrate these new applications in our evaluation.
@@ -294,6 +272,29 @@ In addition, we build two applications based on \nfactor, which exploit its ligh
 In \nfactor, we can add an MPTCP sub-flow detection function to each flow actor, such that when the flow actor processes the first packet of a flow, it can check whether it belongs to an MPTCP flow. If so, the flow actor performs a consistent hashing using the MPTCP header to decide a migration target runtime in the cluster, and migrates the flow to the target. In this way, different sub-flows belonging to the same MPTCP flow can be processed by the same flow actor. This is hard to be achieved in the existing NFV systems without significant central coordination. %, since flows can not initiate active migration request by themselves.
 
 In the experiment of Fig.~\ref{fig:mptcp}, we inject a total number of about 320K MPTCP flows to 3 runtimes. With subflow detection enabled, the total number of correctly processed MPTCP flows is always the same as the number of input flows, \ie, those whose subflows are all processed by the same runtime. Without this detection, most of the subflows are processed by different runtimes. % therefore only a small amount of MPTCP flows are correctly processed.
+
+\begin{figure}[!t]
+\begin{subfigure}[t]{\linewidth}
+   \centering
+   \includegraphics[width=0.7\columnwidth]{figure/Dynamic.pdf}
+   %\caption{The packet processing throughput when dynamically update the firewall rule of a runtime configured with firewall NF. }
+   \caption{}\label{fig:dynamic-update}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{\linewidth}
+ \centering
+   \includegraphics[width=0.75\columnwidth]{figure/MPTCP.pdf}
+   %\caption{Total number of correctly processed MPTCP flows by three runtimes when MPTCP detection is enabled on runtimes or disabled on runtimes.}
+   \vspace{-2mm}
+   \caption{}\label{fig:mptcp} \end{subfigure}%\hfill
+  %\begin{subfigure}[t]{0.33\linewidth}
+% \centering
+ %  \includegraphics[width=\columnwidth]{figure/Dedup.pdf}
+   %\caption{The output throughput of three runtimes when deduplication is disabled, enabled or enabled half way. }
+ %  \caption{}\label{fig:deduplication} \end{subfigure}
+ \vspace{-2mm}
+ \caption{New applications enabled with distributed flow migration capability of \nfactor.}
+\label{fig:rep-perf}
+\end{figure}
 
 %The final application is similar with MPTCP application, which reduces the output bandwidth for deduplication.
 
