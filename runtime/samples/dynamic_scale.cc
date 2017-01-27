@@ -564,7 +564,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
 
   LOG(INFO)<<checker_source.GetRuntimeState(runtime);
-  checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),runtime.migration_target.rpc_port,runtime.flow_state.active_flows);
+  checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),10241,runtime.flow_state.active_flows);
 
   sleep(2);
   checker_source.ShutdownRuntime();
@@ -642,10 +642,10 @@ int main(int argc, char** argv) {
   		}
 
 
-  		/*if(need_scale_in(*it)){
+  		if(need_scale_in(*it)){
   			scale_in(*it,&active_runtimes);
   			continue;
-  		}*/
+  		}
 
 
   	}

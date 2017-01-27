@@ -14,18 +14,15 @@ def main():
   flowgen=[]
   #cmd="python ./catch_data.py | tee data.log"
   #process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-  
-  cmd="sudo ../../deps/bess/bessctl/bessctl add connection fg6 rt6_iport_portout"
-  process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-  time.sleep(3)  
+   
   cmd=" ../../runtime/samples/dynamic_scale"
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-    
-  for i in range(5):
+  time.sleep(5)
+  for i in range(6):
     
     cmd="sudo ../../deps/bess/bessctl/bessctl add connection fg"+str(i+1)+" rt"+str(i+1)+"_iport_portout"
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-    time.sleep(3)
+    time.sleep(5)
     
 #  for i in range(6):
 #    cmd="sudo ../../deps/bess/bessctl/bessctl delete connection fg"+str(i+1)+" ogate"
