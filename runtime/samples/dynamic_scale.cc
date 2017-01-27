@@ -14,7 +14,7 @@
 
 using namespace std;
 
-static constexpr long min_throughput = 20000;
+static constexpr long min_throughput = 2000;
 
 
 
@@ -482,7 +482,7 @@ bool need_scale_in(const runtime_state runtime){
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   //myfile.close();
   getchar();
-	return atoi(buffer)<min_throughput?false:true;
+	return atoi(buffer)<min_throughput?true:false;
 
 }
 
