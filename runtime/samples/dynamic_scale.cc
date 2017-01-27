@@ -479,7 +479,7 @@ bool need_scale_in(const runtime_state runtime){
 	fscanf(fp,"%s",buffer);
 	fscanf(fp,"%s",buffer2);
   LOG(INFO)<<"throughput: "<<std::string(buffer);
-  LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
+  //LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   //myfile.close();
   //getchar();
 	return atoi(buffer)<min_throughput?true:false;
@@ -526,7 +526,7 @@ bool need_scale_out(const runtime_state runtime){
 	}*/
 	fscanf(fp,"%s",buffer);
 	fscanf(fp,"%s",buffer2);
-  LOG(INFO)<<"throughput: "<<std::string(buffer);
+  //LOG(INFO)<<"throughput: "<<std::string(buffer);
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   //myfile.close();
   //getchar();
