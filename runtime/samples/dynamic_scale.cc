@@ -555,8 +555,13 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
 
 
-	if(only_one_rtm_in_server(runtime,active_runtimes)||runtime.local_runtime.rpc_port==10241)
-		return;
+	//if(only_one_rtm_in_server(runtime,active_runtimes)){
+	//	LOG(INFO)<<"only one rtm in the server";
+	//	return;
+	//	}
+	if(runtime.local_runtime.rpc_port==10241){
+		LOG(INFO)<<"this is the pirme rtm";
+	}
 	LOG(INFO)<<"scale in";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
@@ -648,6 +653,7 @@ int main(int argc, char** argv) {
 
 
   		if(need_scale_in(*it)){
+  			LOG(INFO)<<"need scale in";
   			it->scale_in_counter++;
   			if(it->scale_in_counter==1){
   				it->scale_out_counter=0;
