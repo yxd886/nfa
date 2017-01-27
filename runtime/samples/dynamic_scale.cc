@@ -555,7 +555,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
 
 
-	if(only_one_rtm_in_server(runtime,active_runtimes))
+	if(only_one_rtm_in_server(runtime,active_runtimes)||runtime.local_runtime.rpc_port==10241)
 		return;
 	LOG(INFO)<<"scale in";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
@@ -615,6 +615,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
   runtime_state tmp;
   checker_dest.GetRuntimeState(tmp);
+  checker_dest.SetMigrationTarget(ip,10241,10000);
   active_runtimes->push_back(tmp);
   getchar();
 
@@ -641,10 +642,10 @@ int main(int argc, char** argv) {
   		}
 
 
-  		if(need_scale_in(*it)){
+  		/*if(need_scale_in(*it)){
   			scale_in(*it,&active_runtimes);
   			continue;
-  		}
+  		}*/
 
 
   	}
