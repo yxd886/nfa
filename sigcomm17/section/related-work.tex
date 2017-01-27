@@ -5,23 +5,23 @@
 
 \subsection{Network Function Virtualization}
 
-Since the introduction of NFV \cite{nfv_whitepaper}, %by telecommunication operators that propose running virtualized network functions on commodity hardware. Since then, 
+Since the introduction of NFV \cite{nfv_whitepaper}, %by telecommunication operators that propose running virtualized network functions on commodity hardware. Since then,
  a broad range of studies have been carried out, for bridging the gap between specialized hardware and network functions \cite{hwang2015netvm, Han:EECS-2015-155, martins2014clickos, 199352}, scaling and managing NFV systems \cite{gember2012stratos, palkar2015e2}, flow migration \cite{rajagopalan2013split, khalid2016paving, gember2015opennf}, NF replication \cite{rajagopalan2013pico, sherry2015rollback}, and traffic steering \cite{simplifying}. %None of these systems provide a uniform runtime platform to execute network functions.
-NF instances are typically created as software modules running on standard VMs or containers. \nfactor~customizes a runtime system to run NFs, in the format of one-actor-one-flow in the runtime, enabling transparent resilience. %In addition, a dedicated service chain instance is provisioned for each flow, enabled by the actor framework, achieving failure tolerance and high packet processing throughput with ease. 
- 
- 
+NF instances are typically created as software modules running on standard VMs or containers. \nfactor~customizes a runtime system to run NFs, in the format of one-actor-one-flow in the runtime, enabling transparent resilience. %In addition, a dedicated service chain instance is provisioned for each flow, enabled by the actor framework, achieving failure tolerance and high packet processing throughput with ease.
+
+
 
 %Among the advanced control functionality, flow migration and fault tolerance are definitely the two of the most important features.
-%A number of NFV systems \cite{palkar2015e2, OpenBox, sekar2012design, anderson2012xomb, hwang2015netvm, zhang2016opennetvm, martins2014clickos, zhang2016flurries} have been proposed to manage NF service chains or graphs in an effective and high-performance way. Among these work, 
+%A number of NFV systems \cite{palkar2015e2, OpenBox, sekar2012design, anderson2012xomb, hwang2015netvm, zhang2016opennetvm, martins2014clickos, zhang2016flurries} have been proposed to manage NF service chains or graphs in an effective and high-performance way. Among these work,
 Among the existing studies, ClickOS  \cite{martins2014clickos} %\cite{kohler2000click}
-also introduces modular design to simplify NF construction; however, advanced control functionalities, \eg, flow migration, are still not easy to be integrated in the NFs following the design. 
-Flurries \cite{zhang2016flurries} proposes fine-grained per-flow NF processing, by dynamically assigning a flow to a lightweight NF. Sharing some similarities, \nfactor~enables micro service chain processing of each flow in one actor, and focuses on providing transparent failure tolerance based on the actor model. 
-\chuan{discuss OpenBox \cite{OpenBox}'s idea of merging processing logic of VNFs}
+also introduces modular design to simplify NF construction; however, advanced control functionalities, \eg, flow migration, are still not easy to be integrated in the NFs following the design.
+Flurries \cite{zhang2016flurries} proposes fine-grained per-flow NF processing, by dynamically assigning a flow to a lightweight NF. Sharing some similarities, \nfactor~enables micro service chain processing of each flow in one actor, and focuses on providing transparent failure tolerance based on the actor model. OpenBox merges the processing logic of VNFs, therefore improving the modularity and processing performance of VNF. The idea of OpenBox could also be applied into~\nfactor, but~\nfactor focuses on mainstream service chain processing and leaves this to future work.
+%\chuan{discuss OpenBox \cite{OpenBox}'s idea of merging processing logic of VNFs}
 %Even though the service chain concept has been expanded to service graphs in E2 \cite{palkar2015e2} and OpenBox \cite{OpenBox}, \nfactor uses the traditional service chain to process a flow as it still represents the mainstream processing method \cite{hwang2015netvm, martins2014clickos}.
 
 To implement flow migration, existing systems \cite{gember2015opennf}\cite{rajagopalan2013split} require direct modification of the core processing logic of NF software, and mostly rely on a SDN controller to carry out migration protocol, involving non-negligible overhead. %message passing overhead that lowers packet processing speed of the system.
 %Finally, the migration process is fully controlled by a  centralized SDN controller, which may not be scalable if there are many NF instances that need flow migration service.
-\nfactor~overcomes these issues using novelly designed NF APIs and a largely distributed framework, where flow states are easily extractable and migration is achieved directly in-between runtimes with only 3 steps of request-response. % and clean separation between NF processing logic and resilience enabling functionalities, as well as a system design based on the distributed actor framework. 
+\nfactor~overcomes these issues using novelly designed NF APIs and a largely distributed framework, where flow states are easily extractable and migration is achieved directly in-between runtimes with only 3 steps of request-response. % and clean separation between NF processing logic and resilience enabling functionalities, as well as a system design based on the distributed actor framework.
 %The actors can be migrated by communicating among themselves without the coordination from a centralized controller. A fast virtual switch is designed to achieve the functionality of a dedicated SDN switch. Only 3 rounds of request-response are needed for achieving flow migration, based on the actor framework and the customized virtual switch, enabling fast flow migration and high packet processing throughput.
 
 Flow replication to provide failure tolerance usually involves check-pointing the entire process image (where the NF software is running), and replica creation using the image \cite{sherry2015rollback} \cite{rajagopalan2013pico}. Temporary pause of an NF process is typically needed \cite{sherry2015rollback}, resulting in flow packet losses.
@@ -40,7 +40,7 @@ Flow replication to provide failure tolerance usually involves check-pointing th
 \subsection{Actor}
 
 The actor programming model has been used for constructing massive, distributed systems \cite{actor-wiki, akka, newell2016optimizing, AnalysisActor}. Each actor is an independent execution unit, which can be viewed as a logical thread. In the simplest form, an actor contains an internal actor state (\eg, statistic counter, number of outgoing requests), a mailbox for accepting incoming messages, and several message handler functions. An actor processes incoming messages using message handlers, exchanges messages with other actors through a built-in message passing channel, and creates new actors. %Actors are well suited to implement state machine, that modify its internal state based on the received message, therefore facilitates distributed protocol implementation.
-Multiple actors run asynchronously %and exchange messages with each other 
+Multiple actors run asynchronously %and exchange messages with each other
  as if they were running in their own threads, simplifying programmability of distributed protocols and eliminating potential race conditions that may cause system crash.
 Actors typically run on a powerful runtime system \cite{erlang, akka, caf}, which schedules actors to execute and enables network transparency, \ie, actors communicate with remote actors running on different runtime systems as if they were all running on the same runtime system.
 
@@ -53,7 +53,7 @@ The actor model is a natural fit for building distributed NFV systems. We can cr
 %The actor programming model has been widely used to construct resilient distributed software \cite{erlang, akka, Orleans, caf}.
 
 There are several popular actor frameworks, \eg, Scala Akka \cite{akka}, Erlang \cite{erlang}, Orleans \cite{Orleans} and C++ Actor Framework \cite{caf}, which have been used to build a broad range of distributed applications \cite{akka}. %, including on-line games and e-commerce.
- %For example, Blizzard (a famous PC game producer) and Groupon/Amazon/eBay (famous e-commerce websites) all use Akka in their production environment \cite{akka} 
+ %For example, Blizzard (a famous PC game producer) and Groupon/Amazon/eBay (famous e-commerce websites) all use Akka in their production environment \cite{akka}
  None of these frameworks are optimized for building NFV systems. In our initial prototype implementation, we built \nfactor~on top of the C++ Actor Framework, but the message-passing efficiency turned out to be non-satisfactory. The cause mainly lies in transmitting actor messages uses kernel networking stack in the framework, with intolerable context switching overhead for NFV systems \cite{martins2014clickos}. This inspires us to customize an actor framework for \nfactor~with high performance.
 
 %\chuan{move the following discussion to the runtime section}

@@ -15,34 +15,34 @@
  %The primary reason that we design such a runtime is to enable NFs/service chains to achieve failure resilience automatically without coordinator intervention, as the runtime provides a uniform communication channel to %network transparent abstraction \chuan{change this `network transparent' to a more accurate wording} to communicate and
  %exchange messages among each other, which are crucial for flow migration and replication.
   Within each runtime, we adopt the simple yet powerful design to create a micro execution context for each flow, and carry out %processing functions
-  packet processing within the flow over its entire service chain inside the micro execution context. Especially, a dedicated flow actor is created for handling each flow, which loads all the NFs of the service chain that the flow should traverse, and passes the received packets of the flow to these NFs in sequence. We refer to this as the {\em one-actor-one-flow} design principle. Packet processing by NFs and operations to support flow migration and replication are all implemented as message handlers of the flow actor. 
+  packet processing within the flow over its entire service chain inside the micro execution context. Especially, a dedicated flow actor is created for handling each flow, which loads all the NFs of the service chain that the flow should traverse, and passes the received packets of the flow to these NFs in sequence. We refer to this as the {\em one-actor-one-flow} design principle. Packet processing by NFs and operations to support flow migration and replication are all implemented as message handlers of the flow actor.
 
 
-Fig.~\ref{fig:runtime-arch} shows the complete structure of a runtime. The input and output ports are used for receiving and sending flow packets from and to virtual switches. The control port %\chuan{no need to mention it here but directly introduce the case in loss avoidance part}as well as input and output ports, 
-is used for transmitting and receiving {\em remote actor messages}, exchanged for distributed flow migration and replication among actors running on different runtimes.  %and sent/received using DPDK. 
+Fig.~\ref{fig:runtime-arch} shows the complete structure of a runtime. The input and output ports are used for receiving and sending flow packets from and to virtual switches. The control port %\chuan{no need to mention it here but directly introduce the case in loss avoidance part}as well as input and output ports,
+is used for transmitting and receiving {\em remote actor messages}, exchanged for distributed flow migration and replication among actors running on different runtimes.  %and sent/received using DPDK.
  Input, output and control ports in each runtime are implemented with DPDK for high-speed raw packet transmission (Sec.~\ref{sec:implementation}).
- Input packets of dataplane flows are first sent to a flow classifier, which uses the 5-tuple of a flow (\ie, source IP address, destination IP address, transport-layer protocol, source port and destination port) to identify packets belonging to the same flow. %One flow actor is created for each new flow. Upon creation, the flow actor loads NFs of the service chain configured in the runtime. 
+ Input packets of dataplane flows are first sent to a flow classifier, which uses the 5-tuple of a flow (\ie, source IP address, destination IP address, transport-layer protocol, source port and destination port) to identify packets belonging to the same flow. %One flow actor is created for each new flow. Upon creation, the flow actor loads NFs of the service chain configured in the runtime.
  All packets of the same flow are sent to the same flow actor for processing. Other than flow processing, a flow actor participates in distributed flow migration and replication in response to certain actor messages. %, which processes them in sequence by passing them through NFs in the service chain.
 
 
 
 %  \chuan{not clear what `allocate flow states' means. extract?} and xxx \chuan{describe what it does to facilitate flow migration and replication by rewriting the idea of the following sentence: `Besides service chain processing, the flow actor also provides an execution context for distributed flow migration and replication, in response to certain messages (Sec.~\ref{sec:resilience})'}.
 
-Each runtime is configured with one specific service chain by the coordinator, and installs/initializes all the NFs of the service chain upon booting. Multiple flow actors may run concurrently in the same runtime, which all use the same service chain.  %and a number of carefully defined NF APIs, as given in Table \ref{table:api} in Sec.~\ref{sec:NFAPIs}, to allocate flow states for each NF and process packets across all the NFs. 
+Each runtime is configured with one specific service chain by the coordinator, and installs/initializes all the NFs of the service chain upon booting. Multiple flow actors may run concurrently in the same runtime, which all use the same service chain.  %and a number of carefully defined NF APIs, as given in Table \ref{table:api} in Sec.~\ref{sec:NFAPIs}, to allocate flow states for each NF and process packets across all the NFs.
  Based on the actor model, passing packets to a NF for processing in a flow actor is essentially just a function call. Hence only one copy of each NF needs to be loaded in a runtime, used by all flow actors.
 %Each runtime can host one or multiple flow actors for flows passing through the same service chain that the runtime is configured with, depending on its resource availability and performance isolation requirements. In case of a multi-tenant NFV system, we can run actors processing flows of the same tenant on the same runtime, but those of different tenants on different runtimes, for better security and isolation.
- A worker thread schedules flow actors in a runtime: % a customized flow actor scheduler (Sec.~\ref{sec:implementation}), 
-  when a flow packet or a remote actor message arrives, the flow actor which is responsible for the flow that the packet belongs to, or is the destination actor of the remote message, is invoked; the packet or message is processed completely, before the scheduler moves on to handle the next packet/message, \ie, a run-to-completion scheduler \chuan{cite papers mentioning this run-to-completion}.
+ A worker thread schedules flow actors in a runtime: % a customized flow actor scheduler (Sec.~\ref{sec:implementation}),
+  when a flow packet or a remote actor message arrives, the flow actor which is responsible for the flow that the packet belongs to, or is the destination actor of the remote message, is invoked; the packet or message is processed completely, before the scheduler moves on to handle the next packet/message, \ie, a run-to-completion scheduler \cite{199352}. %\chuan{cite papers mentioning this run-to-completion}.
  %An actor itself is a very lightweight one as millions of actors could be spawned in seconds \cite{chs-rapc-16}.
 
 
-A runtime also consists of a RPC thread for receiving and responding to RPC requests from the coordinator, for basic system management operations (Sec.~\ref{sec:coordinator}). The RPC thread forwards received RPC requests to a {\em liaison actor} handled by the worker thread through a high-speed shared ring buffer.  The liaison actor coordinates with flow actors through {\em local actor messages} to carry out RPC requests from the coordinator. Having a dedicated thread for receiving RPCs saves the worker thread from potential context switches due to using kernel networking stack, expediting flow processing. 
+A runtime also consists of a RPC thread for receiving and responding to RPC requests from the coordinator, for basic system management operations (Sec.~\ref{sec:coordinator}). The RPC thread forwards received RPC requests to a {\em liaison actor} handled by the worker thread through a high-speed shared ring buffer.  The liaison actor coordinates with flow actors through {\em local actor messages} to carry out RPC requests from the coordinator. Having a dedicated thread for receiving RPCs saves the worker thread from potential context switches due to using kernel networking stack, expediting flow processing.
 % The RPC thread and the worker thread share a ring buffer, used for relaying RPC requests received by the RPC thread to a liaison actor in the worker thread.
- %We use a high-speed shared ring buffer to achieve fast inter-thread communication \cite{dpdk}. 
+ %We use a high-speed shared ring buffer to achieve fast inter-thread communication \cite{dpdk}.
 % flow actor initialization, flow migration and flow replication. %Flow actor and coordinator actor could directly exchanges local messages, or exchange remote messages through a reliable message passing module \cite{}.
 
-%The worker thread routinely carries out the following tasks: (i) poll dataplane packets from input port, run the flow actor schedule to schedule flow actors to process these packets and send processed packets out from the output port; (ii) poll packets from the control port, reconstructspacket stream into remote actor messages and send the actor messages to the receiver flow actors; (iii) run the liaison actor to process RPC requests from the coordinator and dispatch %flow migration initiation 
-%messages to flow actors; (iv) fetch remote actor messages %from a queue that are enqueued 
+%The worker thread routinely carries out the following tasks: (i) poll dataplane packets from input port, run the flow actor schedule to schedule flow actors to process these packets and send processed packets out from the output port; (ii) poll packets from the control port, reconstructspacket stream into remote actor messages and send the actor messages to the receiver flow actors; (iii) run the liaison actor to process RPC requests from the coordinator and dispatch %flow migration initiation
+%messages to flow actors; (iv) fetch remote actor messages %from a queue that are enqueued
 % produced by flow actors %during the execution of previous three tasks
 %  and send them out from the control port. The input, output and control ports in each runtime are implemented with DPDK for high-speed raw packet transmission (Sec.~\ref{sec:implementation}).
 
@@ -51,7 +51,7 @@ A runtime also consists of a RPC thread for receiving and responding to RPC requ
 
 
 \vspace{1mm}
-\noindent {\bf Discussions on Runtime Design Choices.} Supporting only one service chain in one runtime avoids the overhead of installing many NFs per runtime and simplifies runtime management. Our one-actor-one-flow design facilitates fast flow migration, as compared to a few alternatives: (1) {\em One flow actor handles multiple flows.} It compromises the efficiency of flow migration, especially when multiple flows come from different virtual switch actors (Sec.~\ref{sec:virtualswitch}): the flow actor must synchronize responses sent from different virtual switch actors after their destination runtimes are changed, to ensure loss-avoidance during migration (Sec.~\ref{sec:migration}). 
+\noindent {\bf Discussions on Runtime Design Choices.} Supporting only one service chain in one runtime avoids the overhead of installing many NFs per runtime and simplifies runtime management. Our one-actor-one-flow design facilitates fast flow migration, as compared to a few alternatives: (1) {\em One flow actor handles multiple flows.} It compromises the efficiency of flow migration, especially when multiple flows come from different virtual switch actors (Sec.~\ref{sec:virtualswitch}): the flow actor must synchronize responses sent from different virtual switch actors after their destination runtimes are changed, to ensure loss-avoidance during migration (Sec.~\ref{sec:migration}).
 % adding overhead to flow migration process.
  (2) {\em One flow actor runs one NF}. Additional overhead is needed for chaining multiple flow actors to constitute a service chain, lowering packet processing speed. %Therefore, the one-flow-one-actor design achieves a sweet point in minimizing the actor processing overhead and improving the efficiency of flow migration protocol design.
  In addition, we use one worker thread to carry out all tasks including polling dataplane packets from input port and remote actor messages from control port, scheduling flow actors, send processed packets/messages out from output or control port,
@@ -85,7 +85,7 @@ A clear separation of useful NF states from core processing logic of an NF is im
 \begin{tabular}{c|l}
 \textbf{API}                                      & \multicolumn{1}{c}{\textbf{Usage}}                                                                                                                                                                                                         \\ \hline
 nf.allocate\_new\_fs()                            & create a new flow state object \\
-&for a new flow actor %, to be used for storing flow state                                                                                                           
+&for a new flow actor %, to be used for storing flow state
  \\ \hline
 nf.deallocate\_fs(fs)                             & deallocate the flow state object \\
 & upon expiration of the flow actor
@@ -99,7 +99,7 @@ nf.process\_pkt(input\_pkt, fs)                   & process the input packet usi
 \end{table}
 
 
-%The APIs are  provided as three public methods for each NF to implement. 
+%The APIs are  provided as three public methods for each NF to implement.
 When a new flow actor is created to handle a new flow, it calls $allocate\_new\_fs()$ to create a flow state object for each NF in its service chain. %stores the flow state object in its internal storage.
 Upon arrival of a new packet, the flow actor passes the packet and the flow state object to NFs for processing ($process\_pkt()$). Any changes to the flow state during NF processing is immediately visible to the flow actor. When the flow terminates, the flow actor expires and $deallocate\_fs()$ is called to deallocate the flow state objects. With these APIs, the flow actor always has direct access to the latest flow states, enabling it to sends them out upon flow migration or replication. %Therefore, the combination of the three methods servers as the basis for the transparent resilience in~\nfactor.
 
@@ -122,11 +122,11 @@ A virtual switch is a special runtime where the actors do not run a service chai
 A virtual switch learns runtimes that it can dispatch flows to through RPC requests its liaison actor receives from the coordinator, which include MAC addresses of the input ports of those runtimes. A virtual switch actor selects one of the runtimes to forward its flow in a round-robin fashion. We adopt a simple round-robin approach because the virtual switch must run very fast and a round-robin algorithm introduces the smallest overhead while providing satisfactory load balancing performance even in case of mixed long and short flows.
 
 When a virtual switch actor receives an incoming packet, it replaces the destination MAC address of the packet to MAC address of input port of the chosen runtime, modifies the source MAC address of the packet to that of output port of the virtual switch, and then sends the packet out from the output port. When a virtual switch actor receives a processed packet for forwarding out, %is also used as a relay-point to the final destination of the dataplane traffic flows. By connecting the output ports of runtimes with the input port of a virtual switch
- it simply sends it to the output port, which uses pre-configured SDN rules to direct the packet to its final destination \chuan{check if this sentence is accurate}.
+ it simply sends it to the output port, which uses pre-configured SDN rules to direct the packet to its final destination. %\chuan{check if this sentence is accurate}.
 
 
 The architectural consistency of virtual switches and runtimes facilitates efficient flow migration and replication (Sec.~\ref{sec:management}). %The flow actor on a runtime can analyze the source MAC address of the incoming packets and determine which virtual switch this packet comes from. Then the flow actor can contact the virtual switch during flow migration and replication processes, to indicate change of the runtime that the respective virtual switch actor should dispatch packets to. This is done through sending a remote actor message to the virtual switch actor, which is further explained in Sec.~\ref{sec:resilience}. %remote control message exchanges with the virtual switch in the same way as message exchanges with other runtimes.
-%Existing NFV management systems either rely on SDN switches \cite{gember2012stratos, gember2015opennf} to route flows from one NF to the next, or build a customized data-plane for inter-connecting different NF instances \cite{palkar2015e2}. 
+%Existing NFV management systems either rely on SDN switches \cite{gember2012stratos, gember2015opennf} to route flows from one NF to the next, or build a customized data-plane for inter-connecting different NF instances \cite{palkar2015e2}.
  A virtual switch in \nfactor~is lightweight, only responsible for dispatching flows to runtimes or outside, but not routing flows from one NF to anther as SDN switches in existing systems do \cite{gember2012stratos, gember2015opennf}.
 
 
@@ -137,12 +137,13 @@ The architectural consistency of virtual switches and runtimes facilitates effic
 \subsection{Coordinator}
 \label{sec:coordinator}
 
-The coordinator in \nfactor~is responsible for basic cluster management (Sec.~\ref{sec:controller}), \eg, updating latest cluster composition to the virtual switches and runtimes, monitoring workload of runtimes, control dynamic scaling. % and participate in the initiation phase of flow migration and replication.
+The coordinator in \nfactor~is responsible for basic cluster management, %(Sec.~\ref{sec:controller}),
+\eg, updating latest cluster composition to the virtual switches and runtimes, monitoring workload of runtimes, control dynamic scaling. % and participate in the initiation phase of flow migration and replication.
 As compared to SDN controllers used in the existing NFV management systems \cite{gember2015opennf, rajagopalan2013split}%\chuan{add citations}
 , the coordinator is much lightweight, without involving in the entire flow migration and replication process.%xxx \chuan{complete}.
  Instead, flow migration and replication are handled in fully distributed fashion among flow actors, and only exploit the coordinator in the initialization phase.
 
-hwo to decide runtimes to send to each vs.
+%hwo to decide runtimes to send to each vs.
 
 The \nfactor's coordinator is responsible for launching new virtual switches and runtimes, monitoring the load on each runtime and executing dynamic scaling. Due to our distributed flow actor design, the coordinator only needs to participate in the initiation phase of flow migration and replication (Sec.~\ref{sec:resilience}). This differentiates \nfactor's coordinator with the controllers in existing NFV systems \cite{gember2015opennf}\cite{rajagopalan2013split}, which need to fully coordinate the entire flow migration process.
 The design of the coordinator is simplified (a single thread module) and the failure resilience of the system is improved, as the coordinator does not need to maintain complicated states associated with flow migration.
@@ -154,7 +155,7 @@ Each runtime or virtual switch is assigned a global unique ID to ease management
 
 
 %Each runtime in \nfactor~regularly sends heartbeat messages to the coordinator, containing the current load information (\ie, CPU usage, memory usage) of the runtime.
-The controller constantly polls load information from all the runtimes. When the coordinator detects that a runtime is overloaded, it scales up the cluster by launching a new runtime and configures the service chain on that runtime (Sec.~\ref{sec:ds}%\chuan{point to the scaling section}
+The controller constantly polls load information from all the runtimes. When the coordinator detects that a runtime is overloaded, it scales up the cluster by launching a new runtime and configures the service chain on that runtime (Sec.~\ref{sec:scaling}%\chuan{point to the scaling section}
 ). The coordinator does not take care of the scaling of virtual switches. The scaling of virtual switch is offloaded to NIC hardware using Receiver Side Scaling (RSS) \cite{rss, jeong2014mtcp}, which is a static scaling method that requires the controller to configure a fixed number of virtual switches to match the number of the receiver queues of the NIC.  %\chuan{does the coordinator takes care of virtual switch scaling as well? describe it}
 
 The coordinator communicates with runtimes via a series of control RPCs exposed by each runtime, as summarized in Table \ref{table:rpc}. It uses $PollWorkload()$ to acquire the current load on a runtime, to produce scaling decision. The coordinator maintains the composition of the system, which includes the mac addresses of input/output/control ports and the IDs of all runtimes and virtual switches of all clusters (handling different service chains). The coordinator updates the cluster composition to all the runtimes and virtual switches using $NotifyClusterCfg(cfg)$. %of the runtime it belongs to using $NotifyClusterCfg(cfg)$ %\chuan{does coordinator sends it to virtual switches as well?}.
@@ -174,7 +175,7 @@ Control RPC                                                                     
 PollWorkload()                                                                                   & \begin{tabular}[c]{@{}l@{}}Poll the load information \\ from a runtime.\end{tabular}                                                                 \\ \hline
 NotifyClusterCfg(cfg)                                                                         & \begin{tabular}[c]{@{}l@{}}Notify a runtime the current \\ cluster view.\end{tabular}                                                             \\ \hline
 \begin{tabular}[c]{@{}l@{}}SetMigrationTarget(runtime\_id, \\ migration\_number)\end{tabular} & \begin{tabular}[c]{@{}l@{}}Initiate flow migration. It tells \\ the runtime to migrate \\ migration\_num of flows to the runtime\\ with runtime\_id.\end{tabular} \\ \hline
-SetReplica(runtime\_id)                                                                       & \begin{tabular}[c]{@{}l@{}}Set the runtime with runtime\_id \\ as the replica.\end{tabular}                                                                \\ \hline
+SetReplicas(runtime\_id\_list)                                                                       & \begin{tabular}[c]{@{}l@{}}Set the runtime with runtime\_id \\ as the replica.\end{tabular}                                                                \\ \hline
 Recover(runtime\_id)                                                                          & \begin{tabular}[c]{@{}l@{}}Recover all the flows replicated \\ from runtime with runtime\_id.\end{tabular}                                                 \\ \hline
 \end{tabular}
 }
