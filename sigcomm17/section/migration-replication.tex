@@ -9,17 +9,17 @@ We next introduce the fault tolerance mechanisms in \nfactor, for the coordinato
 
 \subsubsection{Replicating Coordinator}
 
-Since the coordinator is a single-threaded module, %that mainly maintains composition of clusters in the system, 
+Since the coordinator is a single-threaded module, %that mainly maintains composition of clusters in the system,
 we can log and replicate information it maintains into a reliable storage system such as ZooKeeper\cite{hunt2010zookeeper}. The liveness of the coordinator is monitored by a guard process and it is restarted immediately in case of failure. On a reboot, the coordinator reconstructs the system view by replaying logs.
 %Each runtime or runtime monitors the connection status with the coordinator and reconnects to the coordinator in case of a connection failure \chuan{clarify whether the address of coordinator remains the same such that virtual switch and runtime knows how to reconnect}.
 
 \subsubsection{Replicating Virtual Switches}
 
-%Since the virtual switch acts as an entry point, \ie its input traffic comes directly from outside clients, it can not use the same flow replication strategy to replicate itself (\label{sec:replicating-runtime}). 
-%Due to single worker thread design, 
+%Since the virtual switch acts as an entry point, \ie its input traffic comes directly from outside clients, it can not use the same flow replication strategy to replicate itself (\label{sec:replicating-runtime}).
+%Due to single worker thread design,
 The virtual switch can be replicated by
 check-pointing the memory image of the container running the virtual switch using CRIU
-\cite{criu}, a popular tool for checkpointing/restoring Linux processes. One main technical challenge is that CRIU has to stop a process before checkpointing it. %, which may hurt the availability of the virtual switch. 
+\cite{criu}, a popular tool for checkpointing/restoring Linux processes. One main technical challenge is that CRIU has to stop a process before checkpointing it. %, which may hurt the availability of the virtual switch.
  We tackle this challenge by letting the virtual switch call a $fork()$ periodically (by default, one minute), and then use CRIU to checkpoint
 the child process. In this way, the virtual switch can proceed without affecting system performance.
 
@@ -41,7 +41,7 @@ the child process. In this way, the virtual switch can proceed without affecting
 \end{figure}
 
 To perform lightweight runtime replication, we leverage the actor
-abstraction and state separation. % to create a lightweight flow replication strategy. 
+abstraction and state separation. % to create a lightweight flow replication strategy.
 In a runtime, important states associated with a flow is
 stored by the flow actor. The runtime can replicate each flow actor
 independently without check-pointing the entire
@@ -51,7 +51,7 @@ Each flow actor replicates itself on another runtime in the same cluster, withou
 Meanwhile, this fine-grained replication provides the output-commit property \cite{sherry2015rollback}, while achieving good throughput and fast flow recovery.
 
 
-The detailed flow replication process is illustrated in Fig.~\ref{fig:flow-rep}. When a runtime is launched, the coordinator sends a list of runtimes in the same cluster (desirably running on different physical servers from the server hosting this runtime) to its liaison actor via RPC $SetReplicas(runtime\_id\_list)$. %\chuan{revise this RPC to set multiple replica runtimes}.
+The detailed flow replication process is illustrated in Fig.~\ref{fig:flow-rep}. When a runtime is launched, the coordinator sends a list of runtimes in the same cluster (desirably running on different physical servers from the server hosting this runtime) to its liaison actor via RPC $set\_replicas(runtime\_id\_list)$. %\chuan{revise this RPC to set multiple replica runtimes}.
 The coordinator launches new runtimes if there are no available runtimes to host replicas in a cluster. When a flow actor is created on the runtime, it acquires its replication target runtime by sending a local actor message to liaison actor. The liason actor sends back the ID of the replica runtime, selected in the round-robin fashion among all available runtimes received from the coordinator. %After the flow actor acquires a valid replica runtime,
 
 When a flow actor has processed a flow packet, it sends a replication actor message, containing the current flow states and the packet, directly to the liaison actor on the replication target runtime. The liaison actor checks whether there exists a replica flow actor on this replication runtime using the 5-tuple of the packet. If not, it creates a new replica flow actor using the same 5-tuple and forwards all subsequent replication messages that share the same 5-tuple to that flow actor. A replica flow actor is created as a special flow actor, which processes received replication messages, stores latest flow states contained, and then directly sends the packets contained out from the output port of the replication target runtime. Though configured with the service chain of the flow, it does not invoke NFs; it will only do so after becoming the primary flow actor for processing the flow, when the runtime hosting the original flow actor has failed.
@@ -61,11 +61,11 @@ As shown in Fig.~\ref{fig:flow-rep}(a), when the runtime replication mechanism i
 %Note that the flow state replication is independent with NF processing and it ensures built-in fault tolerance.
 
 
-When a runtime fails, the coordinator sends recovery RPC requests $Recover(runtime\_id) $ to all the runtimes that it forwarded earlier to the failed runtime, as candidates to store flow replicas. When a runtime $R$ receives this RPC, it checks if it indeed stores flow replicas of the failed runtime. If so, each replica flow actor on runtime $R$ sends a request to the virtual switch responsible for forwarding the flow to the failed runtime, which further identifies the virtual switch actor in charge, and asks it to change the destination runtime to runtime $R$. After the acknowledge message from the virtual switch is received by the replica flow actor, packets of the flow start to arrive at the replica flow actor, and the flow is successfully restored on runtime $R$ (Fig.~\ref{fig:flow-rep}(b)). Immediately after the replica flow actor becomes the primary one to handle the flow, it seeks another runtime to replicate itself, following the same procedure as described above.
+When a runtime fails, the coordinator sends recovery RPC requests $recover(runtime\_id) $ to all the runtimes that it forwarded earlier to the failed runtime, as candidates to store flow replicas. When a runtime $R$ receives this RPC, it checks if it indeed stores flow replicas of the failed runtime. If so, each replica flow actor on runtime $R$ sends a request to the virtual switch responsible for forwarding the flow to the failed runtime, which further identifies the virtual switch actor in charge, and asks it to change the destination runtime to runtime $R$. After the acknowledge message from the virtual switch is received by the replica flow actor, packets of the flow start to arrive at the replica flow actor, and the flow is successfully restored on runtime $R$ (Fig.~\ref{fig:flow-rep}(b)). Immediately after the replica flow actor becomes the primary one to handle the flow, it seeks another runtime to replicate itself, following the same procedure as described above.
 
 
 Our primary-backup replication approach can tolerate the failure of one runtime (between runtimes that the actor and its replica are residing in). We consider this guarantee sufficient because the
-chance for both runtimes (on two servers) failing at the same time is very low. An alternative design is to restart the failed runtime, copy back replicated flows states, and rerun the flow actors on the recovered runtime. In comparison, our design avoids the addition delay for relaunching flow actors and minimizes interruption to consecutive flow processing. %When a replica runtime becomes overloaded, our scaling control takes over and moves out some of the flow actors (Sec.~\ref{sec:scaling}). 
+chance for both runtimes (on two servers) failing at the same time is very low. An alternative design is to restart the failed runtime, copy back replicated flows states, and rerun the flow actors on the recovered runtime. In comparison, our design avoids the addition delay for relaunching flow actors and minimizes interruption to consecutive flow processing. %When a replica runtime becomes overloaded, our scaling control takes over and moves out some of the flow actors (Sec.~\ref{sec:scaling}).
  The downside is that routing output packets to the replica flow actor incurs additional bandwidth consumption -  the cost for providing fast flow recovery. % inter-server communication, our experiments show that the impact is very small.
 
 
@@ -91,11 +91,11 @@ chance for both runtimes (on two servers) failing at the same time is very low. 
 \label{fig:mig}
 \end{figure}
 
-%We next present the lightweight, distributed flow migration mechanism in \nfactor. %Flow migration functionalities as built as message handlers of the actors, and transparent to NF processing logic. 
+%We next present the lightweight, distributed flow migration mechanism in \nfactor. %Flow migration functionalities as built as message handlers of the actors, and transparent to NF processing logic.
 Based on the actor model, flow migration in \nfactor~can be regarded as a transaction between a source flow actor and a target flow actor, where the source actor delivers its entire state and processing tasks to the target actor. Flow migration is successful once the target actor has completely taken over packet processing of the flow. %, when the source actor can safely quit.
  In case of unsuccessful flow migration, the source flow actor can fall back to regular packet processing and instruct to destroy the target actor.
 
-In \nfactor, flow migration is primarily used to move flows from one runtime to another (the migration target runtime) for resolving hot spot (overloaded runtimes), or for shutting down largely idle runtimes. When a runtime is detected by the coordinator to be overloaded/under-loaded, the coordinator starts migrating flows out from the runtime. It keeps calling the $SetMigrationTarget$ RPC method on the runtime, asking it to migrate a number of flows to other available runtimes (Sec~\ref{sec:scaling}). %Since flow migrations in~\nfactor is blazing fast, this scheme works well. %\chuan{describe clearly how the decision is made based on load of runtimes, whether the coordinato or the runtime or the flow actor makes the decision, how $SetMigrationTarget(runtime id, migration number)$ is used, how migration number is decided} When a runtime is to migrate a flow,  %checks the received cluster view (from the coordinator) to obtain the contact address and load information of other runtimes, and selects an appropriate target for migration its flow to.
+In \nfactor, flow migration is primarily used to move flows from one runtime to another (the migration target runtime) for resolving hot spot (overloaded runtimes), or for shutting down largely idle runtimes. When a runtime is detected by the coordinator to be overloaded/under-loaded, the coordinator starts migrating flows out from the runtime. It keeps calling the $set\_migration\_target$ RPC method on the runtime, asking it to migrate a number of flows to other available runtimes (Sec~\ref{sec:scaling}). %Since flow migrations in~\nfactor is blazing fast, this scheme works well. %\chuan{describe clearly how the decision is made based on load of runtimes, whether the coordinato or the runtime or the flow actor makes the decision, how $SetMigrationTarget(runtime id, migration number)$ is used, how migration number is decided} When a runtime is to migrate a flow,  %checks the received cluster view (from the coordinator) to obtain the contact address and load information of other runtimes, and selects an appropriate target for migration its flow to.
  After receiving ID of a migration target runtime, the flow actor starts migrating flows by itself. %Flow migration is initiated by the flow actor that processes the flow.
 
 
@@ -117,7 +117,7 @@ Flow migration in \nfactor~only involves 3 passes of request-response messages i
 
 Besides being distributed, the flow migration mechanism achieves two properties. % that (i) except for the migration target side buffer overflow or network packet reordering (which rarely happens in \nfactor), no flow packets are dropped by the flow migration protocol, which we refer to as \textbf{loss-avoidance} property (this is slightly weaker that the loss-free property in OpenNF \cite{gember2015opennf}) and (ii) the same \textbf{order-preserving} property as in OpenNF \cite{gember2015opennf}. There has been a long understanding that providing good properties for flow migration would compromise the performance of flow migration \cite{gember2015opennf}. \nfactor~ breaks this misunderstanding using the novel distributed flow migration.
 
-\textbf{1. Loss Avoidance:} except for buffer overflow at the migration target actor or network packet reordering, no flow packets are dropped during the flow migration protocol. %Before the migration target actor receives the request in the 3rd request-response step, it buffers incoming packets, which might lead to buffer overflow 
+\textbf{1. Loss Avoidance:} except for buffer overflow at the migration target actor or network packet reordering, no flow packets are dropped during the flow migration protocol. %Before the migration target actor receives the request in the 3rd request-response step, it buffers incoming packets, which might lead to buffer overflow
 If it takes a long time for the request in the 3rd request-response step to arrive, the buffer at the migration target actor may overflow. %\nfactor~ simply drops additional flow packets after buffer overflow because \nfactor~ needs to process packet at a high throughput rate and does not want to grow buffer indifinitely.
  In \nfactor, a large collective buffer is used, and the distributed flow migration process is extremely fast. Buffer overflow rarely happens, even when concurrently migrating a very large number of flows (Sec.~\ref{sec:experiments}).
 

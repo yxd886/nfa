@@ -140,7 +140,7 @@ The architectural consistency of virtual switches and runtimes facilitates effic
 The coordinator in \nfactor~is responsible for basic cluster management routines, %(Sec.~\ref{sec:controller}),
 \eg, launching and shutting down virtual switches and runtimes, updating latest cluster composition to the virtual switches and runtimes, monitoring workload of runtimes, %coordinating dynamic scaling,
  and participating in the initiation phase of flow migration and replication.
-As compared to SDN controllers in the existing NFV systems \cite{gember2015opennf, rajagopalan2013split}, 
+As compared to SDN controllers in the existing NFV systems \cite{gember2015opennf, rajagopalan2013split},
  the coordinator is much lightweight. % without involving in the entire flow migration and replication processes.
 % Instead, flow migration and replication are handled in distributed fashion among flow actors, and only exploit the coordinator in the initialization phase.
 The design of the coordinator is hence simplified (as a single thread module). % and the failure resilience of the system is improved, as the coordinator does not need to maintain complicated states associated with flow migration.
@@ -155,17 +155,17 @@ Each runtime or virtual switch is assigned a global unique ID to ease management
 
 
 
-The controller constantly polls load information from all the runtimes, and perform scaling out and in case of runtime overload or under-load %. When the coordinator detects that a runtime is overloaded, it scales up the cluster by launching a new runtime and configures the service chain on that runtime 
-(Sec.~\ref{sec:scaling}). The coordinator does not take care of the scaling of virtual switches. The scaling of virtual switch is offloaded to NIC hardware using Receiver Side Scaling (RSS) \cite{rss, jeong2014mtcp}, which is a static scaling method that requires the coordinator to configure a fixed number of virtual switches to match the number of receiver queues of the NIC.  
+The controller constantly polls load information from all the runtimes, and perform scaling out and in case of runtime overload or under-load %. When the coordinator detects that a runtime is overloaded, it scales up the cluster by launching a new runtime and configures the service chain on that runtime
+(Sec.~\ref{sec:scaling}). The coordinator does not take care of the scaling of virtual switches. The scaling of virtual switch is offloaded to NIC hardware using Receiver Side Scaling (RSS) \cite{rss, jeong2014mtcp}, which is a static scaling method that requires the coordinator to configure a fixed number of virtual switches to match the number of receiver queues of the NIC.
 
 
-The coordinator communicates with runtimes via a number of control RPCs exposed by each runtime, as summarized in Table \ref{table:rpc}. It uses $PollWorkload()$ to acquire the current load on a runtime. The coordinator updates cluster composition (including mac addresses of input/output/control ports and IDs of all runtimes and virtual switches in the cluster, and address of virtual switch(s) to forward process packets to) to all the runtimes and virtual switches using $NotifyClusterCfg(cfg)$. 
+The coordinator communicates with runtimes via a number of control RPCs exposed by each runtime, as summarized in Table \ref{table:rpc}. It uses $poll\_workload()$ to acquire the current load on a runtime. The coordinator updates cluster composition (including mac addresses of input/output/control ports and IDs of all runtimes and virtual switches in the cluster, and address of virtual switch(s) to forward process packets to) to all the runtimes and virtual switches using $notify\_cluster\_cfg(cfg)$.
 %The cluster composition learned by different runtimes in a cluster do not have to be consistent because our flow migration and replication protocols perform safety checking by exchanging requests and responses to eliminate the inconsistency \chuan{check if this is true and revise accordingly}.
 The last three RPCs are used to initiate flow migration and replication. After issuing these three calls, migration and replication are executed among runtimes without further involving the coordinator. %The use of RPC for coordinator to runtime communication decouples the execution of runtimes from the controller, therefore simplifying controller design.
 %\chuan{briefly describe why you use RPC for coordinator to runtime communication.}
 
 
-\chuan{from Dr. Cui, the function style (C or C++) in table 2 should be the same as Table 1. Please change the style.}
+%\chuan{from Dr. Cui, the function style (C or C++) in table 2 should be the same as Table 1. Please change the style.}
 
 %The coordinator also tells the liaison actor in a runtime the address of the virtual switch that the flow actors should send output packets to. The liaison actor made this information directly available to all the actors. During actor initialization phase, the actor saves the address information of the virtual switches that it is about to send output packets to. Whenever the actor finishes process the packet, it directly uses the information saved during initialization and send the output packet to the corresponding virtual switch.
 
@@ -176,11 +176,11 @@ The last three RPCs are used to initiate flow migration and replication. After i
 \resizebox{\columnwidth}{!}{
 \begin{tabular}{l|l}
 Control RPC                                                                                   & Functionality                                                                                                                                              \\ \hline
-PollWorkload()                                                                                   & \begin{tabular}[c]{@{}l@{}}Poll the load information \\ from a runtime\end{tabular}                                                                 \\ \hline
-NotifyClusterCfg(cfg)                                                                         & \begin{tabular}[c]{@{}l@{}}Notify a runtime/virtual switch  \\the current cluster composition\end{tabular}                                                             \\ \hline
-\begin{tabular}[c]{@{}l@{}}SetMigrationTarget(runtime\_id, \\ migration\_number)\end{tabular} & \begin{tabular}[c]{@{}l@{}}Initiate flow migration. It tells \\ the runtime to migrate \\ migration\_num of flows to the \\ runtime with runtime\_id.\end{tabular} \\ \hline
-SetReplicas(runtime\_id\_list)                                                                       & \begin{tabular}[c]{@{}l@{}}Set the runtimes with IDs  \\in runtime\_id\_list as the replica.\end{tabular}                                                                \\ \hline
-Recover(runtime\_id)                                                                          & \begin{tabular}[c]{@{}l@{}}Recover all the flows replicated \\ from runtime with runtime\_id.\end{tabular}                                                 \\ \hline
+poll\_workload()                                                                                   & \begin{tabular}[c]{@{}l@{}}Poll the load information \\ from a runtime\end{tabular}                                                                 \\ \hline
+notify\_cluster\_cfg(cfg)                                                                         & \begin{tabular}[c]{@{}l@{}}Notify a runtime/virtual switch  \\the current cluster composition\end{tabular}                                                             \\ \hline
+\begin{tabular}[c]{@{}l@{}}set\_migration\_target(runtime\_id, \\ migration\_number)\end{tabular} & \begin{tabular}[c]{@{}l@{}}Initiate flow migration. It tells \\ the runtime to migrate \\ migration\_num of flows to the \\ runtime with runtime\_id.\end{tabular} \\ \hline
+set\_replicas(runtime\_id\_list)                                                                       & \begin{tabular}[c]{@{}l@{}}Set the runtimes with IDs  \\in runtime\_id\_list as the replica.\end{tabular}                                                                \\ \hline
+recover(runtime\_id)                                                                          & \begin{tabular}[c]{@{}l@{}}Recover all the flows replicated \\ from runtime with runtime\_id.\end{tabular}                                                 \\ \hline
 \end{tabular}
 }
 \end{table}

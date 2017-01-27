@@ -50,7 +50,8 @@ The module creates one ring buffer for each remote runtime and virtual switch. W
 These packets are configured with a sequential number each, and appended with a special header to differentiate them from dataplane packets.
 The worker thread dequeues these packets from the ring buffers, and sends them to respective remote runtimes. A remote runtime acknowledges receipt of such packets. Retransmission is fired in case that the acknowledgement for a packet is not received after a configurable timeout (\eg, 10 times the RTT).
 
-Since our goal is to reliably transmit remote actor messages over an inter-connected L2 network, we do not use user-level TCP \cite{mtcp} \chuan{reference missing in .bib, your project code url is also missing in .bib}, which may impose much more processing overhead for reconstructing byte streams into messages.
+Since our goal is to reliably transmit remote actor messages over an inter-connected L2 network, we do not use user-level TCP \cite{jeong2014mtcp}, %\chuan{reference missing in .bib, your project code url is also missing in .bib},
+which may impose much more processing overhead for reconstructing byte streams into messages.
 In addition, packet-based reliable message passing provides additional benefits during flow migration and replication. Because the response in 2nd request-response step of flow migration is sent as a packet using the same path as the dataplane packets, reliable actor message passing enables us to implement loss-avoidance migration with ease (Sec.~\ref{sec:migration}).
 %I will remove this claim, I forgot that we still need to do packet copy.
 %During flow replication, we can directly send the output packet as a message to the replica actor, without the need of additional packet copy \chuan{I do not get what additional packet copy might be needed}.
@@ -59,9 +60,9 @@ In addition, packet-based reliable message passing provides additional benefits 
 %\label{sec:BessModuleSys}
 \vspace{1mm}
 \noindent \textbf{Worker and RPC Threads.}
-The worker thread on a runtime polls packets from the ports, schedules flow actors and transmits remote actor messages (Sec.~\ref{sec:runtime}). To schedule these tasks efficiently, we implement them as BESS modules and use the BESS module scheduler, which schedules these modules in a round-robin fashion. Each worker thread is pinned to one CPU core to avoid overhead due to OS scheduling. % and improve packet processing performance. 
+The worker thread on a runtime polls packets from the ports, schedules flow actors and transmits remote actor messages (Sec.~\ref{sec:runtime}). To schedule these tasks efficiently, we implement them as BESS modules and use the BESS module scheduler, which schedules these modules in a round-robin fashion. Each worker thread is pinned to one CPU core to avoid overhead due to OS scheduling. % and improve packet processing performance.
  The RPC thread on each runtime is implemented with GRPC \cite{grpc}, and the RPC requests are sent over a reliable TCP connection between a runtime and the coordinator.
- 
+
 %I'm about to move it to evaluation secition.
 %\subsection{New Applications}
 
