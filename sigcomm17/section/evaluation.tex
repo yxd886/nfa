@@ -146,27 +146,54 @@ The biggest advantage brought by~\nfactor's flow replication is its fast recover
 
 %Finally, figure \ref{fig:rep-recovery} shows the recovery time of \nfactor~runtime when replication is enabled. We found that the recovery time remains a consistent value of 3.3s, no matter how many runtimes are used or how large the input traffic is. The reason of this consistent recovery time is that the \nfactor~runtime maintains one replica on every other \nfactor~runtimes in the cluster. During recovery, several recovery threads are launched to fetch only one replica from another runtime. Then each recovery thread independently recovers actors by replaying its own replica. In this way, the recovery process is fully distributed and scales well as the number of replica increases. Note is that the average time it takes for a recovered runtime to fetch all the replicas and recover all of its actors is only 1.2s. So actually around 2.1s is spent in container creation and connection establishment.
 
+\subsection{Dynamic Scaling}
+
 \begin{figure}[!h]
 	\centering
 	\includegraphics[width=\columnwidth]{figure/Scale.pdf}
-	\caption{The dynamic scaling algorithm of~\nfactor.}
+	\caption{The performance of dynamic scaling in~\nfactor.}
 \label{fig:normal-case-eval}
 \end{figure}
+
+To evaluate the the performance of dynamic scaling in~\nfactor. We set up the traffic generator to inject a varying workload into the~\nfactor cluster. The runtime is configured with ``firewall, HTTP parser, IDS'' service chain. To evaluate the effectiveness of our flow migration method, we set up the traffic generator to generate long-lived flows, lasting 60s with 20pps. The coordinator uses the dynamic scaling algorithm to scale the cluster. As we can see from Figure~\ref{fig:normal-case-eval}, the cluster is scaled up to 5 runtimes. The flow migration is very effective in decreasing the the workload from an overload runtime (runtime 1 and runtime 3) to a normal status. Considering the flows lasts for 60s, without the efficient and distributed flow migration,~\nfactor would not be able to achieve this, but continue to be overloaded for a long period of time, resulting in severe performance drop. Even though not shown in the figure, due to the light-weight design, the CPU usage of the coordinator remains under 5\%.
+
+%I'm about to move it to evaluation secition.
+\subsection{New Applications}
+
 
 \begin{figure*}[!ht]
 \begin{subfigure}[t]{0.33\linewidth}
    \centering
    \includegraphics[width=\columnwidth]{figure/Dynamic.pdf}
-   \caption{The packet throughput of a \nfactor~cluster when replication is enabled. }\label{fig:rep-scale}
+   \caption{The packet processing throughput when dynamically update the firewall rule of a runtime configured with firewall NF. }\label{fig:dynamic-update}
   \end{subfigure}\hfill
   \begin{subfigure}[t]{0.33\linewidth}
  \centering
+   \includegraphics[width=\columnwidth]{figure/MPTCP.pdf}
+   \caption{Total number of correctly processed MPTCP flows by three runtimes when MPTCP detection is enabled on runtimes or disabled on runtimes.}\label{fig:mptcp} \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.33\linewidth}
+ \centering
    \includegraphics[width=\columnwidth]{figure/Dedup.pdf}
-   \caption{The recovery time of three failed runtimes under different settings. The tuple on the $x$ axis represents the number of the runtime used in the evaluation and the total input packet rate. }\label{fig:rep-recovery} \end{subfigure}\hfill
-   \begin{subfigure}[t]{0.33\linewidth}
-  \centering
-    \includegraphics[width=\columnwidth]{figure/MPTCP.pdf}
-    \caption{The recovery time of three failed runtimes under different settings. The tuple on the $x$ axis represents the number of the runtime used in the evaluation and the total input packet rate. }\label{fig:rep-recovery} \end{subfigure}
- \caption{The flow migration performance of \nfactor}
+   \caption{The output throughput of three runtimes when deduplication is disabled, enabled or enabled half way. }\label{fig:deduplication} \end{subfigure}
+ \caption{The new applications enabled with the distributed flow migration capability of~\nfactor.}
 \label{fig:rep-perf}
 \end{figure*}
+
+We also build several applications based on \nfactor, which exploits its lightweight, distributed flow migration capability to achieve useful functionalities. %, including live NF update, reduce output bandwidth for deduplication NF and ensure reliable and safe MPTCP processing. We evaluate and demonstrate these new applications in our evaluation.
+
+\noindent\textbf{Live NF update.} %NF often needs to be updated (\eg, software version, important NF configuration files), existing systems would typically migrate flows away, stop the NF and then relaunching it.
+ \nfactor~can achieve dynamic NF update (\eg, software version, important NF configuration files) without interfering active flows running on a runtime by dynamically migrating the flows out to a replica runtime, performing update and migrating the flows back. Figure~\ref{fig:dynamic-update} illustrates the packet processing throughput of a runtime running firewall NF during the dynamic update to its firewall rule. Dynamic update ensures that no active flows are dropped during the update. On contrary, traditional way to carry out update has to shutdown the NF, causing a significant throughput drop.%We show in the evaluation that the dynamic update ensures no active flows are dropped during the update.
+
+
+\noindent\textbf{MPTCP sub-flow processing.} When a MPTCP \cite{} flow traverses an NFV system, its sub-flows may be sent to different NF instances for processing. Some network functions require all subflows to be processed by the same instance, \eg, the IDS requires that all subflows of the same MPTCP flow to be examined by the same IDS instance to detect potential netowrk attacks.%xxx \chuan{is this the problem of subflows being processed by different instances?}. %because they have different flow-5-tuple and appear as different flows on the virtual switch.
+In \nfactor, we can add a MPTCP sub-flow detection function to each flow actor, such that when the flow actor processes the first packet of a flow, it can check whether it belongs to a MPTCP flow. If so, the flow actor performs a consistent hashing using the MPTCP header to decide a migration target runtime in the cluster, and migrates the flow to the target. In this way, different sub-flows belonging to the same MPTCP flow can be processed by the same flow actor. This is hard to be achieved in existing NFV systems without significant central coordination. %, since flows can not initiate active migration request by themselves.
+
+Figure~\ref{fig:mptcp} illustrates the total number of correctly processed MPTCP flows when MPTCP sub-flow detection function is enabled or disabled. A MPTCP flow is correctly processed only if all of its subflows are processed consistently by the same runtime. We can see that~\nfactor's subflow detection ensures that all the MPTCP flows are correctly processed. When this function is disabled, most of the subflows are processed by different runtimes, therefore only a small amount of MPTCP flows are correctly processed.
+
+%The final application is similar with MPTCP application, which reduces the output bandwidth for deduplication.
+\noindent\textbf{Efficient Flow Deduplication.} Flow deduplication, as an important functionality of WAN optimizers \cite{anand2010cheap}%\chuan{add citation}
+, is useful for reducing bandwidth consumption due to transfer redundant data across different flows. \nfactor~can efficiently support flow deduplication: when a runtime receives a flow, it checks for duplicated content contained in the flow packet by performing a consistent hash over the entire packet content. %\chuan{how does it check duplicated content among different flows received on different runtimes?}.
+In case it finds out the duplication, the flow actor initiates a migration to move the flow to a specific runtime, as indicated by the hash value of the packet content. %\chuan{how to decide this specific runtime}.
+In this way, duplicated flows can be processed on the same runtime, eliminating the output bandwidth on each runtime. When the duplicated flows arrive on the same runtime, before the packets are sent out from the runtime, we use the liason actor to intercept duplicated packet, and only generate an output data packet for every 10 duplicated packet it receives. The output data packet is packed with useful information (\ie packet header of dupliated packet plus an identifier for identifying the duplicated content), so that the receiver on the other end could reconstruct all the original duplicated packets.
+Figure~\ref{fig:deduplication} illustrates deduplication performance. We can see that deduplication decreases the number of output packets by around 90\% through effective deduplication.
+ %actors send the output packet out, the runtime intercepts duplicated content,  \chuan{why processing duplicated flows on the same runtime can reduce output bandwidth? Are they processed by the same flow actor? what if the flows are partially duplicated but not entirely?}. This is hard to be achieved in existing NFV systems because xxx \chuan{give the reason}.
