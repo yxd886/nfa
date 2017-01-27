@@ -1,19 +1,19 @@
 #ifndef RECEIVE_H_
 #define RECEIVE_H_
 
-#include "Public.h"
+#include "../httpparser/Public.h"
 #include "Handle.h"
-#include "BehaviorInfo.h"
-#include "FormatPacket.h"
+#include "../httpparser/BehaviorInfo.h"
+#include "../httpparser/FormatPacket.h"
 
-class Receiver{
+class Ids_Receiver{
 public:
-	Receiver(){
+	Ids_Receiver(){
 	_handle.Init();
 
   }
 
-	~Receiver(){}
+	~Ids_Receiver(){}
 	void Work(char* msg, ids_fsPtr& sesp){
 
 		HandleMessage( msg,sesp);
@@ -64,7 +64,7 @@ private:
 
     //zmq::context_t _ctx;
     //zmq::socket_t _socket;
-    CHandle  _handle;
+		Ids_CHandle  _handle;
 };
 
 

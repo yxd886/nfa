@@ -1,16 +1,16 @@
 #ifndef HANDLEA_H_
 #define HANDLEA_H_
 
-#include "Public.h"
-#include "BehaviorInfo.h"
-#include "FormatPacket.h"
+#include "../httpparser/Public.h"
+#include "../httpparser/BehaviorInfo.h"
+#include "../httpparser/FormatPacket.h"
 #include "SessionHash.h"
 #include "HttpParse.h"
 
-class CHandle{
+class Ids_CHandle{
 public:
-	CHandle();
-	~CHandle();
+	Ids_CHandle();
+	~Ids_CHandle();
 	void Init();
 	void Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, ids_fsPtr& sesp);
 	void Create(IFormatPacket *pPacket,CSharedBehaviorInfo* pInfo,ids_fsPtr& ptr);
@@ -19,7 +19,7 @@ private:
 	void TimeOutCheck();
 
 
-	CHttpParse         _httpParse;
+	Ids_CHttpParse         _httpParse;
 
 
 };

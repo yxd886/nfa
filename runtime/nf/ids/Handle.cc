@@ -1,7 +1,7 @@
 
 #include "Handle.h"
 #include <stdio.h>
-void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, ids_fsPtr& fhs)
+void Ids_CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, ids_fsPtr& fhs)
 {
 
 
@@ -87,13 +87,13 @@ void CHandle::Process(CFormatPacket packet, CSharedBehaviorInfo* pInfo, ids_fsPt
 	return;
 }
 
-CHandle::CHandle(){
+Ids_CHandle::Ids_CHandle(){
 }
 
-CHandle::~CHandle(){
+Ids_CHandle::~Ids_CHandle(){
 }
 
-void CHandle::Init(){
+void Ids_CHandle::Init(){
 
 	_httpParse.Init();
 

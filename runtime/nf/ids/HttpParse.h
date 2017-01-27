@@ -1,9 +1,9 @@
 #ifndef HTTPPARSE_H_
 #define HTTPPARSE_H_
 
-#include "Public.h"
+#include "../httpparser/Public.h"
 #include "SessionHash.h"
-#include "FormatPacket.h"
+#include "../httpparser/FormatPacket.h"
 #include <string>
 #include <arpa/inet.h>
 #include <memory.h>
@@ -19,13 +19,13 @@ union iptrans{
 	uint32_t ip;
 };
 
-class CHttpParse{
+class Ids_CHttpParse{
 public:
 
-	CHttpParse(){
+	Ids_CHttpParse(){
 	}
 
-	~CHttpParse(){
+	~Ids_CHttpParse(){
 
 	}
 

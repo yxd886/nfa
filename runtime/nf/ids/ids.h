@@ -2,7 +2,7 @@
 #ifndef CAF_NF_IDS_HPP
 #define CAF_NF_IDS_HPP
 
-#include "Public.h"
+#include "../httpparser/Public.h"
 #include "Receiver.h"
 #include "SessionHash.h"
 #include <netinet/ip6.h>
@@ -14,7 +14,7 @@
 class ids{
 public:
   ids(){
-    rcv = Receiver();
+    rcv = Ids_Receiver();
   }
 
   void nf_logic_impl(bess::Packet* pkt,ids_fs* fs){
@@ -37,7 +37,7 @@ private:
   }
 
 
-  Receiver  rcv;
+  Ids_Receiver  rcv;
 };
 
 
