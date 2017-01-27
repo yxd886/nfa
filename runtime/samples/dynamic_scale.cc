@@ -554,13 +554,9 @@ bool only_one_rtm_in_server(runtime_state runtime,std::vector<runtime_state>* ac
 void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
 
-
-	//if(only_one_rtm_in_server(runtime,active_runtimes)){
-	//	LOG(INFO)<<"only one rtm in the server";
-	//	return;
-	//	}
 	if(runtime.local_runtime.rpc_port==10241){
 		LOG(INFO)<<"this is the pirme rtm";
+		return;
 	}
 	LOG(INFO)<<"scale in";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
