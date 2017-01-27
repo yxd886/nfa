@@ -584,7 +584,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
 void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
-	if(active_runtimes->size()>=6)
+	if(active_runtimes->size()>=8)
 		return;
 	LOG(INFO)<<"scale out";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
