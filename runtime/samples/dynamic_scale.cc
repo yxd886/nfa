@@ -481,7 +481,7 @@ bool need_scale_in(const runtime_state runtime){
   LOG(INFO)<<"throughput: "<<std::string(buffer);
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   //myfile.close();
-  getchar();
+  //getchar();
 	return atoi(buffer)<min_throughput?true:false;
 
 }
@@ -529,7 +529,7 @@ bool need_scale_out(const runtime_state runtime){
   LOG(INFO)<<"throughput: "<<std::string(buffer);
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
   //myfile.close();
-  getchar();
+  //getchar();
 
 	return atoi(buffer2)==0?false:true;
 
@@ -617,7 +617,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
   checker_dest.GetRuntimeState(tmp);
   checker_dest.SetMigrationTarget(ip,10241,10000);
   active_runtimes->push_back(tmp);
-  getchar();
+  ///getchar();
 
 }
 
