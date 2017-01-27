@@ -79,18 +79,6 @@ def test():
   before_received +=tmp1;
   before_dropped +=tmp2;
   
-#  tmp1,tmp2 = read_pkts(ssh_r2,4)
-
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r2,5)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r2,6)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
 
   tmp1,tmp2 = read_pkts(ssh_r3,1)
   before_received +=tmp1;
@@ -104,17 +92,23 @@ def test():
   before_received +=tmp1;
   before_dropped +=tmp2;
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,4)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
+  beforer21tmp1,beforer21tmp2 = read_pkts(ssh_r2,1)
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,5)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,6)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
+  beforer22tmp1,beforer22tmp2 = read_pkts(ssh_r2,2)
+
+
+  beforer23tmp1,beforer23tmp2 = read_pkts(ssh_r2,3)
+
+  
+
+  beforer31tmp1,beforer31tmp2 = read_pkts(ssh_r3,1)
+
+
+  beforer32tmp1,beforer32tmp2 = read_pkts(ssh_r3,2)
+
+
+  beforer33tmp1,beforer33tmp2 = read_pkts(ssh_r3,3)
   
   before_time = time.time() * 1000
 
@@ -131,18 +125,7 @@ def test():
   tmp1,tmp2 = read_pkts(ssh_r2,3)
   after_received +=tmp1;
   after_dropped +=tmp2;
-#  tmp1,tmp2 = read_pkts(ssh_r2,4)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
 
-#  tmp1,tmp2 = read_pkts(ssh_r2,5)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r2,6)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
-  
   tmp1,tmp2 = read_pkts(ssh_r3,1)
   after_received +=tmp1;
   after_dropped +=tmp2;
@@ -155,17 +138,36 @@ def test():
   after_received +=tmp1;
   after_dropped +=tmp2;
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,4)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
+  afterr21tmp1,afterr21tmp2 = read_pkts(ssh_r2,1)
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,5)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,6)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
+  afterr22tmp1,afterr22tmp2 = read_pkts(ssh_r2,2)
+
+
+  afterr23tmp1,afterr23tmp2 = read_pkts(ssh_r2,3)
+
+  
+  afterr31tmp1,afterr31tmp2 = read_pkts(ssh_r3,1)
+
+
+  afterr32tmp1,afterr32tmp2 = read_pkts(ssh_r3,2)
+
+
+  afterr33tmp1,afterr33tmp2 = read_pkts(ssh_r3,3)
+  
+  
+  print "r21throughput:"+str((afterr21tmp1-beforer21tmp1)/3)
+  print "r22throughput:"+str((afterr22tmp1-beforer22tmp1)/3)
+  print "r23throughput:"+str((afterr23tmp1-beforer23tmp1)/3)
+  print "r31throughput:"+str((afterr31tmp1-beforer31tmp1)/3)
+  print "r32throughput:"+str((afterr32tmp1-beforer32tmp1)/3)
+  print "r33throughput:"+str((afterr33tmp1-beforer33tmp1)/3)
+  print "r21drop:"+str(afterr21tmp2-beforer21tmp2)
+  print "r22drop:"+str(afterr22tmp2-beforer22tmp2)
+  print "r23drop:"+str(afterr23tmp2-beforer23tmp2)
+  print "r31drop:"+str(afterr31tmp2-beforer31tmp2)
+  print "r32drop:"+str(afterr32tmp2-beforer32tmp2)
+  print "r33drop:"+str(afterr33tmp2-beforer33tmp2)
 
   after_time = time.time() * 1000
 
@@ -210,18 +212,6 @@ def seperate_test():
   beforer23tmp1,beforer23tmp2 = read_pkts(ssh_r2,3)
 
   
-#  tmp1,tmp2 = read_pkts(ssh_r2,4)
-
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r2,5)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r2,6)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
 
   beforer31tmp1,beforer31tmp2 = read_pkts(ssh_r3,1)
 
@@ -232,17 +222,6 @@ def seperate_test():
   beforer33tmp1,beforer33tmp2 = read_pkts(ssh_r3,3)
 
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,4)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r3,5)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r3,6)
-#  before_received +=tmp1;
-#  before_dropped +=tmp2;
   
   before_time = time.time() * 1000
 
@@ -256,17 +235,6 @@ def seperate_test():
 
   afterr23tmp1,afterr23tmp2 = read_pkts(ssh_r2,3)
 
-#  tmp1,tmp2 = read_pkts(ssh_r2,4)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r2,5)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r2,6)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
   
   afterr31tmp1,afterr31tmp2 = read_pkts(ssh_r3,1)
 
@@ -289,17 +257,7 @@ def seperate_test():
   print "r31drop:"+str(afterr31tmp2-beforer31tmp2)
   print "r32drop:"+str(afterr32tmp2-beforer32tmp2)
   print "r33drop:"+str(afterr33tmp2-beforer33tmp2)
-#  tmp1,tmp2 = read_pkts(ssh_r3,4)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
 
-#  tmp1,tmp2 = read_pkts(ssh_r3,5)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
-
-#  tmp1,tmp2 = read_pkts(ssh_r3,6)
-#  after_received +=tmp1;
-#  after_dropped +=tmp2;
 
   after_time = time.time() * 1000
 
@@ -317,7 +275,6 @@ def main():
     
   for i in range(50):
     packet_out, packet_dropped, duration_time = test()
-    seperate_test()
 #    local_packet_out, local_packet_dropped, local_duration_time = local_test()
     print "totalthroughput:"+str(packet_out)
 #    print str(local_packet_out)
