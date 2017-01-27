@@ -559,14 +559,18 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 		return;
 	}
 	LOG(INFO)<<"scale in";
+
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
   LivenessCheckClient checker_source(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+  LOG(INFO)<<"rpc connect success";
 
   LOG(INFO)<<checker_source.GetRuntimeState(runtime);
 
-  checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),10241,runtime.flow_state.active_flows);
+  LOG(INFO)<<"get state success";
+
+  LOG(INFO)<<checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),10241,runtime.flow_state.active_flows);
 
   sleep(2);
   checker_source.ShutdownRuntime();
