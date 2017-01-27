@@ -60,13 +60,13 @@ public:
 		//printf("parsing Request header !\n");
 		if(!ParseHeader(reqBuf, reqLen,pos, sesptr->Result.RequestHeader)){
 			//printf("parsing Request header failure!\n");
-			ids_parser_fs_Reset(sesptr);
+			ids_fs_Reset(sesptr);
 			return;
 		}
 		//printf("parsing Request data !\n");
 		if(!ParseReqData(reqBuf,reqLen,pos,sesptr->Result)){
 			//printf("parsing Request data failure!\n");
-			ids_parser_fs_Reset(sesptr);
+			ids_fs_Reset(sesptr);
 			return;
 		}
 	}
@@ -76,21 +76,21 @@ public:
 		//printf("parsing Response state !\n");
 		if(!ParseRspState(rspBuf,rspLen,pos,sesptr->Result)){
 			//printf("parsing Response state failure!\n");
-			ids_parser_fs_Reset(sesptr);
+			ids_fs_Reset(sesptr);
 			return;
 		}
 
 	 // printf("parsing Response header !\n");
 		if(!ParseHeader(rspBuf,rspLen, pos,sesptr->Result.ResponseHeader)){
 			//printf("parsing Response header failure!\n");
-			ids_parser_fs_Reset(sesptr);
+			ids_fs_Reset(sesptr);
 			return;
 		}
 
 		//printf("parsing Response data !\n");
 		if(!ParseRspData(rspBuf,rspLen, pos,sesptr->Result)){
 			//printf("parsing Response data failure!\n");
-			ids_parser_fs_Reset(sesptr);
+			ids_fs_Reset(sesptr);
 			return;
 		}
 	}
@@ -98,7 +98,7 @@ public:
 
 
 	Send(sesptr);
-	ids_parser_fs_Reset(sesptr);
+	ids_fs_Reset(sesptr);
 
 	return;
 }

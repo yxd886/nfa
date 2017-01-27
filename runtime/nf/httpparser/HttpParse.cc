@@ -4,7 +4,7 @@
 extern int m;
 
 void CHttpParse::Send(http_parser_fsPtr&  sesptr){
-	string file("../src/network_function/http_parser/result/");
+	string file("/home/net/nfa/runtime/nf/httpparser/result/");
 
 	file += to_string(sesptr->ClientPort);
 
