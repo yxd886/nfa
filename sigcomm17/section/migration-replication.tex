@@ -112,7 +112,7 @@ Flow migration in \nfactor~only involves 3 passed of request-response messages i
 \textbf{2nd req-rep:} The source flow actor sends the 5-tuple of its flow and the ID of the migration target runtime to the liaison actor on the virtual switch responsible for forwarding the flow to it. The liaison actor uses the 5-tuple to identify the virtual switch actor in charge and notifies it to change the destination runtime to the migration target runtime. After this change, the virtual switch actor sends a response back to the source actor, and the migration target actor starts to receive packets. Instead of processing the packets, the target actor buffers all the received packets until it receives the third request from the source actor. The migration source actor keeps processing received flow packets until it receives the response from the virtual switch.
 
 %\item 
-\textbf{3rd req-rep:} The source flow actor then sends its flow state to the migration target actor. After receiving the flow states, the migration target actor saves them, sends a response to the source actor and then immediately start processing all the buffered packets. The migration source actor expires when it receives the response from the target actor.
+\textbf{3rd req-rep:} The source flow actor then sends its flow state to the migration target actor. After receiving the flow states, the migration target actor saves them and immediately starts processing all the buffered packets while sending a response to the source actor. The migration source actor expires when it receives the response from the target actor.
 
 %\end{itemize}
 
