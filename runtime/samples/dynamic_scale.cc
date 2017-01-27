@@ -638,7 +638,7 @@ int main(int argc, char** argv) {
 
   		if(need_scale_out(*it)){
   			it->scale_out_counter++;
-  			if(it->scale_out_counter==3){
+  			if(it->scale_out_counter==1){
   				it->scale_out_counter=0;
     			scale_out(*it,&active_runtimes);
   			}
