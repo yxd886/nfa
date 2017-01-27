@@ -21,7 +21,7 @@ The rest of the section tries to answer the following questions. \textit{First, 
 
 \begin{figure}[!t]
 	\centering
-	\includegraphics[width=\columnwidth]{figure/NormalCaseTP.pdf}
+	\includegraphics[width=\columnwidth]{figure/revised-throughput-test.pdf}
 	\caption{The packet processing throughput using different number of runtimes. The runtimes are configured with different NFs and different service chains.
   \textbf{FM}: Flow Monitor. \textbf{HP}: HTTP Parser. \textbf{FW}: Firewall.}
 \label{fig:normal-case-eval}
@@ -123,7 +123,7 @@ Finally, we compare the flow migration performance of \nfactor~against OpenNF \c
 \label{fig:rep-perf}
 \end{figure}
 
-To evaluate the packet processing throughput of~\nfactor's flow replication, we configure the virtual switch to generate output packets to runtimes on the first server. For each runtime on the first server, we configure a replica runtime on the second server, and let each runtime replicate its flows to the corresponding replica runtime. We calculate the cumulative packet processing throughput during flow replication. The result is shown in Figure~\ref{fig:rep-scale}. We can see that the scalability during flow replication is not as good as the result achieved when replication is disabled. The replication throughput can achieve an almost linear scalability when there are smaller than four runtimes running in a single server, but the scalability starts to degrade when more runtimes are used. The primary reason is because the bandwidth consumption on the L2 network is way higher than normal case evaluation.
+To evaluate the packet processing throughput of~\nfactor's flow replication, we configure the virtual switch to generate output packets to runtimes on the first server. For each runtime on the first server, we configure a replica runtime on the second server, and let each runtime replicate its flows to the corresponding replica runtime. We calculate the cumulative packet processing throughput during flow replication. The result is shown in Figure~\ref{fig:rep-scale}. We can see that the scalability during flow replication is not as good as the result achieved when replication is disabled. The replication throughput can achieve an almost linear scalability when there are smaller than four runtimes running in a single server, but the scalability starts to degrade when more runtimes are used. The primary reason is because the bandwidth consumption on the L2 network is way higher than normal case evaluation. To ensure output-commit property, for each input packet, the runtime generates at least two output packets, containing the flow state and the output packet processed by the flow actors.
 
 ~\nfactor replicates the flow state for each processed packet using a reliable message passing module. The number of transmitted packets by the reliable message passing module is actually two times the number of the input packets. To reliably transmit flow state and the processed packet, the runtime also needs to add a header for each remote actor message, which is 52 byte long in our implementation. All these reasons contribute to a much larger bandwidth that are actually delivered over the network, which may result in potential packet drops.
 
@@ -135,7 +135,7 @@ Finally, figure \ref{fig:rep-recovery} shows the recovery time of \nfactor~runti
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width=\columnwidth]{figure/NormalCaseTP.pdf}
+	\includegraphics[width=\columnwidth]{figure/Scale.pdf}
 	\caption{The packet processing throughput using different number of runtimes. The runtimes are configured with different NFs and different service chains.
   \textbf{FM}: Flow Monitor. \textbf{HP}: HTTP Parser. \textbf{FW}: Firewall.}
 \label{fig:normal-case-eval}
@@ -153,7 +153,7 @@ Finally, figure \ref{fig:rep-recovery} shows the recovery time of \nfactor~runti
    \caption{The recovery time of three failed runtimes under different settings. The tuple on the $x$ axis represents the number of the runtime used in the evaluation and the total input packet rate. }\label{fig:rep-recovery} \end{subfigure}\hfill
    \begin{subfigure}[t]{0.33\linewidth}
   \centering
-    \includegraphics[width=\columnwidth]{figure/NormalCaseTP.pdf}
+    \includegraphics[width=\columnwidth]{figure/MPTCP.pdf}
     \caption{The recovery time of three failed runtimes under different settings. The tuple on the $x$ axis represents the number of the runtime used in the evaluation and the total input packet rate. }\label{fig:rep-recovery} \end{subfigure}
  \caption{The flow migration performance of \nfactor}
 \label{fig:rep-perf}
