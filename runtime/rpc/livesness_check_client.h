@@ -410,6 +410,7 @@ class LivenessCheckClient {
 		runtime_stat.port_state.output_port_incoming_pkts=reply.port_state().output_port_incoming_pkts();
 		runtime_stat.port_state.output_port_outgoing_pkts=reply.port_state().output_port_outgoing_pkts();
 		runtime_stat.flow_state.active_flows=reply.flow_state().active_flows();
+		LOG(INFO)<<"active flows: "<<runtime_stat.flow_state.active_flows;
 		runtime_stat.flow_state.inactive_flows=reply.flow_state().inactive_flows();
 		runtime_stat.migration_state.average_flow_migration_completion_time=reply.migration_state().average_flow_migration_completion_time();
 		runtime_stat.migration_state.migration_index=reply.migration_state().migration_index();

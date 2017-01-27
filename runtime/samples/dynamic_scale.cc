@@ -603,7 +603,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
 	LOG(INFO)<<"port:"<<runtime.local_runtime.rpc_port;
 	LOG(INFO)<<"runtime.flow_state.active_flows/2: "<<runtime.flow_state.active_flows/2;
 
-	LOG(INFO)<<checker_source.MigrateTo(ip,runtime.local_runtime.rpc_port,runtime.flow_state.active_flows/2);
+	LOG(INFO)<<checker_source.MigrateTo(ip,runtime.local_runtime.rpc_port,10000);
 
   LivenessCheckClient checker_dest(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
