@@ -68,6 +68,8 @@ struct runtime_state{
 	std::map<std::string,runtime_config> storages;
 	runtime_config migration_target;
 	runtime_config local_runtime;
+	int scale_in_counter;
+	int scale_out_counter;
 };
 
 

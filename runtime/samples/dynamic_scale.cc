@@ -637,13 +637,23 @@ int main(int argc, char** argv) {
   	for(auto it=active_runtimes.begin();it!=active_runtimes.end();it++){
 
   		if(need_scale_out(*it)){
-  			scale_out(*it,&active_runtimes);
+  			it->scale_out_counter++;
+  			if(it->scale_out_counter==3){
+  				it->scale_out_counter=0;
+    			scale_out(*it,&active_runtimes);
+  			}
+
   			continue;
   		}
 
 
   		if(need_scale_in(*it)){
-  			scale_in(*it,&active_runtimes);
+  			it->scale_in_counter++;
+  			if(it->scale_in_counter==3){
+  				it->scale_out_counter=0;
+    			scale_in(*it,&active_runtimes);
+  			}
+
   			continue;
   		}
 
