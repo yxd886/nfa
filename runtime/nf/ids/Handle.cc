@@ -101,7 +101,7 @@ void Ids_CHandle::Init(){
 
 
 
-void CHandle::Create(IFormatPacket *pPacket,CSharedBehaviorInfo* pInfo,ids_fsPtr& ptr){
+void Ids_CHandle::Create(IFormatPacket *pPacket,CSharedBehaviorInfo* pInfo,ids_fsPtr& ptr){
 
 
 
