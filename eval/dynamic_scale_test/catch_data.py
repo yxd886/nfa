@@ -307,8 +307,6 @@ def seperate_test():
   ssh_r2.close()
   ssh_r3.close()
   #stop_traffic_gen(options)
-  time.sleep(1)
-  return (after_received-before_received)/3, after_dropped-before_dropped, after_time-before_time
 
 
 
@@ -319,6 +317,7 @@ def main():
     
   for i in range(50):
     packet_out, packet_dropped, duration_time = test()
+    seperate_test()
 #    local_packet_out, local_packet_dropped, local_duration_time = local_test()
     print "totalthroughput:"+str(packet_out)
 #    print str(local_packet_out)
