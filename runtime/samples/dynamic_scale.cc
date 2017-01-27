@@ -563,6 +563,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
   LivenessCheckClient checker_source(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
 
+  LOG(INFO)<<checker_source.GetRuntimeState(runtime);
   checker_source.MigrateTo(convert_uint32t_ip(runtime.migration_target.rpc_ip),runtime.migration_target.rpc_port,runtime.flow_state.active_flows);
 
   sleep(2);
@@ -588,8 +589,10 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
 	LOG(INFO)<<"scale out";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 
-  LivenessCheckClient checker_source(grpc::CreateChannel(
+
+	LivenessCheckClient checker_source(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
+	LOG(INFO)<<checker_source.GetRuntimeState(runtime);
 	int32_t local_rtm_id=static_allocator::get_allocator().next_availiable_local_rtm_id(ip);
 	std::string rtm_name=static_allocator::get_allocator().get_rtm_name(local_rtm_id);
 	runtime.local_runtime.rpc_ip=convert_string_ip(ip);
