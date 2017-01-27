@@ -28,7 +28,7 @@ def main():
     cmd="sudo ../../deps/bess/bessctl/bessctl delete connection fg"+str(i+1)+" ogate"
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
   
-    time.sleep(10)   
+    time.sleep(20)   
   
   
 if __name__ == '__main__':
