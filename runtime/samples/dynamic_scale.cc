@@ -584,7 +584,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
 
 void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes){
 
-	if(active_runtimes->size()>=8)
+	if(active_runtimes->size()>=6)
 		return;
 	LOG(INFO)<<"scale out";
 	std::string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
@@ -649,7 +649,7 @@ int main(int argc, char** argv) {
 
   		if(need_scale_in(*it)){
   			it->scale_in_counter++;
-  			if(it->scale_in_counter==3){
+  			if(it->scale_in_counter==1){
   				it->scale_out_counter=0;
     			scale_in(*it,&active_runtimes);
   			}
