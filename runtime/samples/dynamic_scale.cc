@@ -443,6 +443,11 @@ bool init(std::vector<runtime_state>& active_runtimes){
 
 bool need_scale_in(const runtime_state runtime){
 
+
+	if(runtime.local_runtime.rpc_port==10241){
+		LOG(INFO)<<"this is the pirme rtm";
+		return false;
+	}
 	string ip=convert_uint32t_ip(runtime.local_runtime.rpc_ip);
 	std::string t;
 	pid_t status;
