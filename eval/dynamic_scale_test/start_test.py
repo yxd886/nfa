@@ -22,7 +22,7 @@ def main():
     
     cmd="sudo ../../deps/bess/bessctl/bessctl add connection fg"+str(i+1)+" rt"+str(i+1)+"_iport_portout"
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-    time.sleep(10)
+    time.sleep(20)
     
   
   time.sleep(100)

@@ -163,7 +163,7 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
     return false;
 	}
 
-	sleep(3);
+	sleep(2);
   LivenessCheckClient checker_new(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(port)), grpc::InsecureChannelCredentials()));
   for(auto it=runtime_state.input_runtimes.begin();it!=runtime_state.input_runtimes.end();it++){
@@ -180,7 +180,7 @@ bool remote_open(std::string rtm_name, runtime_state runtime_state, std::string 
   		LOG(INFO)<<checker_new.SingleAddOutputRt(convert_uint32t_ip(it->second.rpc_ip),it->second.rpc_port);
 
   }
-  sleep(2);
+  sleep(1);
   return success;
 
 
@@ -376,7 +376,7 @@ bool init(std::vector<runtime_state>& active_runtimes){
 		LOG(INFO)<<"init r31 fail";
 	}
 
-  sleep(3);
+  sleep(2);
 
 
   LivenessCheckClient checker_r11(grpc::CreateChannel(
@@ -616,7 +616,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
 	LOG(INFO)<<"port:"<<runtime.local_runtime.rpc_port;
 	LOG(INFO)<<"runtime.flow_state.active_flows/2: "<<runtime.flow_state.active_flows/2;
 
-	LOG(INFO)<<checker_source.MigrateTo(ip,runtime.local_runtime.rpc_port,runtime.flow_state.active_flows/2);
+	LOG(INFO)<<checker_source.MigrateTo(ip,runtime.local_runtime.rpc_port,runtime.flow_state.active_flows/2<50000?runtime.flow_state.active_flows/2:50000);
 
   LivenessCheckClient checker_dest(grpc::CreateChannel(
   		concat_with_colon(ip,std::to_string(runtime.local_runtime.rpc_port)), grpc::InsecureChannelCredentials()));
@@ -624,7 +624,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
   checker_dest.GetRuntimeState(tmp);
   checker_dest.SetMigrationTarget(ip,10241,10000);
   active_runtimes->push_back(tmp);
-  sleep(2);
+  sleep(1);
 
 }
 
