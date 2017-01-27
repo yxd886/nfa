@@ -655,9 +655,8 @@ int main(int argc, char** argv) {
 
 
 			scale_in(*it,&active_runtimes);
+			it=active_runtimes.begin();
 
-
-  			continue;
   		}
 
 
