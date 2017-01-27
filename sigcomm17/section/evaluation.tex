@@ -78,7 +78,7 @@ We first evaluate the packet processing throughput of \nfactor~using uniform flo
 Fig.~\ref{fig:normal-case-eval} shows that all flows using each service chain can be timely processed. The throughput convergence starting with 2 or 3 runtimes imply that the amount of the input traffic injected into the two service chains is smaller than the total packet processing capacity of these service chains when each of these two chains are scaled with more than 2 runtimes.% when\chuan{what does the throughput convergence starting with 2 or 3 runtimes imply? aren't you constantly increasing the number of flows, such that the curves should be linear? Discuss it.} %The total throughput of \nfactor when handling three service chains easily scale up to around 14Mpps, which basically saturate a 10Gb NIC card, therefore achieving line-rate throughput. Therefore~\nfactor can scale well and satisfies the line-rate processing requirement of modern NFV system.
  We start to observe zero loss rate for all the three service chains when the number of runtimes is scaled up to 3.
 
- \chuan{Fig.\ref{fig:mix-work-flow}: make the figure same size as subfig a, change legends to `average throughput per runtime' and `average packet drop per runtime'}
+ %\chuan{Fig.\ref{fig:mix-work-flow}: make the figure same size as subfig a, change legends to `average throughput per runtime' and `average packet drop per runtime'}
 
  We next evaluate packet processing throughput with flows whose duration spans 10 seconds to one minute, %, with a 10 second step. The
  flow arrival rate varies from 1000 flows to 5000 flows,% \chuan{shouldn't it be xx kpps?},
@@ -112,7 +112,7 @@ These results exhibit high efficiency of the runtime design and flow migration p
 \label{fig:mig-perf}
 \end{figure}
 
-\chuan{Fig.\ref{fig:compare-opennf}: `Migration time(ms)' to `Time(ms)'}
+%\chuan{Fig.\ref{fig:compare-opennf}: `Migration time(ms)' to `Time(ms)'}
 
 To further inspect performance of flow migration in \nfactor, we show time taken for migrating large numbers of flows. We run three runtimes on each server, configured to run service chain ``firewall $\rightarrow$ http parser $\rightarrow$ load balancer''. The traffic generator produces flows of rate $20pps$ each, and virtual switches dispatch flows evenly to runtimes on one of the servers. %, therefore each runtime on the first server processes approximately the same number of flows.
  After the traffic stablizes, the coordinator concurrently asks each runtime on that server to migrate all of its flows to a runtime on another server.
@@ -174,7 +174,8 @@ We also compare \nfactor~with OpenNF \cite{gember2015opennf} for flow migration.
 	\caption{Throughput during dynamic scaling.}
 \label{fig:normal-case-scale}
 \end{figure}
-\chuan{Fig.\ref{fig:normal-case-scale}: change `Throughput' to `overall throughput', `Traffic income' to `incoming traffic'; curves for runtime 1 and runtime 6 not differentiable}
+
+%\chuan{Fig.\ref{fig:normal-case-scale}: change `Throughput' to `overall throughput', `Traffic income' to `incoming traffic'; curves for runtime 1 and runtime 6 not differentiable}
 
 We further evaluate performance of dynamic scaling mechanism in \nfactor. The traffic generator produces a varying number of flows of overtime. %\chuan{is this what you mean by `a time-varying workload'?tes}.
 Each flow has a rate of 20pps, lasting 60 seconds. The runtimes are configured with service chain ``firewall $\rightarrow$ HTTP parser $\rightarrow$ IDS''. Fig.~\ref{fig:normal-case-eval} shows that the cluster is scaled up to 6 runtimes to handle the peak rate. We observe that whenever a runtime is overloaded (runtime 1 and runtime 4), our mechanism  fig:normal-case-scale resolves the hotspot (considering each flow lasts 60s). %, without the efficient and distributed flow migration. ~\nfactor would not be able to achieve this, but continue to be overloaded for a long period of time, resulting in severe performance drop.
@@ -201,7 +202,7 @@ We further observe in our experiment that the CPU usage of the coordinator remai
 \label{fig:rep-perf}
 \end{figure}
 
-\chuan{Fig.~\ref{fig:rep-scale}:change `,' to $\rightarrow$ or `-' to present service chains in legend; `\# of recovered flow per runtime' to `\# of recovered flows per runtime'}%; better to make the service chains in Fig. \ref{fig:normal-case-eval} and this figure the same, such that readers can compare the difference with and without flow replication}
+%\chuan{Fig.~\ref{fig:rep-scale}:change `,' to $\rightarrow$ or `-' to present service chains in legend; `\# of recovered flow per runtime' to `\# of recovered flows per runtime'}%; better to make the service chains in Fig. \ref{fig:normal-case-eval} and this figure the same, such that readers can compare the difference with and without flow replication}
 
 
 %both in terms of overall packet processing throughput achieved during flow replication and the recovery time when a runtime fails.  Therefore we set up several runtimes on a server, configure each of these runtimes with a dedicated replica runtime on anther server.
@@ -258,7 +259,7 @@ We do not show results evaluating failure resilience of the coordinator and the 
 \label{fig:rep-perf}
 \end{figure}
 
-\chuan{Fig.\ref{fig:mptcp}: `\# of correct MPTCP flows' to `\# of correctly processed MPTCP flows', change legend  to `subflow detection enabled' and `subflow detection disabled'}
+%\chuan{Fig.\ref{fig:mptcp}: `\# of correct MPTCP flows' to `\# of correctly processed MPTCP flows', change legend  to `subflow detection enabled' and `subflow detection disabled'}
 In addition, we build several applications based on \nfactor, which exploits its lightweight, distributed flow migration capability to achieve useful functionalities. %, including live NF update, reduce output bandwidth for deduplication NF and ensure reliable and safe MPTCP processing. We evaluate and demonstrate these new applications in our evaluation.
 
 \vspace{1mm}
