@@ -6,6 +6,7 @@ sudo kill -9 $(ps -ef | grep dynamic_scale | grep -v grep | awk '{print $2}')
 
 sudo rm ~/nfa/eval/dynamic_scale_test/*.log
 
+touch state.log
 sudo ../../deps/bess/bessctl/bessctl delete connection fg1 ogate
 
 
