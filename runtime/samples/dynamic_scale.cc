@@ -446,41 +446,38 @@ bool need_scale_in(const runtime_state runtime){
 	bool success=false;
 
 	int32_t id=runtime.local_runtime.runtime_id;
-	t= "nohup python /home/net/nfa/eval/dynamic_scale_test/read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
-	const char*a = t.c_str();
-	/*FILE *fp;
+	t= "python /home/net/nfa/eval/dynamic_scale_test/read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10);
+	//const char*a = t.c_str();
+	FILE *fp;
 	if((fp=popen(t.c_str(),"r"))==NULL){
 		LOG(ERROR)<<"POPEN Failure";
 		exit(-1);
 
-	}else{
-
-
 	}
-	*/
-	status=std::system(a);
+
+	/*status=std::system(a);
 	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
 		success=true;
 	}
 	else{
     LOG(ERROR)<<"SSH Failure";
     return false;
-	}
+	}*/
 
 	uint32_t throughput;
 	uint32_t drop;
 	char buffer[256];
 	char buffer2[256];
-	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
+	/*ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
 	  exit(1); // terminate with error
-	}
-	myfile.getline(buffer,30);
-	myfile.getline(buffer2,30);
+	}*/
+	fscanf(fp,"%s",buffer);
+	fscanf(fp,"%s",buffer2);
   LOG(INFO)<<"throughput: "<<std::string(buffer);
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
-  myfile.close();
+  //myfile.close();
   getchar();
 	return atoi(buffer)<min_throughput?false:true;
 
@@ -495,7 +492,16 @@ bool need_scale_out(const runtime_state runtime){
 
 	int32_t id=runtime.local_runtime.runtime_id;
 	LOG(INFO)<<"rtm_id: "<<id;
-	t= "cd /home/net/nfa/eval/dynamic_scale_test/ && nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
+	//t= "cd /home/net/nfa/eval/dynamic_scale_test/ && nohup python read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10)+" > state.log 2>&1 &";
+	t= "python /home/net/nfa/eval/dynamic_scale_test/read_throughput_and_drop.py --ip=\""+ip+"\" --local_id="+to_string(id%10);
+	FILE *fp;
+	if((fp=popen(t.c_str(),"r"))==NULL){
+		LOG(ERROR)<<"POPEN Failure";
+		exit(-1);
+
+	}
+
+	/*
 	const char*a = t.c_str();
 	status=std::system(a);
 	if (-1 != status&&WIFEXITED(status)&&WEXITSTATUS(status)==0){
@@ -504,22 +510,22 @@ bool need_scale_out(const runtime_state runtime){
 	else{
     LOG(ERROR)<<"SSH Failure";
     return false;
-	}
+	}*/
 
 	uint32_t throughput;
 	uint32_t drop;
 	char buffer[256];
 	char buffer2[256];
-	ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
+	/*ifstream myfile ("/home/net/nfa/eval/dynamic_scale_test/state.log");
 	if(!myfile){
 		LOG(ERROR)<< "Unable to open myfile";
 	  exit(1); // terminate with error
-	}
-	myfile.getline(buffer,30);
-	myfile.getline(buffer2,30);
+	}*/
+	fscanf(fp,"%s",buffer);
+	fscanf(fp,"%s",buffer2);
   LOG(INFO)<<"throughput: "<<std::string(buffer);
   LOG(INFO)<<"dropped packet: "<<std::string(buffer2);
-  myfile.close();
+  //myfile.close();
   getchar();
 
 	return atoi(buffer2)==0?false:true;
