@@ -8,22 +8,18 @@ avoiding high context switching overhead if using the traditional kernel network
 
 \vspace{1mm}
 \noindent \textbf{Resource Allocation to Runtimes.} %To use BESS VPort, the container that hosts a runtime must be configured with the highest system access right (set $--previledge=true$). Therefore each container actually could uses all the CPU cores on the server.
-When launching runtimes on one server, the coordinator ensures that the worker threads of the runtimes are pinned to different CPU cores (excluding core 0 and the cores that are used by BESS), since they are busy polling thread which keep the CPU utilization to 100\%. The RPC threads of all the runtimes in the same server are collective pinned to core 0, since they sleep for most of the time waiting for RPC requests.  %The threshold for identifying whether a runtime overloads is set to 100 dropped packet on the input port of the runtime over one second.
+When launching runtimes on one server, the coordinator ensures that the worker threads of the runtimes are pinned to different CPU cores (excluding core 0 and the cores that are used by BESS), since they are busy polling threads which keep the CPU utilization to 100\%. The RPC threads of all the runtimes in the same server are collective pinned to core 0, since they sleep for most of the time waiting for RPC requests.  %The threshold for identifying whether a runtime overloads is set to 100 dropped packet on the input port of the runtime over one second.
 
 %\subsection{Customized Actor Library}
 %\label{sec:actor-library}
 \vspace{1mm}
-\noindent \textbf{Customized Actor Library.} To minimize the overhead of actor programming, we choose to implement our own actor library, including a fast actor memory allocator, a fast actor timer and a set of C++ base classes for implementing new actors. %xxx \chuan{summarize what this library includes}.
-In this actor library, due to our single-worker-thread design, local actor message transmission is directly implemented as a function call, therefore eliminating the overhead of enqueuing and dequeuing messages from an actor's mailbox \cite{actor-wiki}. For remote actor message passing, we assign a unique ID to each actor. A sender actor only needs to specify the receiver actor's ID and the hosting runtime's ID, and then the reliable transmission module can correctly deliver the remote actor message to the receiver actor. We also implement a flow actor scheduler, % in the first three tasks of the worker thread. The flow actor scheduler
- which redirects both input flow packets and remote actor messages to corresponding flow actors, by looking up the flow actors using the 5-tuple of the flow.
- Even though the functionalities implemented by our customized actor library is very simple compared with the existing actor frameworks \cite{akka} \cite{caf}, its simple design can effectively reduce actor processing overhead, enabling high-speed packet processing. %Our customized actor library could not achieve complicated ac as other mature actor frameworks do \cite{akka} \cite{caf}. However, due to its simple architecture, it only imposes a small overhead when doing actor processing, therefore it is able to satisfy the high-speed packet processing requirement of modern NFV system.
+\noindent \textbf{Customized Actor Library.} We implement our own actor library, including a fast actor memory allocator, a fast actor timer and a set of C++ base classes for implementing new actors. %xxx \chuan{summarize what this library includes}.
+In this actor library, due to our single-worker-thread design, local actor message transmission is directly implemented as a function call, therefore eliminating the overhead of enqueuing and dequeuing messages to and from an actor's mailbox \cite{actor-wiki}. For remote actor message passing, we assign a unique ID to each actor. A sender actor only needs to specify the receiver actor's ID and the hosting runtime's ID, and then the reliable transmission module (to be discussed soon) can correctly deliver the remote actor message to the receiver actor. We also implement a flow actor scheduler, % in the first three tasks of the worker thread. The flow actor scheduler
+ which redirects both input flow packets and remote actor messages to corresponding flow actors, by looking up the flow actors using the 5-tuple.
+ Even though functionalities provided by our customized actor library are much simpler than those in the existing actor frameworks \cite{akka} \cite{caf}, its simple design leads to effective actor processing overhead reduction, enabling high-speed packet processing. %Our customized actor library could not achieve complicated ac as other mature actor frameworks do \cite{akka} \cite{caf}. However, due to its simple architecture, it only imposes a small overhead when doing actor processing, therefore it is able to satisfy the high-speed packet processing requirement of modern NFV system.
 
 
-%\subsection {Worker Thread}
-%\label{sec:BessModuleSys}
-\vspace{1mm}
-\noindent \textbf{Worker and RPC Threads.}
-The worker thread on a runtime polls packets from the ports, schedules flow actors and transmits remote actor messages (Sec.~\ref{sec:runtime}). To schedule these tasks efficiently, we implement these tasks as BESS modules and use the BESS module scheduler, which schedules these modules in a round-robin fashion. Each worker thread is pinned to one CPU core to avoid overhead due to OS scheduling and improve packet processing performance. The RPC thread on each runtime is implemented with GRPC \cite{grpc}, and the RPC requests are sent over a reliable TCP connection between a runtime and the coordinator.
+
 
 %We decide to reuse BESS module systems. BESS module system is specifically designed to schedule packet processing pipelines in high-speed NFV systems, which is a perfect suit to~\nfactor runtime architecture. We port the BESS module system and BESS module scheduler to the runtime and implement all the actor processing tasks as BESS modules. All the implemented BESS modules are  scheduled inside worker thread to achieve flow actor scheduling, packet processing over the service chain and remote actor message transmission.
 
@@ -49,16 +45,23 @@ The worker thread on a runtime polls packets from the ports, schedules flow acto
 %\label{sec:ReliableMsgPassing}
 \vspace{1mm}
 \noindent \textbf{Reliable Remote Actor Message Passing.}
-Actor messages passed among flow actors on different runtimes during flow migration/replication should be reliably delivered. We build a customized reliable message passing module for \nfactor, which inserts those messages into a reliable byte stream for transmission. % to the other end, the reliable message passing encodes messages into reliable packet streams.
-The module creates one ring buffer for each remote runtime and virtual switch. When a flow actor on this runtime sends a remote actor message, the module creates a packet, copies the content of the message into the packet and then enqueues the packet into the respective ring buffer. A message may be split into several packets. %and different messages do not share packets.
+Actor messages passed among flow actors on different runtimes should be reliably delivered. We build a customized reliable message passing module, which inserts those messages into a reliable byte stream for transmission. % to the other end, the reliable message passing encodes messages into reliable packet streams.
+The module creates one ring buffer for each remote runtime and virtual switch. When a flow actor on this runtime sends a remote actor message, the module creates a packet, copies the content of the message into the packet and then enqueues the packet into the respective ring buffer. %A message may be split into several packets. %and different messages do not share packets.
 These packets are configured with a sequential number each, and appended with a special header to differentiate them from dataplane packets.
- When the fourth task of the worker thread is scheduled to run (Sec.~\ref{sec:runtime}), these packets are dequeued from the ring buffers, and sent to their respective remote runtimes. A remote runtime acknowledges receipt of these packets. Retransmission is fired in case that the acknowledgement for a packet is not received after a configurable timeout (10 times of the RTT).
+The worker thread dequeues these packets from the ring buffers, and sends them to respective remote runtimes. A remote runtime acknowledges receipt of such packets. Retransmission is fired in case that the acknowledgement for a packet is not received after a configurable timeout (\eg, 10 times the RTT).
 
-We do not use user-level TCP \cite{mtcp} to implement reliable actor message passing, since our goal is to reliably transmit remote actor messages over an inter-connected L2 network, and using user-level TCP connections may imposes much more processing overhead for reconstructing byte streams into messages.
-What's more, the packet-based reliable message passing provides additional benefits during flow migration and replication. Because the second response in 2nd request-response step of flow migration is sent as a packet using the same path as the dataplane flow packets, reliable actor message passing enables us to implement loss-avoidance migration with ease (Sec.~\ref{sec:resilience}).
+Since our goal is to reliably transmit remote actor messages over an inter-connected L2 network, we do not use user-level TCP \cite{mtcp} \chuan{reference missing in .bib, your project code url is also missing in .bib}, which may impose much more processing overhead for reconstructing byte streams into messages.
+In addition, packet-based reliable message passing provides additional benefits during flow migration and replication. Because the response in 2nd request-response step of flow migration is sent as a packet using the same path as the dataplane packets, reliable actor message passing enables us to implement loss-avoidance migration with ease (Sec.~\ref{sec:migration}).
 %I will remove this claim, I forgot that we still need to do packet copy.
 %During flow replication, we can directly send the output packet as a message to the replica actor, without the need of additional packet copy \chuan{I do not get what additional packet copy might be needed}.
 
+%\subsection {Worker Thread}
+%\label{sec:BessModuleSys}
+\vspace{1mm}
+\noindent \textbf{Worker and RPC Threads.}
+The worker thread on a runtime polls packets from the ports, schedules flow actors and transmits remote actor messages (Sec.~\ref{sec:runtime}). To schedule these tasks efficiently, we implement them as BESS modules and use the BESS module scheduler, which schedules these modules in a round-robin fashion. Each worker thread is pinned to one CPU core to avoid overhead due to OS scheduling. % and improve packet processing performance. 
+ The RPC thread on each runtime is implemented with GRPC \cite{grpc}, and the RPC requests are sent over a reliable TCP connection between a runtime and the coordinator.
+ 
 %I'm about to move it to evaluation secition.
 %\subsection{New Applications}
 
