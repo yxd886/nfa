@@ -33,7 +33,7 @@ def parse_arguments():
 def read_pkts(ssh,rt_num):
   cmd="sudo ~/nfa/deps/bess/bessctl/bessctl show port rt"+str(rt_num)+"_iport"
   
-  print cmd
+  #print cmd
   stdin,stdout,stderr = ssh.exec_command(cmd);
 
   received_pkts_line = ''
