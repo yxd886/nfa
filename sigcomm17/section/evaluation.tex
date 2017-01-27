@@ -1,17 +1,23 @@
-\section{Evaluation}
+\section{Performance Evaluation}
 \label{sec:experiments}
 
-%Evaluate \nfactor system.
 
-%\chuan{remember to show how many lines of code or other overhead needed for implementing NFV anew on the actor framework}
+We evaluate \nfactor~using a cluster of around 10 Dell R430 servers, each containing 20 logical cores, 48GB memory and 2 Intel X710 10Gb NIC. The servers are connected through a 10GB switch. We implement a number of NFs using the API in Table \ref{table:api}: %\chuan{fill in xx LOC}
+firewall (336 LOC), IDS (734 LOC), load balancer (47 LOC), flow monitor (169 LOC), HTTP parser (1471 LOC) and a NF for MPTCP subflow detection (223 LOC, which is used for experiments in Sec.~\ref{sec:applications}). %Among these 5 NFs, the first three carry out light-weight tasks where as the later two carry out heavy-weight tasks.
+The firewall maintains several rules such as the rule that blocks a certain source IPI address %xxx \chuan{give examples}
+and checks each received packet against the rule: if the packet violates any of the rules, a tag in the flow state is flipped and later packets are automatically dropped. The firewall also records the connection status of the flow in the flow state, \ie, the TCP connection status.
+%\chuan{state what you mean by connection status}.
+The IDS is a simplified version of Snort IDS \cite{snort}.%\chuan{Bro?}.
+The flow monitor updates an internal counter whenever it receives a packet. The HTTP parser parses received packets for HTTP requests and responses, and save them together with the HTTP method in the flow state object.% \chuan{are you storing request and response messages in flow states? why are they flow states?}. %Throughout the evaluation, we use a service chain consisting of  ``flow monitor$\rightarrow$firewall$\rightarrow$http parser'' as the service chain. We generate evaluation traffic using the BESS's FlowGen module and we directly connect the FlowGen module to the external input port of the virtual switch.
 
-We evaluate \nfactor framework using three Dell R430 Linux servers, containing 20 logical cores, 48GB memory and 2 Intel X710 10Gb NIC. The Dell servers are connected through a 10GB switch. We use one server to run traffic generators and six virtual switches, which are capable of generating 64 byte data packets at almost 14Mpps, achieve line-rate throughput. We use the reset of the two servers to run runtimes.
+We run at most 50000 actors per runtime because the runtime performs a pre-allocation of the memory to store actors for processing speed and does not grow the allocated memory. %xx \chuan{give the reason}.
+The coordinator updates cluster composition to runtimes and switches once every 5 seconds. %xxx \chuan{give the duration}.
+%\chuan{introduce all default settings of parameters here}
+By default, we set the size of migration target buffers to store up to 4096 DPDK packets.% 32768 bytes, capble of storing 4096 DPDK packet pointers.
+A runtime is identified as overloaded if more than 100 packet drops are recorded on the input port of the runtime within one second.
+%The algorithm uses 500 flows are used as the number of flows for migration number, which is a tunable value in~\nfactor. We use this value because 500 flows could be migrated within one millisecond in~\nfactor and the coordinator could gradually increases the workload during migration to evenly balance the workload.
 
-To evaluate the performance of \nfactor, we implement 5 customized NF modules using the API provided by \nfactor~framework, which are firewall, flow monitor, load balancer, HTTP parser and an IDS. Among these 5 NFs, the first three carry out light-weight tasks where as the later two carry out heavy-weight tasks.
-%the 3 NF modules are flow monitor, firewall and HTTP parser. The flow monitor updates an internal counter when it receives a packet. The firewall maintains several firewall rules and checks each received packet against the rule. If the packet matches the rule, a tag in the flow state is flipped and later packets are automatically dropped. The firewall also records the connection status of a flow in the flow state. For the HTTP parser, it parses the received packets for the HTTP request and responses. The requests, responses and the HTTP method are saved in the flow state. %Throughout the evaluation, we use a service chain consisting of  ``flow monitor$\rightarrow$firewall$\rightarrow$http parser'' as the service chain. We generate evaluation traffic using the BESS's FlowGen module and we directly connect the FlowGen module to the external input port of the virtual switch.
-
-%Table goes  here to explain the functionalities of the NF modules.
-The rest of the section tries to answer the following questions. \textit{First, } what is packet processing throughput of~\nfactor, does it scales well? \textit{Second,} how good is the flow migration performance of~\nfactor when compared with existing works like OpenNF? \textit{Third,} how is the performance of flow replication? \textit{Fourth,} how good is~\nfactor's dynamic scaling algorithm performs. The section concludes with the performance of the unique applications that are enabled through~\nfactor's distributed flow migration.
+%The rest of the section tries to answer the following questions. \textit{First, } what is packet processing throughput of~\nfactor, does it scales well? \textit{Second,} how good is the flow migration performance of~\nfactor when compared with existing works like OpenNF? \textit{Third,} how is the performance of flow replication? \textit{Fourth,} how good is~\nfactor's dynamic scaling algorithm performs. The section concludes with the performance of the unique applications that are enabled through~\nfactor's distributed flow migration.
 
 %how well can~\nfactor~scales, in terms of the number of runtimes running inside the system? (Sec.~\ref{sec:normal})
 
@@ -20,14 +26,30 @@ The rest of the section tries to answer the following questions. \textit{First, 
 \subsection{Packet Processing Throughput}
 \label{sec:ppc}
 
+
+%\begin{figure}[!t]
+%	\centering
+%	\includegraphics[width=\columnwidth]{figure/revised-throughput-test.pdf}
+%	\caption{Packet processing throughput.}
+  %(\textbf{FM}: Flow Monitor. \textbf{HP}: HTTP Parser. \textbf{FW}: Firewall. \textbf{LB}: Load Balancer. \textbf{IDS}: Intrusion Detection System.)
+%\label{fig:normal-case-eval}
+%\end{figure}
+
 \begin{figure}[!t]
-	\centering
-	\includegraphics[width=\columnwidth]{figure/revised-throughput-test.pdf}
-	\caption{The packet processing throughput using different number of runtimes and different service chains.
-  (\textbf{FM}: Flow Monitor. \textbf{HP}: HTTP Parser. \textbf{FW}: Firewall. \textbf{LB}: Load Balancer. \textbf{IDS}: Intrusion Detection System.)}
-\label{fig:normal-case-eval}
+ \begin{subfigure}[t]{0.49\linewidth}
+   \centering
+   \includegraphics[width=\columnwidth]{figure/revised-throughput-test.pdf}
+   \caption{}\label{fig:normal-case-eval} \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.49\linewidth}
+   \centering
+   \includegraphics[width=\columnwidth]{figure/Mixtest.pdf}
+   \caption{}\label{fig:mix-work-flow}
+  \end{subfigure}
+\caption{ Packet processing throughput.} %(a) The total time to migrate different numbers of flows concurrently on three runtimes. (b) The flow migration performance of NFActor. Each flow in NFActor runtime goes through the same service chain as in Figure \ref{fig:tot-mig}. OpenNF controlls PRADS asset monitors. The flow packet rate is 20pps.}
+\label{fig:mig-perf}
 \end{figure}
 
+%\chuan{Fig.\ref{fig:normal-case-eval}: change HT to HP in the figure; change `,' to $\rightarrow$ or `-' to present service chains in legend; change `\# of runtimes used for each service chain' to `\# of runtimes per service chain'}
 
  %\begin{figure}[!t]
 %	\begin{subfigure}[t]{0.49\linewidth}
@@ -43,19 +65,37 @@ The rest of the section tries to answer the following questions. \textit{First, 
 %\label{fig:performance}
 %\end{figure}
 
-To evaluate the packet processing throughput of~\nfactor, we configure~\nfactor cluster with three service chains and use the same number of runtimes to process packets for each service chain. The traffic generators are configured to generate flows with 10pps flow rate and 10 seconds duration. The flow packet is uniformly configured to be 64 byte. For each service chain, we run two traffic generators to generate traffic into the service chain, resulting in a maximum throughput at around 4.4Mpps. We scale up runtimes in each service chain concurrently to test the scalability of the~\nfactor when running different service chains.
+We run six virtual switches on one server for dispatching flows to runtimes, run runtimes on other servers, and implement a traffic generator which generates flows to send to the virtual switches. The flows consist of 64 byte data packets. We deploy three service chains, `flow monitor (FM) $\rightarrow$ firewall (FW) $\rightarrow$ load balancer (LB)', `flow monitor (FM) $\rightarrow$ HTTP parser (HP) $\rightarrow$ IDS', and `flow monitor (FM) $\rightarrow$ HTTP parser (HP) $\rightarrow$ load balancer (LB)'.\footnote{\nfactor~can handle service chains with branches similarly, due to encapsulating each service chain entirely in one flow actor and the run-to-completion scheduling strategy in runtimes. We evaluate simle service chains without branches which represent the mainstream \cite{hwang2015netvm, martins2014clickos}.} The same number of flows are processed by each of the service chains. We do not enable flow replication in this set of experiments. % and use the same number of runtimes to process packets for each service chain.
 
-Figure \ref{fig:normal-case-eval} illustrates the performance under this settings. We can see that for each service chain, the runtime scales good and handles all the input traffic. The total throughput of the~\nfactor when handling three service chains easily scale up to around 14Mpps, which basically saturate a 10Gb NIC card, therefore achieving line-rate throughput. Therefore~\nfactor can scale well and satisfies the line-rate processing requirement of modern NFV system.
 
-The good packet processing performance achieved by~\nfactor is primarily due to our efficient actor design. The performance of a single runtime using our own actor framework out-performs our initial prototype, implemented using Libcaf \cite{caf} as the underlying library, by up to 4x even when the original runtime is configured with 4 worker threads. While the runtime using our own actor framework only uses a single core.
+We first evaluate the packet processing throughput of \nfactor~using uniform flows, each produced at 10pps (packets per second), lasting for 10 seconds. We increase the number of flows until the overall rate of all flows injected into virtual switches is $14Mpps$, %\chuan{14*64*8=7168, why is this close to line rate of 20Gbps for the two NICs of a server? Answer: because on the ethernet, the size of the packet is increased to larger than 80bytes.}
+ (60K flows %\chuan{give the total number of flows when the rate is $14Mpps$}
+ ), approaching line-rate of the server. Since each runtime can handle at most 50000 flows, we scale up the number of runtimes with the increase of flows.
 
+%For each service chain, we run two traffic generators to generate traffic into the service chain, resulting in a maximum throughput at around 4.4Mpps.
+
+
+Fig.~\ref{fig:normal-case-eval} shows that all flows using each service chain can be timely processed. The throughput convergence starting with 2 or 3 runtimes imply that the amount of the input traffic injected into the two service chains is smaller than the total packet processing capacity of these service chains when each of these two chains are scaled with more than 2 runtimes.% when\chuan{what does the throughput convergence starting with 2 or 3 runtimes imply? aren't you constantly increasing the number of flows, such that the curves should be linear? Discuss it.} %The total throughput of \nfactor when handling three service chains easily scale up to around 14Mpps, which basically saturate a 10Gb NIC card, therefore achieving line-rate throughput. Therefore~\nfactor can scale well and satisfies the line-rate processing requirement of modern NFV system.
+ We start to observe zero loss rate for all the three service chains when the number of runtimes is scaled up to 3.
+
+ \chuan{Fig.\ref{fig:mix-work-flow}: make the figure same size as subfig a, change legends to `average throughput per runtime' and `average packet drop per runtime'}
+
+ We next evaluate packet processing throughput with flows whose duration spans 10 seconds to one minute, %, with a 10 second step. The
+ flow arrival rate varies from 1000 flows to 5000 flows,% \chuan{shouldn't it be xx kpps?},
+ the flow rate varies from 1kpps to 2kpps %with a 1000-flow step. The flow
+ and packet size varies among 64 bytes, 128 bytes and 256 bytes. The total number of injected flows is 550K.%\chuan{what is the total flow number injected?}
+ The runtimes are configured with a service chain `flow monitor $\rightarrow$ HTTP parser $\rightarrow$ IDS'. Fig.~\ref{fig:mix-work-flow} shows the average throughput and packet drop of each runtime, with an error bar indicating the standard deviation. We can see that the flow processing load is quite balanced among different runtimes (using our simple round-robin scheduling algorithm) and the runtimes can handle all the incoming flows when the number of runtimes is scaled up to six (zero losses).
+
+These results exhibit high efficiency of the runtime design and flow migration protocol in \nfactor, enabling close to line-rate flow processing. % good packet processing performance achieved by~\nfactor is primarily due to our efficient actor design.
+ The design of \nfactor~has been based on a few trials and errors. In our previous version of \nfactor~design and prototype implementation using Libcaf \cite{caf}, we used 4 worker thread per runtime. Compared with the old design, our current design with one worker thread per runtime achieves up to 4x throughput. %xx \chuan{throughput?}.
+ We believe the reason is that the combination of our customized actor library and the DPDK-based reliable message passing module eliminates a lot of overhead associated with actor processing.% xxx\chuan{give the reason}.
 %The traffic generator generates  generate the same amount of traffic to each service chain.  using differnt number of runtimes, running three service chains. The traffic generators generates flows each lasts for 10 second with a 20 pps (packet per second) flow rate. The packet size is 64 byte. We increase the number of concurrently generated flows to generate packets at around 14Mpps, reaching NIC line-rate. We set up different number of runtimes and configure runtimes with different service chains and calculate the cumulative packet rate from all the runtimes. From \ref{fig:normal-case-eval}, we can see that the runtime in~\nfactor can scale almost linearly and achieve almost line-rate processing when scaled up to 9 runtimes. Therefore,~\nfactor has good packet processing throughput and can satisfy the stringent requirement of modern NFV system.
 
 % reach   with a uniform We can see that the packet processing throughput scales almost linearly as the number of runtime increases, until normal case performance of running \nfactor~framework. Each flow in the generated traffic has a 10 pps (packet per second) per-flow packet rate. We vary the number of concurrently generated flows to produce varying input traffics. In this evaluation, we gradually increase the input packet rate to the \nfactor~cluster and find out the maximum packet rate that the \nfactor~cluster can support without dropping packets. In figure \ref{fig:normal-performance}, the performance of different NF modules and the service chain composed of the 3 NF modules are shown. Only one \nfactor~runtime is launched in the cluster. It is configured with different number of worker threads. In figure \ref{fig:scalability-performance}, we create different number of \nfactor~runtimes and configure each runtime with 2 worker threads. Then we test the performance using the entire service chain.
 
 %From figure \ref{fig:normal-performance}, we can learn that the packet throughput decreases when the length of the service chain is increased. Another important factor to notice is that the \nfactor~runtime does not scale linearly as  the number of worker threads increases. The primary reason is that inside a \nfactor~runtime, there is only one packet polling thread. As the number of input packets increases, the packet polling thread will eventually become the bottleneck of the system. However, \nfactor~runtime scales almost linearly as the total number of \nfactor~runtimes increases in the cluster. When the number of runtimes is increased to 4 in the system, the maximum packet throughput is increased to 2.4M pps, which confirms to the line speed requirement of NFV system.
 
-\subsection{Flow Migration Performance}
+\subsection{Time Consumption for Flow Migration}
 \label{sec:fmp}
 
  \begin{figure}[!t]
@@ -68,17 +108,28 @@ The good packet processing performance achieved by~\nfactor is primarily due to 
 		\includegraphics[width=\columnwidth]{figure/Compare.pdf}
 		\caption{}\label{fig:compare-opennf}
 	 \end{subfigure}
-\caption{ (a) The total time to migrate different numbers of flows concurrently on three runtimes. (b) The flow migration performance of NFActor. Each flow in NFActor runtime goes through the same service chain as in Figure \ref{fig:tot-mig}. OpenNF controlls PRADS asset monitors. The flow packet rate is 20pps.}
+\caption{ Time consumption for flow migration.} %(a) The total time to migrate different numbers of flows concurrently on three runtimes. (b) The flow migration performance of NFActor. Each flow in NFActor runtime goes through the same service chain as in Figure \ref{fig:tot-mig}. OpenNF controlls PRADS asset monitors. The flow packet rate is 20pps.}
 \label{fig:mig-perf}
 \end{figure}
 
-To evaluate~\nfactor's distributed flow migration performance, we configure the three runtimes on each server. Each runtime is configured with the ``firewall, http parser, load balancer'' service chain. The traffic generators generate flows at 20pps and the virtual switch are only configured to generate output flow packets to runtimes on the first server, therefore each runtime on the first server processes approximately the same number of flows. After the traffic stabilizes, the coordinator concurrently initiates three migrations, asking each runtime on the first runtime to migrate all of its flows to the pair runtime on the second server.
+\chuan{Fig.\ref{fig:compare-opennf}: `Migration time(ms)' to `Time(ms)'}
 
-Figure~\ref{fig:tot-mig} demonstrates average flow migration completion time calculated for all three pairs of runtimes. We can see that~\nfactor~achieves excellent flow migration performance, even when migrating more than 300000 flows, with 6Mpps processing throughput. Also, the migration are concurrently executed among three pairs of runtimes, further proving the effectiveness of \nfactor's distributed flow migration. The key reason that~\nfactor is able to achieve such a good flow migration performance is because (i) flow states are directly copied to remote actor messages without the need for serialization and deserialization and (ii) remote actor messages are directly encapsulated in L2 network packet and transmitted with high-performance packet I/O.
+To further inspect performance of flow migration in \nfactor, we show time taken for migrating large numbers of flows. We run three runtimes on each server, configured to run service chain ``firewall $\rightarrow$ http parser $\rightarrow$ load balancer''. The traffic generator produces flows of rate $20pps$ each, and virtual switches dispatch flows evenly to runtimes on one of the servers. %, therefore each runtime on the first server processes approximately the same number of flows.
+ After the traffic stablizes, the coordinator concurrently asks each runtime on that server to migrate all of its flows to a runtime on another server.
 
-We also keep the number of lost packet due to migration target buffer overflow or packet reordering. Throughout the entire test, this number is zero. The primary reason comes from the use of a large collective buffer, with the size to hold 4096 packet, for migration target actors to buffer the received packets before the third request is received, which basically eliminate migration target buffer overflow even when migrating a large number of flows. This verifies the loess-avoidance property of~\nfactor's flow migration.
+We vary the number of flows injected to each runtime in that server and show in Fig.~\ref{fig:tot-mig} completion time for migrating all flows from a runtime, averaged over all three runtimes. We can see that it takes $350$ms for migrating about $125000$ flows (with 2.5Mpps processing throughput) %\chuan{complete xx. how do you come up with `even when migrating more than 300000 flows, with 6Mpps processing throughput'?}.
+The time only increases sublinearly with the increase of flows. Considering the migration is concurrently carried out among three pairs of runtimes, the results show good efficiency of our distributed flow migration, and the following design:
+%The key reason that~\nfactor is able to achieve such a good flow migration performance is because
+(i) flow states are directly copied into remote actor messages without the need for serialization and deserialization, and (ii) remote actor messages are directly encapsulated in L2 network packets and transmitted based on DPDK. %with high-performance packet I/O.
 
-Finally, we compare the flow migration performance of \nfactor~against OpenNF \cite{gember2015opennf}. We generate the same number of flows to both \nfactor~runtimes and NFs controlled by OpenNF and calculate the total time to migrate these flows. The evaluation result is shown in figure \ref{fig:compare-opennf}. Under both settings, the performance of~\nfactor~is much better than OpenNF. Even though this is not a fair comparison, as OpenNF uses legacy NFs while~\nfactor relies on newly implemented NFs, one can still get to know the good performance achieved by~\nfactor.
+We also observe zero packet loss throughout the experiment. %keep the number of lost packet due to migration target buffer overflow or packet reordering. Throughout the entire experiment, this number is zero.
+ We use a collective buffer of a capacity of 4096 packets for all migration target actors to buffer received flow packets before the request in the 3rd request-response step is received. %This buffer size is large enough to \chuan{justify why maintaining this buffer size per actor is reasonable}.
+ It turns out this buffer size is sufficient % which basically eliminate migration target buffer overflow
+ even when migrating a large number of flows. %This verifies the loess-avoidance property of~\nfactor's flow migration.
+
+We also compare \nfactor~with OpenNF \cite{gember2015opennf} for flow migration. We send the same number of flows to \nfactor~runtimes and NFs controlled by OpenNF, and present the total time to migrate these flows in Fig.~\ref{fig:compare-opennf}.\footnote{We were not able to test under large numbers of flows due to unexpected failures when running OpenNF acquired from its authors, possibly due to our lack of experience in operating their program.} Flow migration in \nfactor~takes much less time. Though this may not be a very fair comparison as OpenNF uses legacy NFs while\nfactor~relies on NFs implemented following our design, we believe the results are still illustrative.
+
+%Each flow in NFActor runtime goes through the same service chain as in Figure \ref{fig:tot-mig}. OpenNF controlls PRADS asset monitors. The flow packet rate is 20pps.
 
 %the migration completion time of \nfactor~is more than 50\% faster than OpenNF.  This performance gain primarily comes from the simplified migration protocol design with the help of actor framework. In \nfactor, a flow migration process only involves transmitting 3 request-responses. Under light workload, the flow migration can complete within several hundreds of microseconds. Under high workload, \nfactor~runtime system controls the maximum number of concurrent migrations to control the migration workload, which may increase the migration performance as indicated in figure \ref{fig:avg-time-batch-mig}. All of these factors contribute to the improved flow migration performance of \nfactor~framework.
 
@@ -115,28 +166,62 @@ Finally, we compare the flow migration performance of \nfactor~against OpenNF \c
 
 %Finally, we compare the flow migration performance of \nfactor~against OpenNF \cite{gember2015opennf}. We generate the same number of flows to both \nfactor~runtimes and NFs controlled by OpenNF and calculate the total time to migrate these flows. The evaluation result is shown in figure \ref{fig:compare-opennf}. Under both settings, the migration completion time of \nfactor~is more than 50\% faster than OpenNF.  This performance gain primarily comes from the simplified migration protocol design with the help of actor framework. In \nfactor, a flow migration process only involves transmitting 3 request-responses. Under light workload, the flow migration can complete within several hundreds of microseconds. Under high workload, \nfactor~runtime system controls the maximum number of concurrent migrations to control the migration workload, which may increase the migration performance as indicated in figure \ref{fig:avg-time-batch-mig}. All of these factors contribute to the improved flow migration performance of \nfactor~framework.
 
-\subsection{Replication Performance}
+\subsection{Throughput during Dynamic Scaling}
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=\columnwidth]{figure/Scale.pdf}
+	\caption{Throughput during dynamic scaling.}
+\label{fig:normal-case-scale}
+\end{figure}
+\chuan{Fig.\ref{fig:normal-case-scale}: change `Throughput' to `overall throughput', `Traffic income' to `incoming traffic'; curves for runtime 1 and runtime 6 not differentiable}
+
+We further evaluate performance of dynamic scaling mechanism in \nfactor. The traffic generator produces a varying number of flows of overtime. %\chuan{is this what you mean by `a time-varying workload'?tes}.
+Each flow has a rate of 20pps, lasting 60 seconds. The runtimes are configured with service chain ``firewall $\rightarrow$ HTTP parser $\rightarrow$ IDS''. Fig.~\ref{fig:normal-case-eval} shows that the cluster is scaled up to 6 runtimes to handle the peak rate. We observe that whenever a runtime is overloaded (runtime 1 and runtime 4), our mechanism  fig:normal-case-scale resolves the hotspot (considering each flow lasts 60s). %, without the efficient and distributed flow migration. ~\nfactor would not be able to achieve this, but continue to be overloaded for a long period of time, resulting in severe performance drop.
+
+We further observe in our experiment that the CPU usage of the coordinator remains under 5\%, due to its lightweight design.
+
+
+\subsection{Performance of Flow Replication}
 \label{sec:rp}
 
  \begin{figure}[!t]
  \begin{subfigure}[t]{0.49\linewidth}
 		\centering
 		\includegraphics[width=\columnwidth]{figure/ReplicaTP.pdf}
-		\caption{The packet throughput of a \nfactor~cluster when replication is enabled. }\label{fig:rep-scale}
+		%\caption{The packet throughput of a \nfactor~cluster when replication is enabled. }
+		\caption{}\label{fig:rep-scale}
 	 \end{subfigure}\hfill
 	 \begin{subfigure}[t]{0.49\linewidth}
 	\centering
 		\includegraphics[width=\columnwidth]{figure/Recover.pdf}
-		\caption{The recovery time of three failed runtimes under different settings. The tuple on the $x$ axis represents the number of the runtime used in the evaluation and the total input packet rate. }\label{fig:rep-recovery} \end{subfigure}
-	\caption{The flow migration performance of \nfactor}
+		%\caption{The recovery time of three failed runtimes under different settings. The tuple on the $x$ axis represents the number of the runtime used in the evaluation and the total input packet rate. }
+		\caption{}\label{fig:rep-recovery} \end{subfigure}
+	\caption{Performance of flow migration}
 \label{fig:rep-perf}
 \end{figure}
 
-We evaluate~\nfactor's flow replication both in terms of overall packet processing throughput achieved during flow replication and the recovery time when a runtime fails.  Therefore we set up several runtimes on a server, configure each of these runtimes with a dedicated replica runtime on anther server. Then we use traffic generators to generate traffic to the runtimes being replicated, and calculate the accumulated packet throughput from the replica. We run this test under different service chain configurations. The result is shown in Figure~\ref{fig:rep-scale}. We can see that for the service chains that consists of light-weight NFs (flow monitor, firewall and load-balancer), the overall throughput is gradually increased to around 4Mpps. At this time, the bandwidth on the L2 network has been saturated and becomes the bottleneck. This is because ensure output-commit property, for each input packet, the runtime generates at least two output packets, containing the flow state and the output packet processed by the flow actors. Being transmitted through reliably to the remote side, these packets are also appended with a header (the average size is 25bytes for each packet), further increase the bandwidth usage. We argue that our flow replication scheme remains its applicability because it achieves the output-commit property. If the requirement on consistency is weaker,~\nfactor could be easily adapted to use a light-weight replication scheme, that replicates the the flow state after it has processed multiple packets, to increase the throughput.
-
-The biggest advantage brought by~\nfactor's flow replication is its fast recovery time. Following the settings as in Figure~\ref{fig:rep-scale}, we simulate a server crash by shutting down three runtimes running on one, and recovering the flows on their replicas running on the other server. Figure~\ref{fig:rep-perf} shows that~\nfactor is able to quickly recover within tens of milliseconds even when recovering 50000 flows. This is because the recovery process of~\nfactor is extremely light-weight that only involves passing one request-response between the replica runtime and the virtual switch for each replicated flow actor.
+\chuan{Fig.~\ref{fig:rep-scale}:change `,' to $\rightarrow$ or `-' to present service chains in legend; `\# of recovered flow per runtime' to `\# of recovered flows per runtime'}%; better to make the service chains in Fig. \ref{fig:normal-case-eval} and this figure the same, such that readers can compare the difference with and without flow replication}
 
 
+%both in terms of overall packet processing throughput achieved during flow replication and the recovery time when a runtime fails.  Therefore we set up several runtimes on a server, configure each of these runtimes with a dedicated replica runtime on anther server.
+
+We next enable flow replication in \nfactor. The traffic generator produces 300K flows with 30pps flow rate. %xxx \chuan{clearly describe the flow numbers and rates}. % to generate traffic to the runtimes being replicated, and
+Four different service chains are used in this experiment. %xx \chuan{complete}
+Three runtimes are running on each server.
+%calculate the accumulated packet throughput from the replica.
+
+Fig.~\ref{fig:rep-scale} shows that with the increase of flow numbers, the throughput from runtimes running each service chain increases, but always lower than %. For runtimes running service chains consisting of lightweight NFs (\eg, flow monitor, firewall and load-balancer), the overall throughput gradually increases to around 4Mpps
+ 9Mpps. %\chuan{give the largest throughput if not doing flow replication}.
+At the peak throughut, the bandwidth on the L2 network has been saturated and becomes the bottleneck. This is because to ensure output-commit property, for each input packet, an addition packet is transmitted from the original runtime to the replication target runtime, %at least two output packets,
+ containing the flow states and the output packet processed by the flow actor. These packets consume additional bandwidth in the system. %Being transmitted through reliably to the remote side, these packets are also appended with a header (the average size is 25bytes for each packet), further increase the bandwidth usage.
+ We believe such additional bandwidth consumption is unavoidable if to ensure the % that our flow replication scheme remains its applicability because it achieves the
+ output-commit property. To mitigate this issue, a flow actor can replicate its flow states after it has processed multiple packets, at the cost of weaker flow state consistency. %is weaker,~\nfactor could be easily adapted to use a light-weight replication scheme, that replicates the the flow state after it has processed multiple packets, to increase the throughput.
+
+The biggest advantage brought by \nfactor's flow replication is the fast recovery time in case of failures. %Following the settings as in Figure~\ref{fig:rep-scale},
+We emulate a server crash by shutting down the server, and recover flows processed by failed runtimes on their replicas on other servers. Fig.~\ref{fig:rep-perf} shows that 50000 flows can be recovered within tens of milliseconds. This is because flow recovery in \nfactor~is extremely lightweight, involving only one request-response pass between the replica runtime and the virtual switch. % for each replicated flow actor.
+
+We do not show results evaluating failure resilience of the coordinator and the virtual switches, since their handling in cases of failures is standard as the literature.
 
 %To evaluate~\nfactor's flow replication, we configure the virtual switch to generate output packets to runtimes on the first server. For each runtime on the first server, we configure a replica runtime on the second server, and let each runtime replicate its flows to the corresponding replica runtime. We calculate the cumulative packet processing throughput during flow replication. The result is shown in Figure~\ref{fig:rep-scale}. We can see that the scalability during flow replication is not as good as the result achieved when replication is disabled. The replication throughput can achieve an almost linear scalability when there are smaller than four runtimes running in a single server, but the scalability starts to degrade when more runtimes are used. The primary reason is because the bandwidth consumption on the L2 network is way higher than normal case evaluation. To ensure output-commit property, for each input packet, the runtime generates at least two output packets, containing the flow state and the output packet processed by the flow actors.
 
@@ -148,54 +233,50 @@ The biggest advantage brought by~\nfactor's flow replication is its fast recover
 
 %Finally, figure \ref{fig:rep-recovery} shows the recovery time of \nfactor~runtime when replication is enabled. We found that the recovery time remains a consistent value of 3.3s, no matter how many runtimes are used or how large the input traffic is. The reason of this consistent recovery time is that the \nfactor~runtime maintains one replica on every other \nfactor~runtimes in the cluster. During recovery, several recovery threads are launched to fetch only one replica from another runtime. Then each recovery thread independently recovers actors by replaying its own replica. In this way, the recovery process is fully distributed and scales well as the number of replica increases. Note is that the average time it takes for a recovered runtime to fetch all the replicas and recover all of its actors is only 1.2s. So actually around 2.1s is spent in container creation and connection establishment.
 
-\subsection{Dynamic Scaling}
 
-\begin{figure}[!h]
-	\centering
-	\includegraphics[width=\columnwidth]{figure/Scale.pdf}
-	\caption{The performance of dynamic scaling in~\nfactor.}
-\label{fig:normal-case-eval}
-\end{figure}
+\subsection{Other Applications}
+\label{sec:applications}
 
-To evaluate the the performance of dynamic scaling in~\nfactor. We set up the traffic generator to inject a varying workload into the~\nfactor cluster. The runtime is configured with ``firewall, HTTP parser, IDS'' service chain. To evaluate the effectiveness of our flow migration method, we set up the traffic generator to generate long-lived flows, lasting 60s with 20pps. The coordinator uses the dynamic scaling algorithm to scale the cluster. As we can see from Figure~\ref{fig:normal-case-eval}, the cluster is scaled up to 5 runtimes. The flow migration is very effective in decreasing the the workload from an overload runtime (runtime 1 and runtime 3) to a normal status. Considering the flows lasts for 60s, without the efficient and distributed flow migration,~\nfactor would not be able to achieve this, but continue to be overloaded for a long period of time, resulting in severe performance drop. Even though not shown in the figure, due to the light-weight design, the CPU usage of the coordinator remains under 5\%.
-
-%I'm about to move it to evaluation secition.
-\subsection{New Applications}
-
-
-\begin{figure*}[!ht]
-\begin{subfigure}[t]{0.33\linewidth}
+\begin{figure}[!ht]
+\begin{subfigure}[t]{0.49\linewidth}
    \centering
    \includegraphics[width=\columnwidth]{figure/Dynamic.pdf}
-   \caption{The packet processing throughput when dynamically update the firewall rule of a runtime configured with firewall NF. }\label{fig:dynamic-update}
+   %\caption{The packet processing throughput when dynamically update the firewall rule of a runtime configured with firewall NF. }
+   \caption{}\label{fig:dynamic-update}
   \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.33\linewidth}
+  \begin{subfigure}[t]{0.49\linewidth}
  \centering
    \includegraphics[width=\columnwidth]{figure/MPTCP.pdf}
-   \caption{Total number of correctly processed MPTCP flows by three runtimes when MPTCP detection is enabled on runtimes or disabled on runtimes.}\label{fig:mptcp} \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.33\linewidth}
- \centering
-   \includegraphics[width=\columnwidth]{figure/Dedup.pdf}
-   \caption{The output throughput of three runtimes when deduplication is disabled, enabled or enabled half way. }\label{fig:deduplication} \end{subfigure}
- \caption{The new applications enabled with the distributed flow migration capability of~\nfactor.}
+   %\caption{Total number of correctly processed MPTCP flows by three runtimes when MPTCP detection is enabled on runtimes or disabled on runtimes.}
+   \caption{}\label{fig:mptcp} \end{subfigure}%\hfill
+  %\begin{subfigure}[t]{0.33\linewidth}
+% \centering
+ %  \includegraphics[width=\columnwidth]{figure/Dedup.pdf}
+   %\caption{The output throughput of three runtimes when deduplication is disabled, enabled or enabled half way. }
+ %  \caption{}\label{fig:deduplication} \end{subfigure}
+ \caption{New applications enabled with distributed flow migration capability of \nfactor.}
 \label{fig:rep-perf}
-\end{figure*}
+\end{figure}
 
-We also build several applications based on \nfactor, which exploits its lightweight, distributed flow migration capability to achieve useful functionalities. %, including live NF update, reduce output bandwidth for deduplication NF and ensure reliable and safe MPTCP processing. We evaluate and demonstrate these new applications in our evaluation.
+\chuan{Fig.\ref{fig:mptcp}: `\# of correct MPTCP flows' to `\# of correctly processed MPTCP flows', change legend  to `subflow detection enabled' and `subflow detection disabled'}
+In addition, we build several applications based on \nfactor, which exploits its lightweight, distributed flow migration capability to achieve useful functionalities. %, including live NF update, reduce output bandwidth for deduplication NF and ensure reliable and safe MPTCP processing. We evaluate and demonstrate these new applications in our evaluation.
 
+\vspace{1mm}
 \noindent\textbf{Live NF update.} %NF often needs to be updated (\eg, software version, important NF configuration files), existing systems would typically migrate flows away, stop the NF and then relaunching it.
- \nfactor~can achieve dynamic NF update (\eg, software version, important NF configuration files) without interfering active flows running on a runtime by dynamically migrating the flows out to a replica runtime, performing update and migrating the flows back. Figure~\ref{fig:dynamic-update} illustrates the packet processing throughput of a runtime running firewall NF during the dynamic update to its firewall rule. Dynamic update ensures that no active flows are dropped during the update. On contrary, traditional way to carry out update has to shutdown the NF, causing a significant throughput drop.%We show in the evaluation that the dynamic update ensures no active flows are dropped during the update.
+ \nfactor~can achieve dynamic NF update (\eg, software version, important NF configuration files) without interfering active flows, by dynamically migrating the flows out to a replica runtime, performing update and migrating the flows back. Fig.~\ref{fig:dynamic-update} illustrates the throughput of a runtime running a firewall NF, during dynamic update of its firewall rule. No active flows are dropped during the update with \nfactor, while significant throughput drop occurs if shutting down the firewall for its update.
 
-
-\noindent\textbf{MPTCP sub-flow processing.} When a MPTCP \cite{} flow traverses an NFV system, its sub-flows may be sent to different NF instances for processing. Some network functions require all subflows to be processed by the same instance, \eg, the IDS requires that all subflows of the same MPTCP flow to be examined by the same IDS instance to detect potential netowrk attacks.%xxx \chuan{is this the problem of subflows being processed by different instances?}. %because they have different flow-5-tuple and appear as different flows on the virtual switch.
+\vspace{1mm}
+\noindent\textbf{MPTCP sub-flow processing.} When a MPTCP \cite{wischik2011design} %\chuan{add citation}
+flow traverses an NFV system, its sub-flows may be sent to different NF instances for processing. Some network functions require all subflows to be processed by the same instance, \eg, IDS. % requires that all subflows of the same MPTCP flow to be examined by the same IDS instance to detect potential netowrk attacks.%xxx \chuan{is this the problem of subflows being processed by different instances?}. %because they have different flow-5-tuple and appear as different flows on the virtual switch.
 In \nfactor, we can add a MPTCP sub-flow detection function to each flow actor, such that when the flow actor processes the first packet of a flow, it can check whether it belongs to a MPTCP flow. If so, the flow actor performs a consistent hashing using the MPTCP header to decide a migration target runtime in the cluster, and migrates the flow to the target. In this way, different sub-flows belonging to the same MPTCP flow can be processed by the same flow actor. This is hard to be achieved in existing NFV systems without significant central coordination. %, since flows can not initiate active migration request by themselves.
 
-Figure~\ref{fig:mptcp} illustrates the total number of correctly processed MPTCP flows when MPTCP sub-flow detection function is enabled or disabled. A MPTCP flow is correctly processed only if all of its subflows are processed consistently by the same runtime. We can see that~\nfactor's subflow detection ensures that all the MPTCP flows are correctly processed. When this function is disabled, most of the subflows are processed by different runtimes, therefore only a small amount of MPTCP flows are correctly processed.
+In the experiment of Fig.~\ref{fig:mptcp}, we inject a total number of 320K MPTCP flows to 3 runtimes. With subflow detection enabled, the total number of correctly processed MPTCP flows is the same as the number of input flows, %\chuan{is this so?},
+those whose subflows are all processed by the same runtime. Without this detection, most of the subflows are processed by different runtimes. % therefore only a small amount of MPTCP flows are correctly processed.
 
 %The final application is similar with MPTCP application, which reduces the output bandwidth for deduplication.
-\noindent\textbf{Efficient Flow Deduplication.} Flow deduplication, as an important functionality of WAN optimizers \cite{anand2010cheap}%\chuan{add citation}
-, is useful for reducing bandwidth consumption due to transfer redundant data across different flows. \nfactor~can efficiently support flow deduplication: when a runtime receives a flow, it checks for duplicated content contained in the flow packet by performing a consistent hash over the entire packet content. %\chuan{how does it check duplicated content among different flows received on different runtimes?}.
-In case it finds out the duplication, the flow actor initiates a migration to move the flow to a specific runtime, as indicated by the hash value of the packet content. %\chuan{how to decide this specific runtime}.
-In this way, duplicated flows can be processed on the same runtime, eliminating the output bandwidth on each runtime. When the duplicated flows arrive on the same runtime, before the packets are sent out from the runtime, we use the liason actor to intercept duplicated packet, and only generate an output data packet for every 10 duplicated packet it receives. The output data packet is packed with useful information (\ie packet header of dupliated packet plus an identifier for identifying the duplicated content), so that the receiver on the other end could reconstruct all the original duplicated packets.
-Figure~\ref{fig:deduplication} illustrates deduplication performance. We can see that deduplication decreases the number of output packets by around 90\% through effective deduplication.
+
+%\vspace{1mm}
+%\noindent\textbf{Flow Deduplication.} Flow deduplication, as an important functionality of WAN optimizers \cite{anand2010cheap}, is useful for reducing bandwidth consumption due to transfer redundant data across different flows. \nfactor~can efficiently support flow deduplication: when a runtime receives a flow, it checks for duplicated content contained in the flow packet by performing a consistent hash over the entire packet content. \chuan{how does it check duplicated content among different flows received on different runtimes? otherwise, duplicate with whom?}.
+%If duplication identified, the flow actor initiates a migration to move the flow to a specific runtime, as indicated by the hash value of the packet content. In this way, duplicated flows can be processed on the same runtime, eliminating redundant processing and bandwidth consumption. When the duplicated flows arrive on the same runtime, before the packets are sent out from the runtime, we use the liason actor to intercept duplicated packet, and only generate an output data packet for every 10 duplicated packet it receives. The output data packet is packed with useful information (\ie packet header of dupliated packet plus an identifier for identifying the duplicated content), so that the receiver on the other end could reconstruct all the original duplicated packets.
+%Figure~\ref{fig:deduplication} illustrates deduplication performance. We can see that deduplication decreases the number of output packets by around 90\% through effective deduplication.
  %actors send the output packet out, the runtime intercepts duplicated content,  \chuan{why processing duplicated flows on the same runtime can reduce output bandwidth? Are they processed by the same flow actor? what if the flows are partially duplicated but not entirely?}. This is hard to be achieved in existing NFV systems because xxx \chuan{give the reason}.
