@@ -617,7 +617,7 @@ void scale_out(runtime_state runtime,std::vector<runtime_state>* active_runtimes
   checker_dest.GetRuntimeState(tmp);
   checker_dest.SetMigrationTarget(ip,10241,10000);
   active_runtimes->push_back(tmp);
-  ///getchar();
+  sleep(2);
 
 }
 
