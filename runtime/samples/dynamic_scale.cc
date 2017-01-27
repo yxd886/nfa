@@ -578,7 +578,7 @@ void scale_in(runtime_state runtime,std::vector<runtime_state>* active_runtimes)
   	}
   }
 
-  getchar();
+  //getchar();
 
 }
 
