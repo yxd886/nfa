@@ -1,10 +1,10 @@
 #ifndef SESSIONHASH_H_
 #define SESSIONHASH_H_
 
-#include "../httpparser/Public.h"
-#include "../httpparser/Buffer.h"
-#include "../httpparser/FormatPacket.h"
-#include "../httpparser/BehaviorInfo.h"
+#include "Public.h"
+#include "Buffer.h"
+#include "FormatPacket.h"
+#include "BehaviorInfo.h"
 #include <rte_config.h>
 #include <rte_mbuf.h>
 #include <rte_ether.h>
