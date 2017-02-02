@@ -28,12 +28,12 @@ the child process. In this way, the virtual switch can proceed without affecting
 \begin{figure}[!t]
 \begin{subfigure}[t]{0.49\linewidth}
    \centering
-   \includegraphics[width=0.66\columnwidth]{figure/nfactor-replication.pdf}
+   \includegraphics[width=\columnwidth]{figure/nfactor-replication.pdf}
    \caption{Flow replication.}\label{fig:rep}
   \end{subfigure}
   \begin{subfigure}[t]{0.49\linewidth}
      \centering
-     \includegraphics[width=0.66\columnwidth]{figure/nfactor-recover.pdf}
+     \includegraphics[width=\columnwidth]{figure/nfactor-recover.pdf}
      \caption{Flow recover when the original runtime has failed.}\label{fig:recover}
     \end{subfigure}
  \caption{Flow replication and recovery: \textbf{RT} - replication target actor, \textbf{RS} - Replication source actor, \textbf{LA} - liaison actor, \textbf{VS} - virtual switch actor; \textbf{dotted line} - flow packets, \textbf{dashed line} - actor messages.)}
@@ -56,7 +56,7 @@ The coordinator launches new runtimes if there are no available runtimes to host
 
 When a flow actor has processed a flow packet, it sends a replication actor message, containing the current flow states and the packet, directly to the liaison actor on the replication target runtime. The liaison actor checks whether there exists a replica flow actor on this replication runtime using the 5-tuple of the packet. If not, it creates a new replica flow actor using the same 5-tuple and forwards all subsequent replication messages that share the same 5-tuple to that flow actor. A replica flow actor is created as a special flow actor, which processes received replication messages, stores latest flow states contained, and then directly sends the packets contained out from the output port of the replication target runtime. Though configured with the service chain of the flow, it does not invoke NFs; it will only do so after becoming the primary flow actor for processing the flow, when the runtime hosting the original flow actor has failed.
 
-As shown in Fig.~\ref{fig:flow-rep}(a), when the runtime replication mechanism is in place, the path of dataplane flows in \nfactor~is as follows: virtual switch $\rightarrow$ runtime hosting flow actor to process the flow $\rightarrow$ runtime hosting replica flow actor $\rightarrow$ virtual switch $\rightarrow$ final flow destination. This design guarantees the same output-commit property as in \cite{sherry2015rollback}: the packet is sent out from the system only when all the state changes caused by the packet has been replicated. %one copy of the output packet is sent out from the system even when the replica is in place \chuan{check if this is what you meant by `output-commit'}. %the receiver on the side of the output port of the replica runtime can only observe an output packet when the flow state has been replicated,
+As shown in Fig.~\ref{fig:flow-rep}(a), when the runtime replication mechanism is in place, the path of dataplane flows in \nfactor~is as follows: virtual switch $\rightarrow$ runtime hosting flow actor to process the flow $\rightarrow$ runtime hosting replica flow actor $\rightarrow$ virtual switch $\rightarrow$ final flow destination. This design guarantees the same output-commit property as in \cite{sherry2015rollback}: the packet is sent out from the system only when all the state changes caused by the packet have been replicated. %one copy of the output packet is sent out from the system even when the replica is in place \chuan{check if this is what you meant by `output-commit'}. %the receiver on the side of the output port of the replica runtime can only observe an output packet when the flow state has been replicated,
 
 %Note that the flow state replication is independent with NF processing and it ensures built-in fault tolerance.
 
@@ -75,17 +75,17 @@ chance for both runtimes (on two servers) failing at the same time is very low. 
 \begin{figure}[!t]
 \begin{subfigure}[t]{0.33\linewidth}
    \centering
-   \includegraphics[width=\columnwidth]{figure/nfactor-mig1.pdf}
+   \includegraphics[width=1.1\columnwidth]{figure/nfactor-mig1.pdf}
    \caption{1st req-rep.}\label{fig:mig1}
   \end{subfigure}\hfill
   \begin{subfigure}[t]{0.33\linewidth}
      \centering
-     \includegraphics[width=\columnwidth]{figure/nfactor-mig2.pdf}
+     \includegraphics[width=1.1\columnwidth]{figure/nfactor-mig2.pdf}
      \caption{2nd req-rep.}\label{fig:mig2}
     \end{subfigure}\hfill
   \begin{subfigure}[t]{0.33\linewidth}
  \centering
-   \includegraphics[width=\columnwidth]{figure/nfactor-mig3.pdf}
+   \includegraphics[width=1.1\columnwidth]{figure/nfactor-mig3.pdf}
    \caption{3rd req-rep.}\label{fig:mig3} \end{subfigure}\hfill
  \caption{The 3 flow migration steps: \textbf{MT} - migration target flow actor, \textbf{MS} - migration source flow actor, \textbf{LA} - liaison actor, \textbf{VS} - virtual switch actor; \textbf{dotted line} - flow packets, \textbf{dashed line} - actor messages.}
 \label{fig:mig}
@@ -122,7 +122,7 @@ If it takes a long time for the request in the 3rd request-response step to arri
  In \nfactor, a large collective buffer is used, and the distributed flow migration process is extremely fast. Buffer overflow rarely happens, even when concurrently migrating a very large number of flows (Sec.~\ref{sec:experiments}).
 
  Packet reordering may also lead to packet loss: some flow packets may continue arriving at the source actor after it has sent the request to the target actor in the 3rd request-response step; those packets have been sent out by the virtual switch actor before its destination runtime is changed, but arrived later at the source actor than the response from the virtual switch. % in the 2nd request-response step. %, due to packet reordering while being transmitted in the network.
- The source actor would drop packets received after it has sent the 3rd request, to avoid inconsistency. Nonetheless, packet reordering rarely happens in \nfactor~since it is deployed over a L3 network. Besides, \nfactor~minimizes the chance for packet reordering by having the virtual switch actor transmitting the response in a network packet, using the output port where it sends data packets to the source actor, rather than the control port. The response will then be received by input port on the migration source runtime, same as flow packets, ensuring that no more packets will be received by the source actor after the virtual switch's response.
+ The source actor would drop packets received after it has sent the 3rd request, to avoid inconsistency. Nonetheless, packet reordering rarely happens in \nfactor~since it is deployed over a L2 network. Besides, \nfactor~minimizes the chance for packet reordering by having the virtual switch actor transmitting the response in a network packet, using the output port where it sends data packets to the source actor, rather than the control port. The response will then be received by input port on the migration source runtime, same as flow packets, ensuring that no more packets will be received by the source actor after the virtual switch's response.
 
 %Besides buffer overflow, the only step that might incur potential packet drop is in the third request-response. When the second response is received by the migration source actor, it must immediately send its flow state in the third request to the migration target actor. After sending the third request, there might be pending flow packets continuing to arrive at migration source actor. These pending packets are are sent out by the virtual switch actor before the destination runtime is changed. If this happens, the migration source actor has to discard these pending flow packets because it has already sent out the third request. Continuing to process these packets may generate inconsistent output packets.
 

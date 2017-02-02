@@ -45,7 +45,7 @@ In this actor library, due to our single-worker-thread design, local actor messa
 %\label{sec:ReliableMsgPassing}
 \vspace{1mm}
 \noindent \textbf{Reliable Remote Actor Message Passing.}
-Actor messages passed among flow actors on different runtimes should be reliably delivered. We build a customized reliable message passing module, which inserts those messages into a reliable byte stream for transmission. % to the other end, the reliable message passing encodes messages into reliable packet streams.
+Actor messages passed among flow actors on different runtimes should be reliably delivered. We build a customized reliable message passing module, which inserts those messages into a reliable packet stream for transmission. % to the other end, the reliable message passing encodes messages into reliable packet streams.
 The module creates one ring buffer for each remote runtime and virtual switch. When a flow actor on this runtime sends a remote actor message, the module creates a packet, copies the content of the message into the packet and then enqueues the packet into the respective ring buffer. %A message may be split into several packets. %and different messages do not share packets.
 These packets are configured with a sequential number each, and appended with a special header to differentiate them from dataplane packets.
 The worker thread dequeues these packets from the ring buffers, and sends them to respective remote runtimes. A remote runtime acknowledges receipt of such packets. Retransmission is fired in case that the acknowledgement for a packet is not received after a configurable timeout (\eg, 10 times the RTT).

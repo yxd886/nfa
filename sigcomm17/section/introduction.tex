@@ -91,13 +91,13 @@ a micro service chain service dedicated to the flow.
 
 
 $\triangleright$ {\em Largely decentralized flow migration and replication.} Based on the actor framework, flow migration and replication processes in \nfactor~are automated through decentralized message passing. A central coordinator is involved only during initialization stage of flow migration and replication. % achieved in a fully distributed fashion without continuous monitoring of a centralized controller, which distinguishes \nfactor~from the existing NFV systems \cite{gember2015opennf}. The controller in \nfactor~is only used for controlling dynamic scaling and initiating flow migration and replication,
- In addition, runtimes in \nfactor use the high-speed packet I/O library DPDK \cite{dpdk} for retrieving/transmitting flow packets and control messages for flow migration and replication, achieving high efficiency.
+ In addition, runtimes in \nfactor~use the high-speed packet I/O library DPDK \cite{dpdk} for retrieving/transmitting flow packets and control messages for flow migration and replication, achieving high efficiency.
 %The actor programming model only imposes a small overhead during service chain processing and flow management, improving the performance of NFActor.
 
 
 We implement \nfactor~and open source the project \cite{projectcode}.
 %\chuan{improve the result discussion}
-Our testbed experiments show the good scalability of \nfactor to approach line-rate packet processing, zero packet loss during concurrent migration of more than 100K flows, and recovery of tens of thousands of flows within tens of milliseconds in case of runtime failures. %performance of the runtime system is good and can be scaled up to support line-rate throughput. 
+Our testbed experiments show the good scalability of \nfactor to approach line-rate packet processing, zero packet loss during concurrent migration of more than 100K flows, and recovery of tens of thousands of flows within tens of milliseconds in case of runtime failures. %performance of the runtime system is good and can be scaled up to support line-rate throughput.
 % The flow migration supports concurrent migration of more than 100K flows, while the distributed migration guarantees zero packet loss. The flow replication is scalable, achieves desirable throughput and enables a failed runtime to be recovered within tens of milliseconds. The dynamic scaling of~\nfactor uses flow migration to quickly resolve hotspot and avoid throughput loss. The new applications enabled by the distributed flow migration achieve significant good result when compared with traditional method.
 Going beyond resilience, we also show that a couple of interesting applications can be efficiently enabled on \nfactor, live NF update and correct MPTCP subflow processing. These applications require individual NFs to initiate flow migration, %explicitly notify the flow actor to migrate,
 which is hard to achieve (without significant overhead) in the existing systems. % where flow migration is initiated and fully monitored by a centralized controller.

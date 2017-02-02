@@ -15,8 +15,8 @@ We first present key design and modules in \nfactor.
 \nfactor~includes three modules: (i) runtime systems that enable flow processing using actors; (ii) virtual switches for distributing flows to runtime systems and sending flows to final destinations; and (iii) a lightweight coordinator for basic system management. % (\eg, runtime load monitoring and scaling, participate in the initiation phase of flow migration and replication).
  An illustration of the \nfactor~system is given in Fig.~\ref{fig:runtime}.
 
-A runtime system, referred to as \textit{runtime} for short, is the execution environment of service chains. A runtime is running on a container, for quick launching and rebooting in cases of scaling out/in and failure recovery. There can be multiple runtimes (containers) running on the same physical server. In \nfactor, the virtual switches are running in the same environments (containers) as those runtimes. % and run actors for flow distribution, 
-% \ie, they can be regarded as special runtimes. % running a load balancer function. 
+A runtime system, referred to as \textit{runtime} for short, is the execution environment of service chains. A runtime is running on a container, for quick launching and rebooting in cases of scaling out/in and failure recovery. There can be multiple runtimes (containers) running on the same physical server. In \nfactor, the virtual switches are running in the same environments (containers) as those runtimes. % and run actors for flow distribution,
+% \ie, they can be regarded as special runtimes. % running a load balancer function.
  Runtimes and virtual switches are connected through a L2 network.
 
 %When a dataplan flow arrives in the system, it is first sent to a virtual switch.
@@ -40,6 +40,6 @@ The design of \nfactor~targets the following goals. %\chuan{complete the followi
 
 %Flow actor should be able to transparently perform resilience operations, including flow migration and replication, regardless of the service chain that is configured for it. %The NF modules implemented using the module API (Sec.~\ref{sec:module-api}) should be transparently
 
-{\bf High Scalability.} Good horizontal scalability is achieved for runtimes and virtual switches, so that~\nfactor adopts to varying workload timely with ease.
+{\bf High Scalability.} Good horizontal scalability is achieved for runtimes and virtual switches, so that~\nfactor~adopts to varying workload timely with ease.
 
 {\bf High Packet Processing Throughput.} Extra overhead for flow migration, replication, and system scaling is minimized, to ensure high-speed packet processing.
