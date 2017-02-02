@@ -123,18 +123,14 @@ struct task_result coordinator_mp::RunTask(void *arg){
     }
   }
 
-  if(ctx.current_ns()-time_counter>5000000000){
+  if(coordinator_actor_->migrated_in_flow_num_ == 50000 && send_end_flag==false){
     LOG(INFO)<<"The migration_target_loss_counter is "
              <<coordinator_actor_->migration_target_loss_counter_;
     LOG(INFO)<<"The migration_target_buffer_size_counter is "
              <<coordinator_actor_->migration_target_buffer_size_counter_;
-    if(coordinator_actor_->migrated_in_flow_num_!=0){
-  			LOG(INFO)<<"The average migration_target_buffer_size is "
-						   <<coordinator_actor_->migration_target_buffer_size_counter_/coordinator_actor_->migrated_in_flow_num_;
-    }
-
+    LOG(INFO)<<"The average migration_target_buffer_size is "
+             <<coordinator_actor_->migration_target_buffer_size_counter_/coordinator_actor_->migrated_in_flow_num_;
     send_end_flag = true;
-    time_counter=ctx.current_ns();
   }
 
   if( (local_replication_iteration < coordinator_actor_->recovery_iteration_) &&

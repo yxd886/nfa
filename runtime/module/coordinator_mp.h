@@ -35,8 +35,6 @@ private:
   uint64_t current_iteration = 0;
 
   uint64_t local_replication_iteration = 0;
-
-  uint64_t time_counter;
 };
 
 #endif
