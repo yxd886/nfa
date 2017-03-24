@@ -5,10 +5,13 @@
 #include "../actor/base/local_send.h"
 #include "../reliable/process_reliable_msg.h"
 #include <time.h>
+#include   <sys/time.h>
+
 
 void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
 
-  const time_t whole_begin = time(NULL);
+  struct timeval whole_begin;
+  getimeofday(&whole_begin,0);
   dp_pkt_batch.clear();
   cp_pkt_batch.clear();
   coordinator_actor_->ec_scheduler_batch_.clear();
@@ -34,7 +37,7 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
     }
   }
 
-  time_t process_time=0;
+  long process_time=0;
   for(int i=0; i<dp_pkt_batch.cnt(); i++){
     char* data_start = dp_pkt_batch.pkts()[i]->head_data<char*>();
 
@@ -78,10 +81,12 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
       actor_ptr = &actor;
     }
 
-    const time_t process_begin = time(NULL);
+    struct timeval process_begin;
+    getimeofday(&process_begin,0);
     send(*actor_ptr, pkt_msg_t::value, dp_pkt_batch.pkts()[i]);
-    const time_t process_end = time(NULL);
-    process_time=process_time+process_end-process_begin;
+    struct timeval process_end;
+    getimeofday(&process_end,0);
+    process_time=process_time+process_end.tv_sec*1000000 + process_end.tv_usec-process_begin.tv_sec*1000000 - process_begin.tv_usec;
   }
   LOG(INFO)<<"packet process time: "<<process_time;
 
@@ -104,8 +109,11 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
     msg_ptr->clean(&(coordinator_actor_->gp_collector_));
   }
 
-  const time_t whole_end = time(NULL);
-  LOG(INFO)<<"packet process whole time: "<<whole_end-whole_begin;
+  struct timeval whole_end;
+  getimeofday(&whole_end,0);
+  long begin=whole_begin.tv_sec*1000000 + whole_begin.tv_usec;
+  long end=whole_end.tv_sec*1000000 + whole_end.tv_usec;
+  LOG(INFO)<<"packet process whole time: "<<end-begin;
 
   RunNextModule(&(coordinator_actor_->ec_scheduler_batch_));
 }
