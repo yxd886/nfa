@@ -11,7 +11,7 @@
 void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
 
   struct timeval whole_begin;
-  getimeofday(&whole_begin,0);
+  gettimeofday(&whole_begin,0);
   dp_pkt_batch.clear();
   cp_pkt_batch.clear();
   coordinator_actor_->ec_scheduler_batch_.clear();
@@ -82,10 +82,10 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
     }
 
     struct timeval process_begin;
-    getimeofday(&process_begin,0);
+    gettimeofday(&process_begin,0);
     send(*actor_ptr, pkt_msg_t::value, dp_pkt_batch.pkts()[i]);
     struct timeval process_end;
-    getimeofday(&process_end,0);
+    gettimeofday(&process_end,0);
     process_time=process_time+process_end.tv_sec*1000000 + process_end.tv_usec-process_begin.tv_sec*1000000 - process_begin.tv_usec;
   }
   LOG(INFO)<<"packet process time: "<<process_time;
@@ -110,7 +110,7 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
   }
 
   struct timeval whole_end;
-  getimeofday(&whole_end,0);
+  gettimeofday(&whole_end,0);
   long begin=whole_begin.tv_sec*1000000 + whole_begin.tv_usec;
   long end=whole_end.tv_sec*1000000 + whole_end.tv_usec;
   LOG(INFO)<<"packet process whole time: "<<end-begin;
