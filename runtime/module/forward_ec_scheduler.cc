@@ -4,8 +4,11 @@
 #include "../actor/coordinator.h"
 #include "../actor/base/local_send.h"
 #include "../reliable/process_reliable_msg.h"
+#include <time.h>
 
 void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
+
+  const time_t whole_begin = time(NULL);
   dp_pkt_batch.clear();
   cp_pkt_batch.clear();
   coordinator_actor_->ec_scheduler_batch_.clear();
@@ -31,6 +34,7 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
     }
   }
 
+  time_t process_time=0;
   for(int i=0; i<dp_pkt_batch.cnt(); i++){
     char* data_start = dp_pkt_batch.pkts()[i]->head_data<char*>();
 
@@ -74,8 +78,12 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
       actor_ptr = &actor;
     }
 
+    const time_t process_begin = time(NULL);
     send(*actor_ptr, pkt_msg_t::value, dp_pkt_batch.pkts()[i]);
+    const time_t process_end = time(NULL);
+    process_time=process_time+process_end-process_begin;
   }
+  LOG(INFO)<<"packet process time: "<<process_time;
 
   for(int i=0; i<cp_pkt_batch.cnt(); i++){
     char* data_start = cp_pkt_batch.pkts()[i]->head_data<char*>();
@@ -95,6 +103,9 @@ void forward_ec_scheduler::ProcessBatch(bess::PacketBatch *batch){
     process_reliable_msg::match(msg_ptr, coordinator_actor_);
     msg_ptr->clean(&(coordinator_actor_->gp_collector_));
   }
+
+  const time_t whole_end = time(NULL);
+  LOG(INFO)<<"packet process whole time: "<<whole_end-whole_begin;
 
   RunNextModule(&(coordinator_actor_->ec_scheduler_batch_));
 }
