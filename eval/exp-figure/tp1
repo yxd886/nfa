@@ -1,0 +1,524 @@
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor', 'r2_number': 1, 'r3_number': 0}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 41272806 99835491 10595.9658203
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor', 'r2_number': 1, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 80201407 60973049 10594.1889648
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor', 'r2_number': 2, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 102561474 39140531 10558.5859375
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor', 'r2_number': 2, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 129913028 10950611 10583.322998
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor', 'r2_number': 3, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 138401228 3239753 10549.9731445
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor', 'r2_number': 3, 'r3_number': 3}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 141082070 0 10592.8869629
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser', 'r2_number': 1, 'r3_number': 0}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 25685088 115492570 10563.2199707
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser', 'r2_number': 1, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 63472448 77804918 10609.4279785
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser', 'r2_number': 2, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 84522542 56837535 10582.888916
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser', 'r2_number': 2, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 112962997 28272162 10565.1398926
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser', 'r2_number': 3, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 117852586 24396086 10624.7932129
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser', 'r2_number': 3, 'r3_number': 3}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 133180880 8020903 10586.5847168
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall', 'r2_number': 1, 'r3_number': 0}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 34625694 107176319 10564.0170898
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall', 'r2_number': 1, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 70537384 70603520 10571.598877
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall', 'r2_number': 2, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 97315393 43284623 10538.7890625
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall', 'r2_number': 2, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 127395883 13368879 10581.223877
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall', 'r2_number': 3, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 138808177 1300616 10554.2280273
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall', 'r2_number': 3, 'r3_number': 3}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 140976988 0 10588.026123
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor,http_parser', 'r2_number': 1, 'r3_number': 0}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 21650698 119703581 10591.9829102
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor,http_parser', 'r2_number': 1, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 43802915 97718996 10612.5778809
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor,http_parser', 'r2_number': 2, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 59779296 81324108 10586.3081055
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor,http_parser', 'r2_number': 2, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 81954233 59889976 10599.9677734
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor,http_parser', 'r2_number': 3, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 100392294 41530782 10667.9821777
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'flow_monitor,http_parser', 'r2_number': 3, 'r3_number': 3}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 120062310 21843790 10611.5720215
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser,firewall', 'r2_number': 1, 'r3_number': 0}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 19892032 121329546 10625.901123
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser,firewall', 'r2_number': 1, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 52166632 90158655 10584.032959
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser,firewall', 'r2_number': 2, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 66740807 74985827 10586.9780273
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser,firewall', 'r2_number': 2, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 96259477 44980682 10551.5949707
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser,firewall', 'r2_number': 3, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+[ERROR] Fail to start the runtime correctly, need to retry.
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 110120250 31775446 10529.4858398
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'http_parser,firewall', 'r2_number': 3, 'r3_number': 3}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 124751014 16812430 10527.1193848
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor', 'r2_number': 1, 'r3_number': 0}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 28190749 114062909 10502.7397461
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor', 'r2_number': 1, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 58877203 82515302 10601.842041
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor', 'r2_number': 2, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 78590690 63044105 10589.6811523
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor', 'r2_number': 2, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 109844154 31813098 10561.0720215
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor', 'r2_number': 3, 'r3_number': 2}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 129516749 12468396 10606.6433105
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor', 'r2_number': 3, 'r3_number': 3}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 141914280 37850 10603.5380859
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor,http_parser', 'r2_number': 1, 'r3_number': 0}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+Stop testing...
+[RESULT] 25448031 116356443 10569.7109375
+[RESULT] 47617730 96221180 10600.2768555
+[RESULT] 61476788 82114829 10571.3210449
+[RESULT] 78034651 63846470 10572.8188477
+[RESULT] 95809959 44296638 10507.7109375
+[RESULT] 112052196 29746805 10628.3759766

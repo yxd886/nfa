@@ -1,0 +1,152 @@
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor,http_parser', 'r2_number': 2, 'r3_number': 1}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+BEFORE r2 rt1 received 348224994 dropped 76264222
+BEFORE r2 rt2 received 278698527 dropped 10877579
+BEFORE r2 rt3 received 252838012 dropped 66789
+BEFORE r2 rt4 received 0 dropped 0
+BEFORE r2 rt5 received 0 dropped 0
+BEFORE r2 rt6 received 0 dropped 0
+BEFORE r3 rt1 received 367620135 dropped 58498561
+BEFORE r3 rt2 received 252890878 dropped 55127
+BEFORE r3 rt3 received 252665471 dropped 53625
+BEFORE r3 rt4 received 0 dropped 0
+BEFORE r3 rt5 received 0 dropped 0
+BEFORE r3 rt6 received 0 dropped 0
+AFTER r2 rt1 received 358980112 dropped 80379784
+AFTER r2 rt2 received 289483618 dropped 14995499
+AFTER r2 rt3 received 252838012 dropped 66789
+AFTER r2 rt4 received 0 dropped 0
+AFTER r2 rt5 received 0 dropped 0
+AFTER r2 rt6 received 0 dropped 0
+AFTER r3 rt1 received 381698698 dropped 59387686
+AFTER r3 rt2 received 252890878 dropped 55127
+AFTER r3 rt3 received 252665471 dropped 53625
+AFTER r3 rt4 received 0 dropped 0
+AFTER r3 rt5 received 0 dropped 0
+AFTER r3 rt6 received 0 dropped 0
+Stop testing...
+[RESULT] 35618772 9122607 6186.54907227
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor,http_parser', 'r2_number': 3, 'r3_number': 3}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+BEFORE r2 rt1 received 383953264 dropped 82926208
+BEFORE r2 rt2 received 314439072 dropped 17450394
+BEFORE r2 rt3 received 271586762 dropped 140289
+BEFORE r2 rt4 received 0 dropped 0
+BEFORE r2 rt5 received 0 dropped 0
+BEFORE r2 rt6 received 0 dropped 0
+BEFORE r3 rt1 received 408039172 dropped 59923805
+BEFORE r3 rt2 received 272268247 dropped 117384
+BEFORE r3 rt3 received 272156578 dropped 113697
+BEFORE r3 rt4 received 0 dropped 0
+BEFORE r3 rt5 received 0 dropped 0
+BEFORE r3 rt6 received 0 dropped 0
+AFTER r2 rt1 received 391429537 dropped 82926208
+AFTER r2 rt2 received 321860595 dropped 17450394
+AFTER r2 rt3 received 278970723 dropped 140289
+AFTER r2 rt4 received 0 dropped 0
+AFTER r2 rt5 received 0 dropped 0
+AFTER r2 rt6 received 0 dropped 0
+AFTER r3 rt1 received 415418502 dropped 59923805
+AFTER r3 rt2 received 279630740 dropped 117384
+AFTER r3 rt3 received 279578430 dropped 113697
+AFTER r3 rt4 received 0 dropped 0
+AFTER r3 rt5 received 0 dropped 0
+AFTER r3 rt6 received 0 dropped 0
+Stop testing...
+[RESULT] 44445432 0 6186.67504883
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor,http_parser', 'r2_number': 5, 'r3_number': 4}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+BEFORE r2 rt1 received 408436580 dropped 82929889
+BEFORE r2 rt2 received 338869630 dropped 17454527
+BEFORE r2 rt3 received 295982911 dropped 144052
+BEFORE r2 rt4 received 12613916 dropped 3481
+BEFORE r2 rt5 received 12703964 dropped 3467
+BEFORE r2 rt6 received 0 dropped 0
+BEFORE r3 rt1 received 432234752 dropped 59927182
+BEFORE r3 rt2 received 296411239 dropped 120014
+BEFORE r3 rt3 received 296296967 dropped 118253
+BEFORE r3 rt4 received 13103378 dropped 2914
+BEFORE r3 rt5 received 0 dropped 0
+BEFORE r3 rt6 received 0 dropped 0
+AFTER r2 rt1 received 413464947 dropped 82929889
+AFTER r2 rt2 received 343886415 dropped 17454527
+AFTER r2 rt3 received 301008712 dropped 144052
+AFTER r2 rt4 received 17654418 dropped 3481
+AFTER r2 rt5 received 17741614 dropped 3467
+AFTER r2 rt6 received 0 dropped 0
+AFTER r3 rt1 received 437297431 dropped 59927182
+AFTER r3 rt2 received 301478000 dropped 120014
+AFTER r3 rt3 received 301369186 dropped 118253
+AFTER r3 rt4 received 18170895 dropped 2914
+AFTER r3 rt5 received 0 dropped 0
+AFTER r3 rt6 received 0 dropped 0
+Stop testing...
+[RESULT] 45418281 0 6304.11914062
+Start Test with the following options:
+{'r1_number': 6, 'test_type': 'THROUGHPUT', 'service_chain': 'firewall,flow_monitor,http_parser', 'r2_number': 6, 'r3_number': 6}
+Start runtimes...
+Successfully start all the runtimes.
+R1 (Virutal Switch) Configuration Finished
+Successfully start all the runtimes on r2.
+R2 (rt1, rt2, rt3) Configuration Finished
+Successfully start all the runtimes on r3.
+R3 (rt1, rt2, rt3) Configuration Finished
+Start Traffic Generation
+Wait for 15 seconds to get traffic ramp up...
+Start Testing Throughput
+BEFORE r2 rt1 received 425807373 dropped 82930802
+BEFORE r2 rt2 received 356218859 dropped 17455591
+BEFORE r2 rt3 received 313292182 dropped 145041
+BEFORE r2 rt4 received 29919822 dropped 4442
+BEFORE r2 rt5 received 29967526 dropped 4381
+BEFORE r2 rt6 received 9559675 dropped 888
+BEFORE r3 rt1 received 449480188 dropped 59928226
+BEFORE r3 rt2 received 313633245 dropped 120963
+BEFORE r3 rt3 received 313508353 dropped 119042
+BEFORE r3 rt4 received 30305452 dropped 3661
+BEFORE r3 rt5 received 9917922 dropped 893
+BEFORE r3 rt6 received 9998157 dropped 885
+AFTER r2 rt1 received 429623369 dropped 82930802
+AFTER r2 rt2 received 360037467 dropped 17455591
+AFTER r2 rt3 received 317110818 dropped 145041
+AFTER r2 rt4 received 33742176 dropped 4442
+AFTER r2 rt5 received 33799490 dropped 4381
+AFTER r2 rt6 received 13409651 dropped 888
+AFTER r3 rt1 received 453330325 dropped 59928226
+AFTER r3 rt2 received 317489076 dropped 120963
+AFTER r3 rt3 received 317360070 dropped 119042
+AFTER r3 rt4 received 34161155 dropped 3661
+AFTER r3 rt5 received 13774870 dropped 893
+AFTER r3 rt6 received 13855221 dropped 885
+Stop testing...
+[RESULT] 46084934 0 6408.8190918
