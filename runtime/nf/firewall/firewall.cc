@@ -75,40 +75,30 @@ void firewall::filter_local_out(struct headinfo *hd,firewall_fs* sesptr){
   d_port = GetPort(hd, DEST);
   std::vector<struct rule>::iterator ptr;
   for(ptr=rules.begin();ptr!=rules.end();ptr++){
-    match = false;
-    match = (ptr->saddr.addr == ANY_ADDR ? true : CompareID_with_mask(ptr->saddr.addr,s_addr,ptr->saddr.mask));
-    if(!match){
+	    match = false;
+	    match |=  CompareID_with_mask(ptr->saddr.addr,s_addr,ptr->saddr.mask);
 
-      continue;
-    }
-    match = (ptr->daddr.addr == ANY_ADDR ? true : CompareID_with_mask(ptr->daddr.addr,d_addr,ptr->daddr.mask));
-    if(!match){
-      continue;
-    }
-    match = (ptr->protocol == ANY_PROTOCOL) ? true : (ptr->protocol == protocol);
-    if(!match){
-      continue;
-    }
-    match = (ptr->sport == ANY_PORT) ? true : (ptr->sport == s_port);
-    if(!match){
-      continue;
-    }
-    match = (ptr->dport == ANY_PORT) ? true : (ptr->dport == d_port);
-    if(!match){
-      continue;
-    }
+	    match |=  CompareID_with_mask(ptr->daddr.addr,d_addr,ptr->daddr.mask);
+
+	    match |= ptr->protocol == protocol;
+
+	    match |=  ptr->sport == s_port;
+
+	    match |=  ptr->dport == d_port;
   //  match = ptr->action ? 0 : 1;
 
-    if(match){
-      flag = ptr->action?false:true;
-      ++sesptr->match_no;
-      break;
-    }
-    else{
-      flag = false;
-      break;
-    }
+
   }//loop for match rule
+
+  if(match){
+    flag = ptr->action?false:true;
+    ++sesptr->match_no;
+  //  break;
+  }
+  else{
+    flag = false;
+  //  break;
+  }
   if(flag){
     sesptr->drop_no++;
     sesptr->current_pass=false;

@@ -64,7 +64,7 @@
 class firewall{
 public:
   firewall(){
-    FILE*fp=fopen("/home/net/nfa-gpu/runtime/nf/firewall/rule.txt","r");
+    //FILE*fp=fopen("/home/net/nfa-gpu/runtime/nf/firewall/rule.txt","r");
     char saddr[200];
     memset(saddr,0,sizeof(saddr));
     char daddr[200];
@@ -72,29 +72,68 @@ public:
     if(fp==NULL){
    //  std::cout<<"open file error!"<<std::endl;
     }
-    struct rule r;
-    struct rule* rp=&r;
+    struct rule r[6];
+  //  struct rule* rp=&r;
   //  std::cout<<"begin to read rules"<<std::endl;
-    while(!feof(fp)){
-      fscanf(fp,"%hhu.%hhu.%hhu.%hhu /%u:%u, %hhu.%hhu.%hhu.%hhu /%u:%u, %u, %d",
-      (unsigned char *)&rp->saddr.addr,
-      ((unsigned char *)&rp->saddr.addr)+1,
-      ((unsigned char *)&rp->saddr.addr)+2,
-      ((unsigned char *)&rp->saddr.addr)+3,
-      &rp->saddr.mask,
-      &rp->sport,
-      (unsigned char *)&rp->daddr.addr,
-      (unsigned char *)&rp->daddr.addr+1,
-      (unsigned char *)&rp->daddr.addr+2,
-      (unsigned char *)&rp->daddr.addr+3,
-      &rp->daddr.mask,
-      &rp->dport,
-      &rp->protocol,
-      &rp->action);
-      std::cout<<"rule push back"<<std::endl;
-      std::cout<<rp->saddr.addr<<" "<<rp->protocol<<" "<<rp->sport<<std::endl;
-     rules.push_back(r);
-   }
+    for(int i=0;i<2;i++){
+  	  rp=&r[i];
+        *(unsigned char *)&rp->saddr.addr=i%254;
+        *(((unsigned char *)&rp->saddr.addr)+1)=(i+100)%254;
+        *(((unsigned char *)&rp->saddr.addr)+2)=0;
+        *(((unsigned char *)&rp->saddr.addr)+3)=(i+30)%254;
+        rp->saddr.mask=32;
+        rp->sport=65535;
+        *((unsigned char *)&rp->daddr.addr)=i%254;
+        *((unsigned char *)&rp->daddr.addr+1)=75;
+        *((unsigned char *)&rp->daddr.addr+2)=0;
+        *((unsigned char *)&rp->daddr.addr+3)=109;
+        rp->daddr.mask=32;
+        rp->dport=i%65535;
+        rp->protocol=6;
+        rp->action=1;
+       rules.push_back(r[i]);
+
+    }
+
+    for(int i=0;i<2;i++){
+  	  rp=&r[i+2];
+        *(unsigned char *)&rp->saddr.addr=(i+59)%254;
+        *(((unsigned char *)&rp->saddr.addr)+1)=(i+44)%254;
+        *(((unsigned char *)&rp->saddr.addr)+2)=0;
+        *(((unsigned char *)&rp->saddr.addr)+3)=(i+90)%254;
+        rp->saddr.mask=32;
+        rp->sport=65535;
+        *((unsigned char *)&rp->daddr.addr)=(i+54)%254;
+        *((unsigned char *)&rp->daddr.addr+1)=75;
+        *((unsigned char *)&rp->daddr.addr+2)=0;
+        *((unsigned char *)&rp->daddr.addr+3)=109;
+        rp->daddr.mask=32;
+        rp->dport=i%65535;
+        rp->protocol=6;
+        rp->action=1;
+       rules.push_back(r[i]);
+
+    }
+    for(int i=0;i<2;i++){
+
+  	  rp=&r[i+4];
+  	  *(unsigned char *)&rp->saddr.addr=(i+52)%254;
+        *(((unsigned char *)&rp->saddr.addr)+1)=(i+74)%254;
+        *(((unsigned char *)&rp->saddr.addr)+2)=0;
+        *(((unsigned char *)&rp->saddr.addr)+3)=(i+40)%254;
+        rp->saddr.mask=32;
+        rp->sport=65535;
+        *((unsigned char *)&rp->daddr.addr)=(i+34)%254;
+        *((unsigned char *)&rp->daddr.addr+1)=75;
+        *((unsigned char *)&rp->daddr.addr+2)=0;
+        *((unsigned char *)&rp->daddr.addr+3)=109;
+        rp->daddr.mask=32;
+        rp->dport=i%65535;
+        rp->protocol=6;
+        rp->action=1;
+       rules.push_back(r[i]);
+
+    }
  //  std::cout<<"begin to close the rule file !"<<std::endl;
    fclose(fp);
  //  std::cout<<"close the rule file successfully !"<<std::endl;
