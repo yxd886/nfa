@@ -72,10 +72,10 @@ public:
   //  if(fp==NULL){
    //  std::cout<<"open file error!"<<std::endl;
  //   }
-    struct rule r[6];
+    struct rule r[60];
    struct rule* rp;
   //  std::cout<<"begin to read rules"<<std::endl;
-    for(int i=0;i<2;i++){
+    for(int i=0;i<20;i++){
   	  rp=&r[i];
         *(unsigned char *)&rp->saddr.addr=i%254;
         *(((unsigned char *)&rp->saddr.addr)+1)=(i+100)%254;
@@ -95,8 +95,8 @@ public:
 
     }
 
-    for(int i=0;i<2;i++){
-  	  rp=&r[i+2];
+    for(int i=0;i<20;i++){
+  	  rp=&r[i+20];
         *(unsigned char *)&rp->saddr.addr=(i+59)%254;
         *(((unsigned char *)&rp->saddr.addr)+1)=(i+44)%254;
         *(((unsigned char *)&rp->saddr.addr)+2)=0;
@@ -114,9 +114,9 @@ public:
        rules.push_back(r[i]);
 
     }
-    for(int i=0;i<2;i++){
+    for(int i=0;i<20;i++){
 
-  	  rp=&r[i+4];
+  	  rp=&r[i+40];
   	  *(unsigned char *)&rp->saddr.addr=(i+52)%254;
         *(((unsigned char *)&rp->saddr.addr)+1)=(i+74)%254;
         *(((unsigned char *)&rp->saddr.addr)+2)=0;
