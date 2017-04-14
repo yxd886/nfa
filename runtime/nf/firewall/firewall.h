@@ -135,7 +135,7 @@ public:
 
     }
  //  std::cout<<"begin to close the rule file !"<<std::endl;
-   fclose(fp);
+  // fclose(fp);
  //  std::cout<<"close the rule file successfully !"<<std::endl;
   }
 
