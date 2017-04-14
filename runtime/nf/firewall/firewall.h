@@ -64,7 +64,7 @@
 class firewall{
 public:
   firewall(){
-    FILE*fp=fopen("/home/net/repo/local-dev/rule.txt","r");
+    FILE*fp=fopen("/home/net/nfa-gpu/runtime/nf/firewall/rule.txt","r");
     char saddr[200];
     memset(saddr,0,sizeof(saddr));
     char daddr[200];
