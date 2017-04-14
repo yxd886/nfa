@@ -69,11 +69,11 @@ public:
     memset(saddr,0,sizeof(saddr));
     char daddr[200];
     memset(daddr,0,sizeof(daddr));
-    if(fp==NULL){
+  //  if(fp==NULL){
    //  std::cout<<"open file error!"<<std::endl;
-    }
+ //   }
     struct rule r[6];
-  //  struct rule* rp=&r;
+   struct rule* rp;
   //  std::cout<<"begin to read rules"<<std::endl;
     for(int i=0;i<2;i++){
   	  rp=&r[i];
